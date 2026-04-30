@@ -23,26 +23,40 @@
     .tap { cursor: pointer; transition: transform 0.1s ease; }
     .tap:active { transform: scale(0.96); }
 
-    /* ── TOP HEADER ── */
+    /* ── TOP HEADER WITH MASTER TOGGLE ── */
     .app-header { background: var(--surface); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 50; }
-    .header-left h1 { font-size: 18px; font-weight: 900; color: var(--text-1); letter-spacing: -0.5px; margin-bottom: 2px; }
-    .header-left p { font-size: 11px; font-weight: 700; color: #16a34a; display: flex; align-items: center; gap: 4px; text-transform: uppercase; }
-    .header-left p::before { content:''; width:6px; height:6px; background:#16a34a; border-radius:50%; display:inline-block; }
-    .btn-sync { background: #f3f4f6; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; color: var(--text-1); }
+    .header-left h1 { font-size: 18px; font-weight: 900; color: var(--text-1); letter-spacing: -0.5px; margin-bottom: 4px; }
+    
+    .status-badge { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
+    .status-online { background: #dcfce7; color: #16a34a; }
+    .status-online::before { content:''; width:6px; height:6px; background:#16a34a; border-radius:50%; display:inline-block; }
+    .status-offline { background: #fee2e2; color: #dc2626; }
+    .status-offline::before { content:''; width:6px; height:6px; background:#dc2626; border-radius:50%; display:inline-block; }
 
-    /* ── BUSINESS METRICS ── */
-    .metrics-row { display: flex; gap: 12px; padding: 16px 20px; background: var(--surface); border-bottom: 1px solid var(--border); }
+    .master-switch-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .master-label { font-size: 10px; font-weight: 800; color: var(--text-2); text-transform: uppercase; }
+
+    /* Switch */
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #d1d5db; transition: .3s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+    input:checked + .slider { background-color: #16a34a; }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* ── METRICS ── */
+    .metrics-row { display: flex; gap: 12px; padding: 12px 20px; background: var(--surface); border-bottom: 1px solid var(--border); }
     .metric-card { flex: 1; background: #f9fafb; border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
     .metric-title { font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; margin-bottom: 4px; }
     .metric-val { font-size: 20px; font-weight: 900; color: var(--text-1); }
 
-    /* ── MAIN CONTENT AREA ── */
+    /* ── MAIN CONTENT ── */
     .main-area { flex: 1; overflow-y: auto; padding-bottom: 80px; position: relative; }
     .view-section { display: none; }
     .view-section.active { display: block; animation: fadeIn 0.2s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ── ORDERS TABS ── */
+    /* ── ORDERS ── */
     .order-tabs { display: flex; padding: 16px 20px 0; gap: 8px; background: var(--bg); position: sticky; top: 0; z-index: 10; }
     .o-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 13px; font-weight: 800; color: var(--text-2); background: #e5e7eb; border-radius: 8px; transition: 0.2s; position: relative; }
     .o-tab.active { background: var(--text-1); color: #fff; }
@@ -53,7 +67,6 @@
     .tab-content { display: none; }
     .tab-content.active { display: flex; flex-direction: column; gap: 16px; }
 
-    /* ── ORDER CARDS ── */
     .order-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border-left: 4px solid var(--brand); }
     .oc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 12px; }
     .oc-id { font-size: 16px; font-weight: 900; color: var(--text-1); }
@@ -63,50 +76,24 @@
     .oc-total { font-size: 18px; font-weight: 900; color: var(--text-1); }
     .oc-actions { display: flex; gap: 10px; }
     .btn-card { flex: 1; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 800; border: none; font-family: inherit; }
-    .btn-reject { background: #fee2e2; color: #dc2626; flex: 0.5; }
     .btn-accept { background: #10b981; color: #fff; }
     .btn-ready { background: var(--brand); color: #fff; }
 
-    .pin-box { background: #f8fafc; border: 1.5px dashed var(--border); text-align: center; padding: 10px; border-radius: 10px; margin-bottom: 16px; }
-    .pin-box span { font-size: 10px; font-weight: 800; color: var(--text-3); text-transform: uppercase; }
-    .pin-box h3 { font-size: 22px; font-weight: 900; color: var(--text-1); letter-spacing: 4px; margin-top: 2px; }
-
-    /* ── MENU MANAGER ── */
+    /* ── MENU ── */
     .menu-wrap { padding: 20px; }
-    .menu-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .btn-add-item { background: var(--text-1); color: #fff; border: none; padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 800; font-family: inherit; }
-    
     .menu-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .menu-item.out-of-stock { opacity: 0.6; background: #f9fafb; }
+    .menu-item.out-of-stock { opacity: 0.5; background: #f9fafb; filter: grayscale(1); }
     .mi-name { font-size: 15px; font-weight: 800; color: var(--text-1); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
     .mi-price { font-size: 13px; font-weight: 700; color: var(--text-2); }
-    .mi-edit { color: var(--brand); font-size: 12px; margin-left: 8px; background: #fff7ed; padding: 2px 6px; border-radius: 4px; }
+    .mi-edit { color: var(--brand); font-size: 12px; margin-left: 8px; background: #fff7ed; padding: 2px 6px; border-radius: 4px; cursor:pointer; }
 
-    /* Switch */
-    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #d1d5db; transition: .3s; border-radius: 24px; }
-    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
-    input:checked + .slider { background-color: #16a34a; }
-    input:checked + .slider:before { transform: translateX(20px); }
-
-    /* ── MOBILE BOTTOM NAV ── */
+    /* ── NAV ── */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); display: flex; justify-content: space-around; padding: 12px 10px 24px; border-top-left-radius: 24px; border-top-right-radius: 24px; z-index: 100; }
     .b-nav-item { color: #9ca3af; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 8px 16px; border-radius: 12px; transition: 0.2s; }
-    .b-nav-item i { font-size: 20px; }
     .b-nav-item.active { color: #fff; }
     .b-nav-item.active i { color: var(--brand); }
 
-    /* Empty States */
     .empty-state { text-align: center; padding: 40px 20px; color: #9ca3af; font-weight: 700; font-size: 14px; }
-    .empty-state i { font-size: 32px; margin-bottom: 12px; opacity: 0.5; }
-
-    /* 🚨 CEO UPGRADE OVERLAY 🚨 */
-    #upgrade-overlay {
-      position: absolute; inset: 0; background: var(--surface); z-index: 900;
-      display: none; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; padding: 32px;
-    }
   </style>
 </head>
 <body>
@@ -114,9 +101,16 @@
   <div class="app-header">
     <div class="header-left">
       <h1 id="res-name-display">EatSwada Partner</h1>
-      <p>Accepting Orders</p>
+      <div id="res-status-badge" class="status-badge status-online">Online</div>
     </div>
-    <button class="btn-sync tap" onclick="fetchData()"><i class="fa-solid fa-rotate-right"></i> Sync</button>
+    
+    <div class="master-switch-wrap">
+      <div class="master-label">Accept Orders</div>
+      <label class="switch tap">
+        <input type="checkbox" id="master-toggle" checked onchange="toggleRestaurantStatus(this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
   </div>
 
   <div class="metrics-row">
@@ -124,31 +118,18 @@
       <div class="metric-title">Today's Orders</div>
       <div class="metric-val" id="metric-orders">0</div>
     </div>
-    <div class="metric-card">
-      <div class="metric-title">Revenue</div>
-      <div class="metric-val">₹<span id="metric-revenue" style="color:var(--text-1); font-size:20px;">0</span></div>
-    </div>
+    <button class="tap" style="background:#f3f4f6; border:none; padding:0 20px; border-radius:12px; font-size:12px; font-weight:800;" onclick="fetchData()">
+      <i class="fa-solid fa-rotate-right"></i> Sync
+    </button>
   </div>
 
   <div class="main-area">
-    
-    <div id="upgrade-overlay">
-      <i class="fa-solid fa-lock" style="font-size:48px; color:#dc2626; margin-bottom:16px;"></i>
-      <h2 style="font-size:22px; font-weight:900; margin-bottom:8px; color:var(--text-1);">Access Restricted</h2>
-      <p style="color:var(--text-2); font-weight:600; margin-bottom:32px; line-height:1.5;">Your account is currently registered as a Customer. You need Restaurant Owner privileges to access this dashboard.</p>
-      
-      <button id="btn-upgrade" onclick="executeCEOUpgrade()" class="tap" style="background:var(--brand); color:#fff; border:none; padding:18px 24px; border-radius:14px; font-size:16px; font-weight:800; box-shadow:0 4px 14px rgba(252,128,25,0.3); width:100%;">
-        👑 Promote Account to CEO
-      </button>
-    </div>
-
     <div class="view-section active" id="view-orders">
       <div class="order-tabs">
         <div class="o-tab active tap" onclick="switchOrderTab('new')">New <span class="o-badge" id="badge-new">0</span></div>
         <div class="o-tab tap" onclick="switchOrderTab('prep')">Cooking <span class="o-badge" id="badge-prep">0</span></div>
         <div class="o-tab tap" onclick="switchOrderTab('ready')">Ready <span class="o-badge" id="badge-ready">0</span></div>
       </div>
-
       <div class="orders-container">
         <div class="tab-content active" id="tab-new"></div>
         <div class="tab-content" id="tab-prep"></div>
@@ -158,9 +139,8 @@
 
     <div class="view-section" id="view-menu">
       <div class="menu-wrap">
-        <div class="menu-header-row">
-          <div style="font-size: 18px; font-weight: 900;">Live Inventory</div>
-        </div>
+        <div style="font-size: 18px; font-weight: 900; margin-bottom: 4px;">Menu Control</div>
+        <p style="font-size: 12px; font-weight:600; color:var(--text-2); margin-bottom: 20px;">Toggle item availability or update pricing.</p>
         <div id="menu-grid">
            <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><br>Syncing Menu...</div>
         </div>
@@ -169,8 +149,8 @@
   </div>
 
   <div class="bottom-nav">
-    <div class="b-nav-item active tap" onclick="switchMainTab('orders', this)"><i class="fa-solid fa-receipt"></i> Orders</div>
-    <div class="b-nav-item tap" onclick="switchMainTab('menu', this)"><i class="fa-solid fa-utensils"></i> Menu</div>
+    <div class="b-nav-item active tap" onclick="switchMainTab('orders', this)"><i class="fa-solid fa-receipt"></i></div>
+    <div class="b-nav-item tap" onclick="switchMainTab('menu', this)"><i class="fa-solid fa-utensils"></i></div>
   </div>
 
   <script>
@@ -193,39 +173,40 @@
 
     function generateOTP(orderId) { return parseInt(orderId.slice(-5), 16).toString().slice(-4).padStart(4, '0'); }
 
-    // ── CORE DATA FETCH ──
     async function fetchData() {
       const token = localStorage.getItem('token') || localStorage.getItem('nearbite_token'); 
-      if (!token) {
-          // If no token exists, they need to log into the main app first
-          document.getElementById('upgrade-overlay').style.display = 'flex';
-          document.getElementById('upgrade-overlay').innerHTML = `
-             <h2 style="font-size:22px; font-weight:900; margin-bottom:8px; color:var(--text-1);">Please Log In First</h2>
-             <p style="color:var(--text-2); font-weight:600; margin-bottom:24px;">Go to the main Nearbite Customer app and log in with your OTP. Then return here.</p>
-             <button onclick="window.location.href='https://kignas.github.io/Nearbite/'" style="background:var(--brand); color:#fff; border:none; padding:16px 24px; border-radius:12px; font-weight:800;">Go to Nearbite Login</button>
-          `;
-          return;
-      }
+      if (!token) { window.location.href = 'index.html'; return; }
 
       fetchVendorOrders(token);
       fetchVendorMenu(token);
+    }
+
+    // ── MASTER RESTAURANT TOGGLE ──
+    async function toggleRestaurantStatus(isOnline) {
+       const token = localStorage.getItem('nearbite_token');
+       // Note to Developer: You will need to add this simple endpoint to your vendorRoutes!
+       try {
+           await fetch('https://eatswada.onrender.com/api/vendor/status', {
+              method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({ isActive: isOnline })
+           });
+           
+           const badge = document.getElementById('res-status-badge');
+           if(isOnline) {
+               badge.className = 'status-badge status-online'; badge.innerText = 'Online';
+           } else {
+               badge.className = 'status-badge status-offline'; badge.innerText = 'Offline';
+           }
+       } catch(e) { console.error("Could not update status."); }
     }
 
     // ── ORDERS ENGINE ──
     async function fetchVendorOrders(token) {
       try {
         const response = await fetch('https://eatswada.onrender.com/api/vendor/orders', { headers: { 'Authorization': `Bearer ${token}` } });
+        if(response.status === 403) { window.location.href = 'index.html'; return; }
         const result = await response.json();
         
-        // 🚨 IF THE BACKEND SAYS 403 FORBIDDEN, SHOW THE UPGRADE BUTTON! 🚨
-        if (response.status === 403 || (result.message && result.message.includes('Access denied'))) {
-            document.getElementById('upgrade-overlay').style.display = 'flex';
-            return;
-        }
-
-        // If they are a vendor, hide the overlay and show data
-        document.getElementById('upgrade-overlay').style.display = 'none';
-
         if (response.ok && result.success) {
           if(result.data.length > 0 && result.data[0].restaurantName) {
             document.getElementById('res-name-display').innerText = result.data[0].restaurantName;
@@ -245,7 +226,6 @@
 
         const timeStr = new Date(order.createdAt).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'});
         const itemsText = order.items.map(i => `<span>${i.quantity}x</span> ${i.name}`).join('<br>');
-        const otp = generateOTP(order._id);
 
         let cardHtml = `
           <div class="order-card">
@@ -270,7 +250,7 @@
         else if (order.status === 'preparing') {
           cPrep++;
           tabPrep.innerHTML += cardHtml + `
-            <div class="pin-box"><span>Hand to Rider PIN</span><h3>${otp}</h3></div>
+            <div style="text-align:center; margin-bottom:12px; font-size:12px; font-weight:800; color:#1c1c1c;">Rider PIN: <span style="letter-spacing:2px; color:var(--brand);">${generateOTP(order._id)}</span></div>
             <button class="btn-card btn-ready tap" style="width:100%;" onclick="updateOrderStatus('${order._id}', 'out_for_delivery')">Food is Ready</button></div>`;
         } 
         else if (order.status === 'out_for_delivery') {
@@ -282,6 +262,7 @@
       document.getElementById('badge-new').innerText = cNew; document.getElementById('badge-new').className = cNew > 0 ? 'o-badge show' : 'o-badge';
       document.getElementById('badge-prep').innerText = cPrep; document.getElementById('badge-prep').className = cPrep > 0 ? 'o-badge show' : 'o-badge';
       document.getElementById('badge-ready').innerText = cReady; document.getElementById('badge-ready').className = cReady > 0 ? 'o-badge show' : 'o-badge';
+      document.getElementById('metric-orders').innerText = cNew + cPrep + cReady;
     }
 
     async function updateOrderStatus(id, status) {
@@ -292,7 +273,7 @@
        fetchData(); 
     }
 
-    // ── MENU ENGINE ──
+    // ── MENU ENGINE (LOCKED VIEW) ──
     async function fetchVendorMenu(token) {
       try {
         const response = await fetch('https://eatswada.onrender.com/api/vendor/menu', { headers: { 'Authorization': `Bearer ${token}` } });
@@ -301,13 +282,20 @@
         if (response.ok && result.success) {
           const grid = document.getElementById('menu-grid');
           if (result.data.length === 0) {
-             grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-utensils"></i><br>Your menu is empty.</div>'; return;
+             grid.innerHTML = '<div class="empty-state">No items assigned to your restaurant by EatSwada Admin yet.</div>'; return;
           }
           grid.innerHTML = result.data.map(item => `
             <div class="menu-item ${item.inStock ? '' : 'out-of-stock'}">
               <div>
-                <div class="mi-name">${item.name}</div>
-                <div class="mi-price">₹${item.price}</div>
+                <div class="mi-name">
+                  <div style="width:10px; height:10px; border:1px solid ${item.isVeg ? '#16a34a' : '#dc2626'}; border-radius:2px; display:flex; align-items:center; justify-content:center;">
+                     <div style="width:4px; height:4px; background:${item.isVeg ? '#16a34a' : '#dc2626'}; border-radius:50%;"></div>
+                  </div>
+                  ${item.name}
+                </div>
+                <div class="mi-price">₹<span id="price-${item._id}">${item.price}</span> 
+                  <span class="mi-edit tap" onclick="editPrice('${item._id}', ${item.price})"><i class="fa-solid fa-pen"></i> Update</span>
+                </div>
               </div>
               <label class="switch tap">
                 <input type="checkbox" ${item.inStock ? 'checked' : ''} onchange="toggleItemStock('${item._id}', this.checked)">
@@ -327,31 +315,15 @@
        fetchVendorMenu(token); 
     }
 
-    // ── 🚨 RUN THE SECRET CEO UPGRADE 🚨 ──
-    async function executeCEOUpgrade() {
-        const token = localStorage.getItem('token') || localStorage.getItem('nearbite_token');
-        const btn = document.getElementById('btn-upgrade');
-        btn.innerText = "Upgrading..."; btn.disabled = true;
-
-        try {
-            const res = await fetch('https://eatswada.onrender.com/api/secret-upgrade', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            
-            if (data.success) {
-                alert("Success! You are now the Owner. Loading dashboard...");
-                document.getElementById('upgrade-overlay').style.display = 'none';
-                fetchData(); // Reload the UI
-            } else {
-                alert("Upgrade failed. Is your backend updated?");
-                btn.innerText = "Try Again"; btn.disabled = false;
-            }
-        } catch(e) {
-            alert("Network Error");
-            btn.innerText = "Try Again"; btn.disabled = false;
-        }
+    async function editPrice(id, currentPrice) {
+      const newPrice = prompt("Enter new price in ₹:", currentPrice);
+      if (!newPrice || newPrice == currentPrice || isNaN(newPrice)) return;
+      const token = localStorage.getItem('nearbite_token');
+      await fetch(`https://eatswada.onrender.com/api/vendor/menu/${id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ price: Number(newPrice) })
+      });
+      document.getElementById(`price-${id}`).innerText = newPrice;
     }
 
     document.addEventListener('DOMContentLoaded', () => { fetchData(); setInterval(fetchData, 10000); });
