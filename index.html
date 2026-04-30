@@ -24,7 +24,7 @@
     .tap:active { opacity: 0.6; }
 
     /* ── SIDEBAR ── */
-    .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 16px; }
+    .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 16px; z-index: 10; }
     .brand { font-size: 20px; font-weight: 900; color: var(--brand-accent); margin-bottom: 40px; padding: 0 12px; display: flex; align-items: center; gap: 8px; }
     .brand span { color: var(--text-1); }
     
@@ -45,7 +45,7 @@
     .view-section { display: none; flex: 1; overflow-y: auto; padding: 32px; }
     .view-section.active { display: block; }
 
-    /* ── ORDERS VIEW (Kanban) ── */
+    /* ── ORDERS VIEW ── */
     .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; height: 100%; }
     .column { background: #f8f9fa; border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; }
     .col-header { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; background: var(--surface); }
@@ -69,10 +69,10 @@
     .btn-add { background: var(--text-1); color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 700; border: none; font-size: 14px; }
     
     .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-    .menu-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .menu-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
     .menu-item.disabled { opacity: 0.5; background: #fafafa; }
-    .item-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
-    .item-price { font-size: 13px; font-weight: 700; color: var(--text-2); }
+    .item-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .item-price { font-size: 13px; font-weight: 700; color: var(--text-2); display: flex; align-items: center; gap: 8px; margin-top: 4px; }
 
     /* Toggle Switch */
     .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
@@ -82,13 +82,45 @@
     input:checked + .slider { background-color: #16a34a; }
     input:checked + .slider:before { transform: translateX(18px); }
 
+    /* ── 🚨 ADD ITEM MODAL STYLES 🚨 ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .modal {
+      background: var(--surface); width: 90%; max-width: 400px; border-radius: 16px;
+      padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); animation: popIn 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .modal h2 { font-size: 18px; font-weight: 800; margin-bottom: 20px; color: var(--text-1); }
+    .input-group { margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .input-field {
+      width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+      font-size: 14px; font-family: inherit; font-weight: 600; outline: none; transition: 0.2s; color: var(--text-1); background: #f9fafb;
+    }
+    .input-field:focus { border-color: var(--brand-accent); background: #fff; }
+    
+    .type-selector { display: flex; gap: 12px; }
+    .type-btn { flex: 1; border: 1px solid var(--border); background: #fff; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 700; text-align: center; color: var(--text-2); }
+    .type-btn.active-veg { border-color: #219653; background: #f0fdf4; color: #16a34a; }
+    .type-btn.active-non { border-color: #eb5757; background: #fef2f2; color: #dc2626; }
+
+    .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+    .btn-modal-cancel { flex: 1; background: #f4f4f5; color: var(--text-1); border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-family: inherit; }
+    .btn-modal-submit { flex: 1; background: var(--brand-accent); color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-family: inherit; }
+
     @media (max-width: 768px) {
        body { flex-direction: column; }
        .sidebar { width: 100%; padding: 16px; border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; justify-content: space-between; align-items: center; }
-       .brand { margin-bottom: 0; }
+       .brand { margin-bottom: 0; font-size: 18px; }
        .nav-item { margin-bottom: 0; padding: 8px 12px; }
        .sidebar-footer { display: none; }
+       .topbar { padding: 16px; }
+       .view-section { padding: 16px; }
        .board { display: flex; flex-direction: column; }
+       .menu-header { flex-direction: column; align-items: flex-start; gap: 12px; }
     }
   </style>
 </head>
@@ -136,11 +168,41 @@
 
     <div class="view-section" id="view-menu">
       <div class="menu-header">
-        <p style="color:var(--text-2); font-weight:600;">Manage your live inventory instantly.</p>
-        <button class="btn-add tap" onclick="alert('Add Item Modal goes here!')">+ Add Item</button>
+        <p style="color:var(--text-2); font-weight:600; font-size:14px;">Manage your live inventory instantly.</p>
+        <button class="btn-add tap" onclick="document.getElementById('addModal').style.display='flex'">+ Add Item</button>
       </div>
       <div class="menu-grid" id="menu-grid">
+        <div style="text-align:center; padding: 40px; color:#828282; font-weight:600; width: 100%; grid-column: 1 / -1;">Syncing Live Menu...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="addModal">
+    <div class="modal">
+      <h2>Add New Item</h2>
+      <div class="input-group">
+        <label>Item Name</label>
+        <input type="text" id="itemName" class="input-field" placeholder="e.g. Chicken Dum Biryani">
+      </div>
+      <div class="input-group">
+        <label>Price (₹)</label>
+        <input type="number" id="itemPrice" class="input-field" placeholder="e.g. 180">
+      </div>
+      <div class="input-group">
+        <label>Category</label>
+        <input type="text" id="itemCategory" class="input-field" placeholder="e.g. Main Course">
+      </div>
+      <div class="input-group">
+        <label>Dietary Type</label>
+        <div class="type-selector">
+          <div class="type-btn tap active-veg" id="btnVeg" onclick="setVeg(true)">Veg</div>
+          <div class="type-btn tap" id="btnNonVeg" onclick="setVeg(false)">Non-Veg</div>
         </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel tap" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+        <button class="btn-modal-submit tap" onclick="uploadItem()">Upload Item</button>
+      </div>
     </div>
   </div>
 
@@ -148,6 +210,7 @@
 
   <script>
     let currentTab = 'orders';
+    let isUploadingVeg = true;
 
     function switchTab(tabId, el) {
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -158,6 +221,12 @@
       document.getElementById('page-title').innerText = tabId === 'orders' ? 'Live Orders' : 'Menu Manager';
       currentTab = tabId;
       fetchData();
+    }
+
+    function setVeg(isVeg) {
+      isUploadingVeg = isVeg;
+      document.getElementById('btnVeg').className = isVeg ? 'type-btn tap active-veg' : 'type-btn tap';
+      document.getElementById('btnNonVeg').className = !isVeg ? 'type-btn tap active-non' : 'type-btn tap';
     }
 
     function generateOTP(orderId) {
@@ -177,10 +246,9 @@
       if(currentTab === 'menu') fetchVendorMenu(token);
     }
 
-    // ── FETCH ORDERS (Vendor Specific) ──
+    /* ── ORDERS LOGIC ── */
     async function fetchVendorOrders(token) {
       try {
-        // 🚨 IMPORTANT: This API endpoint MUST be protected on your backend to only return THIS vendor's orders!
         const response = await fetch('https://eatswada.onrender.com/api/vendor/orders', { headers: { 'Authorization': `Bearer ${token}` } });
         const result = await response.json();
         
@@ -190,7 +258,7 @@
             document.getElementById('vendor-res-name').innerText = result.data[0].restaurantName;
           }
         }
-      } catch (err) { console.error(err); }
+      } catch (err) { console.error("Error fetching orders:", err); }
     }
 
     function renderOrders(orders) {
@@ -212,7 +280,7 @@
               <span class="order-time">${timeStr}</span>
             </div>
             <div style="margin-bottom:12px;">${itemsHtml}</div>
-            <div style="font-size:14px; font-weight:800; border-top:1px dashed #e8ebe9; padding-top:12px;">Total: ₹${order.total}</div>
+            <div style="font-size:14px; font-weight:800; border-top:1px dashed var(--border); padding-top:12px;">Total: ₹${order.total}</div>
         `;
 
         if (order.status === 'pending' || order.status === 'placed') {
@@ -240,7 +308,7 @@
     }
 
     async function updateOrderStatus(id, status) {
-       const token = localStorage.getItem('nearbite_token');
+       const token = localStorage.getItem('nearbite_token') || localStorage.getItem('token');
        await fetch(`https://eatswada.onrender.com/api/orders/${id}/status`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ status })
@@ -248,18 +316,32 @@
        fetchData();
     }
 
-    // ── FETCH MENU (Vendor Specific) ──
+    /* ── MENU LOGIC ── */
     async function fetchVendorMenu(token) {
       try {
         const response = await fetch('https://eatswada.onrender.com/api/vendor/menu', { headers: { 'Authorization': `Bearer ${token}` } });
         const result = await response.json();
+        const grid = document.getElementById('menu-grid');
+        
         if (response.ok && result.success) {
-          const grid = document.getElementById('menu-grid');
+          if (result.data.length === 0) {
+             grid.innerHTML = '<div style="text-align:center; padding: 40px; color:#828282; font-weight:600; width: 100%; grid-column: 1 / -1;">No items in your menu yet. Click Add Item to start!</div>';
+             return;
+          }
+          
           grid.innerHTML = result.data.map(item => `
             <div class="menu-item ${item.inStock ? '' : 'disabled'}">
               <div>
-                <div class="item-title">${item.name}</div>
-                <div class="item-price">₹${item.price}</div>
+                <div class="item-title">
+                  <div style="width:14px; height:14px; border:1px solid ${item.isVeg ? '#219653' : '#eb5757'}; border-radius:3px; display:flex; align-items:center; justify-content:center;">
+                     <div style="width:6px; height:6px; background:${item.isVeg ? '#219653' : '#eb5757'}; border-radius:50%;"></div>
+                  </div>
+                  ${item.name}
+                </div>
+                <div class="item-price">
+                  ₹<span id="price-${item._id}">${item.price}</span>
+                  <button class="tap" style="background:#f4f4f5; border:none; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:800; color:var(--text-1);" onclick="editPrice('${item._id}', ${item.price})"><i class="fa-solid fa-pen"></i> Edit</button>
+                </div>
               </div>
               <label class="switch tap">
                 <input type="checkbox" ${item.inStock ? 'checked' : ''} onchange="toggleItemStock('${item._id}', this.checked)">
@@ -268,16 +350,62 @@
             </div>
           `).join('');
         }
-      } catch(e) { console.error(e); }
+      } catch(e) { console.error("Error fetching menu:", e); }
     }
 
     async function toggleItemStock(id, inStock) {
-       const token = localStorage.getItem('nearbite_token');
+       const token = localStorage.getItem('nearbite_token') || localStorage.getItem('token');
        await fetch(`https://eatswada.onrender.com/api/vendor/menu/${id}`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ inStock })
        });
        fetchData();
+    }
+
+    async function editPrice(id, currentPrice) {
+      const newPrice = prompt("Enter new price in ₹:", currentPrice);
+      if (!newPrice || newPrice == currentPrice || isNaN(newPrice)) return;
+
+      const token = localStorage.getItem('nearbite_token') || localStorage.getItem('token');
+      try {
+        const response = await fetch(`https://eatswada.onrender.com/api/vendor/menu/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ price: Number(newPrice) })
+        });
+        if (response.ok) document.getElementById(`price-${id}`).innerText = newPrice;
+      } catch (err) { alert("Could not update price."); }
+    }
+
+    async function uploadItem() {
+      const name = document.getElementById('itemName').value.trim();
+      const price = document.getElementById('itemPrice').value;
+      const category = document.getElementById('itemCategory').value.trim() || 'General';
+
+      if (!name || !price) return alert("Please fill the item name and price!");
+
+      const token = localStorage.getItem('nearbite_token') || localStorage.getItem('token');
+      const btn = document.querySelector('.btn-modal-submit');
+      btn.innerText = "Uploading..."; btn.disabled = true;
+      
+      try {
+        const response = await fetch('https://eatswada.onrender.com/api/vendor/menu', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ name, price: Number(price), category, isVeg: isUploadingVeg, inStock: true })
+        });
+
+        if (response.ok) {
+          document.getElementById('addModal').style.display = 'none';
+          document.getElementById('itemName').value = '';
+          document.getElementById('itemPrice').value = '';
+          fetchData(); // Instantly refresh the grid
+        } else {
+          alert("Failed to upload. Ensure you are upgraded to a Vendor account.");
+        }
+      } catch (err) { alert("Network Error"); }
+      
+      btn.innerText = "Upload Item"; btn.disabled = false;
     }
 
     document.addEventListener('DOMContentLoaded', () => { fetchData(); setInterval(fetchData, 10000); });
