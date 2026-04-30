@@ -3,194 +3,201 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Partner Dashboard – EatSwada</title>
+  <title>Partner App – EatSwada</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
     :root {
-      --brand: #1c1c1c;
-      --brand-accent: #FC8019;
-      --bg: #f4f4f5;
+      --brand: #FC8019;
+      --bg: #f3f4f6;
       --surface: #ffffff;
-      --text-1: #1c1c1c;
-      --text-2: #4f4f4f;
-      --border: #e8ebe9;
+      --text-1: #111827;
+      --text-2: #4b5563;
+      --border: #e5e7eb;
+      --nav-bg: #1f2937;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-1); display: flex; height: 100dvh; overflow: hidden; }
-    .tap { cursor: pointer; transition: 0.15s; }
-    .tap:active { opacity: 0.6; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-1); display: flex; flex-direction: column; height: 100dvh; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+    .tap { cursor: pointer; transition: transform 0.1s ease; }
+    .tap:active { transform: scale(0.96); }
 
-    /* ── SIDEBAR ── */
-    .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 16px; z-index: 10; }
-    .brand { font-size: 20px; font-weight: 900; color: var(--brand-accent); margin-bottom: 40px; padding: 0 12px; display: flex; align-items: center; gap: 8px; }
-    .brand span { color: var(--text-1); }
+    /* ── TOP HEADER ── */
+    .app-header { background: var(--surface); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 50; }
+    .header-left h1 { font-size: 18px; font-weight: 900; color: var(--text-1); letter-spacing: -0.5px; margin-bottom: 2px; }
+    .header-left p { font-size: 11px; font-weight: 700; color: #16a34a; display: flex; align-items: center; gap: 4px; text-transform: uppercase; }
+    .header-left p::before { content:''; width:6px; height:6px; background:#16a34a; border-radius:50%; display:inline-block; }
+    .btn-sync { background: #f3f4f6; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; color: var(--text-1); }
+
+    /* ── BUSINESS METRICS ── */
+    .metrics-row { display: flex; gap: 12px; padding: 16px 20px; background: var(--surface); border-bottom: 1px solid var(--border); }
+    .metric-card { flex: 1; background: #f9fafb; border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+    .metric-title { font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; margin-bottom: 4px; }
+    .metric-val { font-size: 20px; font-weight: 900; color: var(--text-1); }
+    .metric-val span { font-size: 14px; font-weight: 700; color: var(--text-2); }
+
+    /* ── MAIN CONTENT AREA ── */
+    .main-area { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+    .view-section { display: none; }
+    .view-section.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── ORDERS TABS ── */
+    .order-tabs { display: flex; padding: 16px 20px 0; gap: 8px; background: var(--bg); position: sticky; top: 0; z-index: 10; }
+    .o-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 13px; font-weight: 800; color: var(--text-2); background: #e5e7eb; border-radius: 8px; transition: 0.2s; position: relative; }
+    .o-tab.active { background: var(--text-1); color: #fff; }
+    .o-badge { position: absolute; top: -6px; right: -6px; background: #ef4444; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; border: 2px solid var(--bg); display: none; }
+    .o-badge.show { display: inline-block; }
+
+    .orders-container { padding: 16px 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── ORDER CARDS ── */
+    .order-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border-left: 4px solid var(--brand); }
+    .oc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 12px; }
+    .oc-id { font-size: 16px; font-weight: 900; color: var(--text-1); }
+    .oc-time { font-size: 12px; font-weight: 700; color: var(--text-2); background: #f3f4f6; padding: 4px 8px; border-radius: 6px; }
     
-    .nav-item { padding: 14px 16px; border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--text-2); margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
-    .nav-item.active { background: #fff4ec; color: var(--brand-accent); }
-    .nav-item:hover:not(.active) { background: #f8f9fa; }
-
-    .sidebar-footer { margin-top: auto; padding: 16px 12px; }
-    .res-name { font-size: 14px; font-weight: 800; color: var(--text-1); margin-bottom: 4px; }
-    .res-status { font-size: 11px; font-weight: 700; color: #16a34a; display: flex; align-items: center; gap: 6px; }
-    .res-status::before { content:''; width:8px; height:8px; background:#16a34a; border-radius:50%; }
-
-    /* ── MAIN CONTENT ── */
-    .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .topbar { background: var(--surface); padding: 16px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .page-title { font-size: 20px; font-weight: 800; }
+    .oc-items { font-size: 14px; font-weight: 600; color: var(--text-2); line-height: 1.5; margin-bottom: 16px; }
+    .oc-items span { color: var(--brand); font-weight: 800; }
     
-    .view-section { display: none; flex: 1; overflow-y: auto; padding: 32px; }
-    .view-section.active { display: block; }
+    .oc-footer { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .oc-total { font-size: 18px; font-weight: 900; color: var(--text-1); }
+    .oc-type { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; }
+    .type-cod { background: #fef3c7; color: #b45309; }
+    .type-paid { background: #dcfce7; color: #166534; }
 
-    /* ── ORDERS VIEW ── */
-    .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; height: 100%; }
-    .column { background: #f8f9fa; border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; }
-    .col-header { padding: 16px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; background: var(--surface); }
-    .col-count { background: #f1f1f1; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
-    .order-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+    .oc-actions { display: flex; gap: 10px; }
+    .btn-card { flex: 1; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 800; border: none; font-family: inherit; }
+    .btn-reject { background: #fee2e2; color: #dc2626; flex: 0.5; }
+    .btn-accept { background: #10b981; color: #fff; }
+    .btn-ready { background: var(--brand); color: #fff; }
 
-    .order-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
-    .order-header { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding-bottom: 12px; margin-bottom: 12px; }
-    .order-id { font-size: 14px; font-weight: 800; }
-    .order-time { font-size: 12px; font-weight: 700; color: var(--brand-accent); background: #fff4ec; padding: 4px 8px; border-radius: 6px; }
+    .pin-box { background: #f8fafc; border: 1.5px dashed var(--border); text-align: center; padding: 10px; border-radius: 10px; margin-bottom: 16px; }
+    .pin-box span { font-size: 10px; font-weight: 800; color: var(--text-3); text-transform: uppercase; }
+    .pin-box h3 { font-size: 22px; font-weight: 900; color: var(--text-1); letter-spacing: 4px; margin-top: 2px; }
+
+    /* ── MENU MANAGER ── */
+    .menu-wrap { padding: 20px; }
+    .menu-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .btn-add-item { background: var(--text-1); color: #fff; border: none; padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 800; font-family: inherit; }
     
-    .item-row { display: flex; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-2); }
-    .item-qty { color: var(--brand-accent); margin-right: 8px; width: 20px; }
-    
-    .btn-action { width: 100%; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 800; border: none; margin-top: 16px; color: #fff; font-family: inherit; }
-    .btn-accept { background: #ef4444; }
-    .btn-dispatch { background: var(--brand-accent); }
+    .menu-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; transition: 0.2s; }
+    .menu-item.out-of-stock { opacity: 0.6; background: #f9fafb; }
+    .mi-name { font-size: 15px; font-weight: 800; color: var(--text-1); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .mi-price { font-size: 13px; font-weight: 700; color: var(--text-2); }
+    .mi-edit { color: var(--brand); font-size: 12px; margin-left: 8px; background: #fff7ed; padding: 2px 6px; border-radius: 4px; }
 
-    /* ── MENU VIEW ── */
-    .menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .btn-add { background: var(--text-1); color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 700; border: none; font-size: 14px; }
-    
-    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-    .menu-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-    .menu-item.disabled { opacity: 0.5; background: #fafafa; }
-    .item-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
-    .item-price { font-size: 13px; font-weight: 700; color: var(--text-2); display: flex; align-items: center; gap: 8px; margin-top: 4px; }
-
-    /* Toggle Switch */
-    .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+    /* Switch */
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #d1d5db; transition: .3s; border-radius: 24px; }
-    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
     input:checked + .slider { background-color: #16a34a; }
-    input:checked + .slider:before { transform: translateX(18px); }
+    input:checked + .slider:before { transform: translateX(20px); }
 
-    /* ── 🚨 ADD ITEM MODAL STYLES 🚨 ── */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-      display: none; align-items: center; justify-content: center; z-index: 9999;
-    }
-    .modal {
-      background: var(--surface); width: 90%; max-width: 400px; border-radius: 16px;
-      padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); animation: popIn 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-    }
+    /* ── MOBILE BOTTOM NAV ── */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); display: flex; justify-content: space-around; padding: 12px 10px 24px; border-top-left-radius: 24px; border-top-right-radius: 24px; z-index: 100; box-shadow: 0 -10px 30px rgba(0,0,0,0.1); }
+    .b-nav-item { color: #9ca3af; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 8px 16px; border-radius: 12px; transition: 0.2s; }
+    .b-nav-item i { font-size: 20px; }
+    .b-nav-item.active { color: #fff; }
+    .b-nav-item.active i { color: var(--brand); }
+
+    /* ── MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 9999; }
+    .modal { background: var(--surface); width: 90%; max-width: 400px; border-radius: 20px; padding: 24px; animation: popIn 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
     @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-    .modal h2 { font-size: 18px; font-weight: 800; margin-bottom: 20px; color: var(--text-1); }
     .input-group { margin-bottom: 16px; }
-    .input-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .input-field {
-      width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 12px;
-      font-size: 14px; font-family: inherit; font-weight: 600; outline: none; transition: 0.2s; color: var(--text-1); background: #f9fafb;
-    }
-    .input-field:focus { border-color: var(--brand-accent); background: #fff; }
-    
+    .input-group label { display: block; font-size: 11px; font-weight: 800; color: var(--text-2); margin-bottom: 8px; text-transform: uppercase; }
+    .input-field { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 12px; font-size: 14px; font-family: inherit; font-weight: 700; outline: none; transition: 0.2s; background: #f9fafb; }
+    .input-field:focus { border-color: var(--brand); background: #fff; }
     .type-selector { display: flex; gap: 12px; }
-    .type-btn { flex: 1; border: 1px solid var(--border); background: #fff; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 700; text-align: center; color: var(--text-2); }
+    .type-btn { flex: 1; border: 1.5px solid var(--border); background: #fff; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 800; text-align: center; color: var(--text-2); }
     .type-btn.active-veg { border-color: #219653; background: #f0fdf4; color: #16a34a; }
     .type-btn.active-non { border-color: #eb5757; background: #fef2f2; color: #dc2626; }
-
     .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
-    .btn-modal-cancel { flex: 1; background: #f4f4f5; color: var(--text-1); border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-family: inherit; }
-    .btn-modal-submit { flex: 1; background: var(--brand-accent); color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-family: inherit; }
+    .btn-modal { flex: 1; border: none; padding: 14px; border-radius: 12px; font-weight: 800; font-family: inherit; font-size: 14px; }
 
-    @media (max-width: 768px) {
-       body { flex-direction: column; }
-       .sidebar { width: 100%; padding: 16px; border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; justify-content: space-between; align-items: center; }
-       .brand { margin-bottom: 0; font-size: 18px; }
-       .nav-item { margin-bottom: 0; padding: 8px 12px; }
-       .sidebar-footer { display: none; }
-       .topbar { padding: 16px; }
-       .view-section { padding: 16px; }
-       .board { display: flex; flex-direction: column; }
-       .menu-header { flex-direction: column; align-items: flex-start; gap: 12px; }
-    }
+    /* Empty States */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-3); font-weight: 700; font-size: 14px; }
+    .empty-state i { font-size: 32px; margin-bottom: 12px; opacity: 0.5; }
   </style>
 </head>
 <body>
 
-  <div class="sidebar">
-    <div class="brand"><i class="fa-solid fa-shop"></i> EatSwada <span>Partner</span></div>
-    
-    <div class="nav-item active tap" onclick="switchTab('orders', this)">
-      <i class="fa-solid fa-bell"></i> Live Orders
+  <div class="app-header">
+    <div class="header-left">
+      <h1 id="res-name-display">EatSwada Partner</h1>
+      <p>Accepting Orders</p>
     </div>
-    <div class="nav-item tap" onclick="switchTab('menu', this)">
-      <i class="fa-solid fa-utensils"></i> Menu Manager
-    </div>
+    <button class="btn-sync tap" onclick="fetchData()"><i class="fa-solid fa-rotate-right"></i> Sync</button>
+  </div>
 
-    <div class="sidebar-footer">
-      <div class="res-name" id="vendor-res-name">Loading...</div>
-      <div class="res-status">Accepting Orders</div>
-      <button class="tap" style="margin-top:12px; background:none; border:none; color:#ef4444; font-size:12px; font-weight:700;" onclick="logout()">Logout</button>
+  <div class="metrics-row">
+    <div class="metric-card">
+      <div class="metric-title">Today's Orders</div>
+      <div class="metric-val" id="metric-orders">0</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Revenue</div>
+      <div class="metric-val">₹<span id="metric-revenue" style="color:var(--text-1); font-size:20px;">0</span></div>
     </div>
   </div>
 
-  <div class="main-content">
-    <div class="topbar">
-      <div class="page-title" id="page-title">Live Orders</div>
-      <button class="tap" style="background:#f4f4f5; border:1px solid var(--border); padding:8px 16px; border-radius:8px; font-weight:700;" onclick="fetchData()"><i class="fa-solid fa-rotate-right"></i> Sync</button>
-    </div>
-
+  <div class="main-area">
+    
     <div class="view-section active" id="view-orders">
-      <div class="board">
-        <div class="column">
-          <div class="col-header">New Orders <span class="col-count" id="c-new">0</span></div>
-          <div class="order-list" id="list-new"></div>
-        </div>
-        <div class="column">
-          <div class="col-header">Preparing <span class="col-count" id="c-prep">0</span></div>
-          <div class="order-list" id="list-prep"></div>
-        </div>
-        <div class="column">
-          <div class="col-header">Ready for Rider <span class="col-count" id="c-ready">0</span></div>
-          <div class="order-list" id="list-ready"></div>
-        </div>
+      <div class="order-tabs">
+        <div class="o-tab active tap" onclick="switchOrderTab('new')">New <span class="o-badge" id="badge-new">0</span></div>
+        <div class="o-tab tap" onclick="switchOrderTab('prep')">Cooking <span class="o-badge" id="badge-prep">0</span></div>
+        <div class="o-tab tap" onclick="switchOrderTab('ready')">Ready <span class="o-badge" id="badge-ready">0</span></div>
+      </div>
+
+      <div class="orders-container">
+        <div class="tab-content active" id="tab-new"></div>
+        <div class="tab-content" id="tab-prep"></div>
+        <div class="tab-content" id="tab-ready"></div>
       </div>
     </div>
 
     <div class="view-section" id="view-menu">
-      <div class="menu-header">
-        <p style="color:var(--text-2); font-weight:600; font-size:14px;">Manage your live inventory instantly.</p>
-        <button class="btn-add tap" onclick="document.getElementById('addModal').style.display='flex'">+ Add Item</button>
+      <div class="menu-wrap">
+        <div class="menu-header-row">
+          <div style="font-size: 18px; font-weight: 900;">Live Inventory</div>
+          <button class="btn-add-item tap" onclick="document.getElementById('addModal').style.display='flex'">+ Add Item</button>
+        </div>
+        <div id="menu-grid">
+           <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><br>Syncing Menu...</div>
+        </div>
       </div>
-      <div class="menu-grid" id="menu-grid">
-        <div style="text-align:center; padding: 40px; color:#828282; font-weight:600; width: 100%; grid-column: 1 / -1;">Syncing Live Menu...</div>
-      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <div class="b-nav-item active tap" onclick="switchMainTab('orders', this)">
+      <i class="fa-solid fa-receipt"></i> Orders
+    </div>
+    <div class="b-nav-item tap" onclick="switchMainTab('menu', this)">
+      <i class="fa-solid fa-utensils"></i> Menu
+    </div>
+    <div class="b-nav-item tap" onclick="logout()">
+      <i class="fa-solid fa-power-off"></i> Logout
     </div>
   </div>
 
   <div class="modal-overlay" id="addModal">
     <div class="modal">
-      <h2>Add New Item</h2>
+      <h2 style="font-size: 20px; font-weight: 900; margin-bottom: 20px;">New Menu Item</h2>
       <div class="input-group">
         <label>Item Name</label>
-        <input type="text" id="itemName" class="input-field" placeholder="e.g. Chicken Dum Biryani">
+        <input type="text" id="itemName" class="input-field" placeholder="e.g. Chicken Biryani">
       </div>
       <div class="input-group">
         <label>Price (₹)</label>
         <input type="number" id="itemPrice" class="input-field" placeholder="e.g. 180">
-      </div>
-      <div class="input-group">
-        <label>Category</label>
-        <input type="text" id="itemCategory" class="input-field" placeholder="e.g. Main Course">
       </div>
       <div class="input-group">
         <label>Dietary Type</label>
@@ -200,8 +207,8 @@
         </div>
       </div>
       <div class="modal-actions">
-        <button class="btn-modal-cancel tap" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
-        <button class="btn-modal-submit tap" onclick="uploadItem()">Upload Item</button>
+        <button class="btn-modal tap" style="background:#e5e7eb; color:var(--text-1);" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+        <button class="btn-modal tap" style="background:var(--brand); color:#fff;" onclick="uploadItem()">Save Item</button>
       </div>
     </div>
   </div>
@@ -209,18 +216,23 @@
   <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
   <script>
-    let currentTab = 'orders';
     let isUploadingVeg = true;
+    let prevNewOrderCount = 0;
 
-    function switchTab(tabId, el) {
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    // UI Switching Logic
+    function switchMainTab(tabId, el) {
+      document.querySelectorAll('.b-nav-item').forEach(i => i.classList.remove('active'));
       el.classList.add('active');
       document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
       document.getElementById(`view-${tabId}`).classList.add('active');
-      
-      document.getElementById('page-title').innerText = tabId === 'orders' ? 'Live Orders' : 'Menu Manager';
-      currentTab = tabId;
       fetchData();
+    }
+
+    function switchOrderTab(tabId) {
+      document.querySelectorAll('.o-tab').forEach(t => t.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(`tab-${tabId}`).classList.add('active');
     }
 
     function setVeg(isVeg) {
@@ -229,94 +241,132 @@
       document.getElementById('btnNonVeg').className = !isVeg ? 'type-btn tap active-non' : 'type-btn tap';
     }
 
-    function generateOTP(orderId) {
-       return parseInt(orderId.slice(-5), 16).toString().slice(-4).padStart(4, '0');
-    }
+    function generateOTP(orderId) { return parseInt(orderId.slice(-5), 16).toString().slice(-4).padStart(4, '0'); }
+    function logout() { localStorage.clear(); window.location.href = 'login.html'; }
 
-    function logout() {
-      localStorage.removeItem('nearbite_token'); localStorage.removeItem('token');
-      window.location.href = 'login.html';
-    }
-
+    // Core Data Fetching
     async function fetchData() {
       const token = localStorage.getItem('token') || localStorage.getItem('nearbite_token'); 
       if (!token) return logout();
 
-      if(currentTab === 'orders') fetchVendorOrders(token);
-      if(currentTab === 'menu') fetchVendorMenu(token);
+      fetchVendorOrders(token);
+      fetchVendorMenu(token);
     }
 
-    /* ── ORDERS LOGIC ── */
+    // ── ORDERS ENGINE ──
     async function fetchVendorOrders(token) {
       try {
         const response = await fetch('https://eatswada.onrender.com/api/vendor/orders', { headers: { 'Authorization': `Bearer ${token}` } });
         const result = await response.json();
         
         if (response.ok && result.success) {
-          renderOrders(result.data);
           if(result.data.length > 0 && result.data[0].restaurantName) {
-            document.getElementById('vendor-res-name').innerText = result.data[0].restaurantName;
+            document.getElementById('res-name-display').innerText = result.data[0].restaurantName;
           }
+          renderOrders(result.data);
+          calculateMetrics(result.data);
         }
       } catch (err) { console.error("Error fetching orders:", err); }
     }
 
+    function calculateMetrics(orders) {
+      // Calculate today's revenue (only from delivered/completed orders)
+      const today = new Date().toDateString();
+      let todayRevenue = 0;
+      let todayCount = 0;
+
+      orders.forEach(o => {
+         if (new Date(o.createdAt).toDateString() === today) {
+             todayCount++;
+             if (o.status === 'delivered') todayRevenue += o.total;
+         }
+      });
+      document.getElementById('metric-orders').innerText = todayCount;
+      document.getElementById('metric-revenue').innerText = todayRevenue;
+    }
+
     function renderOrders(orders) {
-      const listNew = document.getElementById('list-new'); const listPrep = document.getElementById('list-prep'); const listReady = document.getElementById('list-ready');
-      listNew.innerHTML = ''; listPrep.innerHTML = ''; listReady.innerHTML = '';
+      const tabNew = document.getElementById('tab-new'); const tabPrep = document.getElementById('tab-prep'); const tabReady = document.getElementById('tab-ready');
+      tabNew.innerHTML = ''; tabPrep.innerHTML = ''; tabReady.innerHTML = '';
       let cNew = 0, cPrep = 0, cReady = 0;
 
       orders.forEach(order => {
         if(order.status === 'cancelled' || order.status === 'delivered') return;
 
         const timeStr = new Date(order.createdAt).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'});
-        const itemsHtml = order.items.map(i => `<div class="item-row"><span class="item-qty">${i.quantity}x</span><span>${i.name}</span></div>`).join('');
+        const itemsText = order.items.map(i => `<span>${i.quantity}x</span> ${i.name}`).join('<br>');
         const otp = generateOTP(order._id);
+        const payType = order.paymentStatus === 'paid' ? `<span class="oc-type type-paid">Paid Online</span>` : `<span class="oc-type type-cod">COD</span>`;
 
         let cardHtml = `
           <div class="order-card">
-            <div class="order-header">
-              <span class="order-id">${order.orderNumber || 'ORD-' + String(order._id).slice(-5).toUpperCase()}</span>
-              <span class="order-time">${timeStr}</span>
+            <div class="oc-header">
+              <div>
+                <div class="oc-id">${order.orderNumber || 'ORD-' + String(order._id).slice(-5).toUpperCase()}</div>
+                <div style="margin-top:4px;">${payType}</div>
+              </div>
+              <div class="oc-time">${timeStr}</div>
             </div>
-            <div style="margin-bottom:12px;">${itemsHtml}</div>
-            <div style="font-size:14px; font-weight:800; border-top:1px dashed var(--border); padding-top:12px;">Total: ₹${order.total}</div>
+            <div class="oc-items">${itemsText}</div>
+            <div class="oc-footer">
+              <div style="font-size:11px; font-weight:700; color:var(--text-3); text-transform:uppercase;">Bill Total</div>
+              <div class="oc-total">₹${order.total}</div>
+            </div>
         `;
 
         if (order.status === 'pending' || order.status === 'placed') {
           cNew++;
-          listNew.innerHTML += cardHtml + `<button class="btn-action btn-accept tap" onclick="updateOrderStatus('${order._id}', 'preparing')">Accept & Cook</button></div>`;
+          tabNew.innerHTML += cardHtml + `
+            <div class="oc-actions">
+              <button class="btn-card btn-reject tap" onclick="updateOrderStatus('${order._id}', 'cancelled')">Reject</button>
+              <button class="btn-card btn-accept tap" onclick="updateOrderStatus('${order._id}', 'preparing')">Accept Order</button>
+            </div></div>`;
         } 
         else if (order.status === 'preparing') {
           cPrep++;
-          listPrep.innerHTML += cardHtml + `
-            <div style="margin-top:12px; font-size:12px; font-weight:800; color:#16a34a; background:#f0fdf4; padding:8px; border-radius:6px; text-align:center; border:1px dashed #86efac;">
-              Rider PIN: ${otp}
-            </div>
-            <button class="btn-action btn-dispatch tap" onclick="updateOrderStatus('${order._id}', 'out_for_delivery')">Mark Ready</button></div>`;
+          tabPrep.innerHTML += cardHtml + `
+            <div class="pin-box"><span>Hand to Rider PIN</span><h3>${otp}</h3></div>
+            <button class="btn-card btn-ready tap" style="width:100%;" onclick="updateOrderStatus('${order._id}', 'out_for_delivery')">Food is Ready</button></div>`;
         } 
         else if (order.status === 'out_for_delivery') {
           cReady++;
-          listReady.innerHTML += cardHtml + `
-            <div style="margin-top:12px; font-size:12px; font-weight:800; color:#FC8019; background:#fff4ec; padding:8px; border-radius:6px; text-align:center;">
-              Waiting for Rider Pickup...
+          tabReady.innerHTML += cardHtml + `
+            <div style="text-align:center; padding:12px; background:#fff7ed; color:#ea580c; border-radius:10px; font-weight:800; font-size:12px; border:1px solid #ffedd5;">
+              <i class="fa-solid fa-motorcycle"></i> Waiting for Rider Pickup
             </div></div>`;
         }
       });
 
-      document.getElementById('c-new').innerText = cNew; document.getElementById('c-prep').innerText = cPrep; document.getElementById('c-ready').innerText = cReady;
+      // Update Badges
+      const bNew = document.getElementById('badge-new'); const bPrep = document.getElementById('badge-prep'); const bReady = document.getElementById('badge-ready');
+      bNew.innerText = cNew; bNew.className = cNew > 0 ? 'o-badge show' : 'o-badge';
+      bPrep.innerText = cPrep; bPrep.className = cPrep > 0 ? 'o-badge show' : 'o-badge';
+      bReady.innerText = cReady; bReady.className = cReady > 0 ? 'o-badge show' : 'o-badge';
+
+      // Play sound if new order arrives
+      if (cNew > prevNewOrderCount) document.getElementById('alert-sound').play();
+      prevNewOrderCount = cNew;
+
+      if(cNew===0) tabNew.innerHTML = `<div class="empty-state"><i class="fa-solid fa-check-circle"></i><br>No new orders right now</div>`;
+      if(cPrep===0) tabPrep.innerHTML = `<div class="empty-state"><i class="fa-solid fa-fire-burner"></i><br>Kitchen is clear</div>`;
+      if(cReady===0) tabReady.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box"></i><br>No food waiting</div>`;
     }
 
     async function updateOrderStatus(id, status) {
        const token = localStorage.getItem('nearbite_token') || localStorage.getItem('token');
+       
+       if (status === 'cancelled') {
+           if(!confirm("Are you sure you want to REJECT and CANCEL this order? The customer will be refunded.")) return;
+       }
+
        await fetch(`https://eatswada.onrender.com/api/orders/${id}/status`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ status })
        });
-       fetchData();
+       fetchData(); // Instant refresh
     }
 
-    /* ── MENU LOGIC ── */
+    // ── MENU ENGINE ──
     async function fetchVendorMenu(token) {
       try {
         const response = await fetch('https://eatswada.onrender.com/api/vendor/menu', { headers: { 'Authorization': `Bearer ${token}` } });
@@ -325,22 +375,22 @@
         
         if (response.ok && result.success) {
           if (result.data.length === 0) {
-             grid.innerHTML = '<div style="text-align:center; padding: 40px; color:#828282; font-weight:600; width: 100%; grid-column: 1 / -1;">No items in your menu yet. Click Add Item to start!</div>';
+             grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-utensils"></i><br>Your menu is empty.<br>Tap + Add Item to start!</div>';
              return;
           }
           
           grid.innerHTML = result.data.map(item => `
-            <div class="menu-item ${item.inStock ? '' : 'disabled'}">
+            <div class="menu-item ${item.inStock ? '' : 'out-of-stock'}">
               <div>
-                <div class="item-title">
-                  <div style="width:14px; height:14px; border:1px solid ${item.isVeg ? '#219653' : '#eb5757'}; border-radius:3px; display:flex; align-items:center; justify-content:center;">
-                     <div style="width:6px; height:6px; background:${item.isVeg ? '#219653' : '#eb5757'}; border-radius:50%;"></div>
+                <div class="mi-name">
+                  <div style="width:12px; height:12px; border:1px solid ${item.isVeg ? '#16a34a' : '#dc2626'}; border-radius:3px; display:flex; align-items:center; justify-content:center;">
+                     <div style="width:6px; height:6px; background:${item.isVeg ? '#16a34a' : '#dc2626'}; border-radius:50%;"></div>
                   </div>
                   ${item.name}
                 </div>
-                <div class="item-price">
+                <div class="mi-price">
                   ₹<span id="price-${item._id}">${item.price}</span>
-                  <button class="tap" style="background:#f4f4f5; border:none; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:800; color:var(--text-1);" onclick="editPrice('${item._id}', ${item.price})"><i class="fa-solid fa-pen"></i> Edit</button>
+                  <span class="mi-edit tap" onclick="editPrice('${item._id}', ${item.price})"><i class="fa-solid fa-pen"></i></span>
                 </div>
               </div>
               <label class="switch tap">
@@ -359,7 +409,7 @@
           method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ inStock })
        });
-       fetchData();
+       fetchVendorMenu(token); 
     }
 
     async function editPrice(id, currentPrice) {
@@ -367,45 +417,34 @@
       if (!newPrice || newPrice == currentPrice || isNaN(newPrice)) return;
 
       const token = localStorage.getItem('nearbite_token') || localStorage.getItem('token');
-      try {
-        const response = await fetch(`https://eatswada.onrender.com/api/vendor/menu/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ price: Number(newPrice) })
-        });
-        if (response.ok) document.getElementById(`price-${id}`).innerText = newPrice;
-      } catch (err) { alert("Could not update price."); }
+      await fetch(`https://eatswada.onrender.com/api/vendor/menu/${id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ price: Number(newPrice) })
+      });
+      document.getElementById(`price-${id}`).innerText = newPrice;
     }
 
     async function uploadItem() {
       const name = document.getElementById('itemName').value.trim();
       const price = document.getElementById('itemPrice').value;
-      const category = document.getElementById('itemCategory').value.trim() || 'General';
 
       if (!name || !price) return alert("Please fill the item name and price!");
 
       const token = localStorage.getItem('nearbite_token') || localStorage.getItem('token');
-      const btn = document.querySelector('.btn-modal-submit');
-      btn.innerText = "Uploading..."; btn.disabled = true;
+      const btn = document.querySelector('.btn-modal:nth-child(2)');
+      btn.innerText = "Saving..."; btn.disabled = true;
       
-      try {
-        const response = await fetch('https://eatswada.onrender.com/api/vendor/menu', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ name, price: Number(price), category, isVeg: isUploadingVeg, inStock: true })
-        });
+      await fetch('https://eatswada.onrender.com/api/vendor/menu', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ name, price: Number(price), category: 'General', isVeg: isUploadingVeg, inStock: true })
+      });
 
-        if (response.ok) {
-          document.getElementById('addModal').style.display = 'none';
-          document.getElementById('itemName').value = '';
-          document.getElementById('itemPrice').value = '';
-          fetchData(); // Instantly refresh the grid
-        } else {
-          alert("Failed to upload. Ensure you are upgraded to a Vendor account.");
-        }
-      } catch (err) { alert("Network Error"); }
+      document.getElementById('addModal').style.display = 'none';
+      document.getElementById('itemName').value = '';
+      document.getElementById('itemPrice').value = '';
+      btn.innerText = "Save Item"; btn.disabled = false;
       
-      btn.innerText = "Upload Item"; btn.disabled = false;
+      fetchData(); 
     }
 
     document.addEventListener('DOMContentLoaded', () => { fetchData(); setInterval(fetchData, 10000); });
