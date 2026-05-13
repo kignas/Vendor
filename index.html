@@ -3,330 +3,1046 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Partner App – EatSwada</title>
+  <title>Vendor Portal – EatSwada Partner</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+
   <style>
+    /* ── DESIGN TOKENS ── */
     :root {
-      --brand: #FC8019;
-      --bg: #f3f4f6;
-      --surface: #ffffff;
-      --text-1: #111827;
-      --text-2: #4b5563;
-      --border: #e5e7eb;
-      --nav-bg: #1f2937;
+      --brand:      #FC8019;
+      --brand-lite: #fff7ed;
+      --bg:         #f3f4f6;
+      --surface:    #ffffff;
+      --text-1:     #111827;
+      --text-2:     #4b5563;
+      --text-3:     #9ca3af;
+      --border:     #e5e7eb;
+      --nav-bg:     #1f2937;
+      --green:      #16a34a;
+      --green-lite: #dcfce7;
+      --red:        #dc2626;
+      --red-lite:   #fee2e2;
+      --amber:      #ea580c;
+      --amber-lite: #fff7ed;
+      --radius-card: 16px;
+      --radius-btn:  10px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-1); display: flex; flex-direction: column; height: 100dvh; overflow: hidden; -webkit-tap-highlight-color: transparent; }
-    .tap { cursor: pointer; transition: transform 0.1s ease; }
-    .tap:active { transform: scale(0.96); }
 
-    /* ── TOP HEADER WITH MASTER TOGGLE ── */
-    .app-header { background: var(--surface); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 50; }
-    .header-left h1 { font-size: 18px; font-weight: 900; color: var(--text-1); letter-spacing: -0.5px; margin-bottom: 4px; }
-    
-    .status-badge { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
-    .status-online { background: #dcfce7; color: #16a34a; }
-    .status-online::before { content:''; width:6px; height:6px; background:#16a34a; border-radius:50%; display:inline-block; }
-    .status-offline { background: #fee2e2; color: #dc2626; }
-    .status-offline::before { content:''; width:6px; height:6px; background:#dc2626; border-radius:50%; display:inline-block; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tap { cursor: pointer; transition: transform 0.12s cubic-bezier(0.25, 1, 0.5, 1); }
+    .tap:active { transform: scale(0.95); }
+
+    /* ── TOAST SYSTEM ── */
+    #toast-container {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      pointer-events: none;
+      width: calc(100% - 32px);
+      max-width: 400px;
+    }
+
+    .toast {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      animation: toast-in 0.3s ease forwards;
+      width: 100%;
+      pointer-events: all;
+    }
+    .toast.success { background: var(--green); }
+    .toast.error   { background: var(--red); }
+    .toast.info    { background: var(--text-1); }
+    .toast.warning { background: var(--amber); }
+    .toast.out     { animation: toast-out 0.3s ease forwards; }
+
+    @keyframes toast-in  { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toast-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-12px); } }
+
+    /* ── SKELETON LOADER ── */
+    .skeleton {
+      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 8px;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .skel-order-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .skel-line { height: 14px; margin-bottom: 10px; }
+    .skel-line.wide  { width: 70%; }
+    .skel-line.short { width: 40%; }
+    .skel-line.thin  { width: 55%; height: 10px; }
+    .skel-btn  { height: 44px; border-radius: var(--radius-btn); margin-top: 12px; }
+
+    /* ── HEADER ── */
+    .app-header {
+      background: var(--surface);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .header-left h1 { font-size: 17px; font-weight: 900; color: var(--text-1); letter-spacing: -0.4px; margin-bottom: 4px; }
+
+    .status-badge {
+      font-size: 11px; font-weight: 800; padding: 4px 8px;
+      border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; text-transform: uppercase;
+    }
+    .status-badge::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%; display: inline-block; background: currentColor;
+    }
+    .status-online  { background: var(--green-lite); color: var(--green); }
+    .status-offline { background: var(--red-lite);   color: var(--red); }
 
     .master-switch-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-    .master-label { font-size: 10px; font-weight: 800; color: var(--text-2); text-transform: uppercase; }
+    .master-label { font-size: 10px; font-weight: 800; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* Switch */
+    /* Toggle switch */
     .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
     .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #d1d5db; transition: .3s; border-radius: 24px; }
-    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
-    input:checked + .slider { background-color: #16a34a; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background-color: #d1d5db; transition: .3s; border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 18px; width: 18px;
+      left: 3px; bottom: 3px; background: #fff; transition: .3s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--green); }
     input:checked + .slider:before { transform: translateX(20px); }
+    .switch.disabled { opacity: 0.5; pointer-events: none; }
 
-    /* ── METRICS ── */
-    .metrics-row { display: flex; gap: 12px; padding: 12px 20px; background: var(--surface); border-bottom: 1px solid var(--border); }
-    .metric-card { flex: 1; background: #f9fafb; border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
-    .metric-title { font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; margin-bottom: 4px; }
-    .metric-val { font-size: 20px; font-weight: 900; color: var(--text-1); }
+    /* ── METRICS BAR ── */
+    .metrics-row {
+      display: flex; gap: 10px; padding: 12px 20px;
+      background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .metric-card {
+      flex: 1; background: #f9fafb; border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 14px;
+    }
+    .metric-title { font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.4px; }
+    .metric-val   { font-size: 22px; font-weight: 900; color: var(--text-1); }
+    .sync-btn {
+      background: #f3f4f6; border: 1px solid var(--border); padding: 0 18px;
+      border-radius: 12px; font-size: 12px; font-weight: 800; font-family: inherit;
+      color: var(--text-2); display: flex; align-items: center; gap: 6px;
+    }
+    .sync-btn.spinning i { animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── MAIN CONTENT ── */
-    .main-area { flex: 1; overflow-y: auto; padding-bottom: 80px; position: relative; }
+    /* ── MAIN SCROLL AREA ── */
+    .main-area { flex: 1; overflow-y: auto; padding-bottom: 84px; position: relative; -webkit-overflow-scrolling: touch; }
+
     .view-section { display: none; }
     .view-section.active { display: block; animation: fadeIn 0.2s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ── ORDERS ── */
-    .order-tabs { display: flex; padding: 16px 20px 0; gap: 8px; background: var(--bg); position: sticky; top: 0; z-index: 10; }
-    .o-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 13px; font-weight: 800; color: var(--text-2); background: #e5e7eb; border-radius: 8px; transition: 0.2s; position: relative; }
+    /* ── ERROR STATE ── */
+    .error-state {
+      margin: 24px 20px; padding: 20px; background: var(--red-lite);
+      border: 1px solid #fca5a5; border-radius: var(--radius-card);
+      text-align: center; color: var(--red);
+    }
+    .error-state .err-icon { font-size: 28px; margin-bottom: 10px; }
+    .error-state h3 { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+    .error-state p  { font-size: 12px; font-weight: 600; opacity: 0.8; }
+    .retry-btn {
+      margin-top: 14px; padding: 10px 20px; background: var(--red); color: #fff;
+      border: none; border-radius: var(--radius-btn); font-size: 13px; font-weight: 800;
+      font-family: inherit; display: inline-block;
+    }
+
+    /* ── ORDER TABS ── */
+    .order-tabs {
+      display: flex; padding: 14px 20px 0; gap: 8px;
+      background: var(--bg); position: sticky; top: 0; z-index: 10;
+    }
+    .o-tab {
+      flex: 1; text-align: center; padding: 10px 0; font-size: 12px; font-weight: 800;
+      color: var(--text-2); background: #e5e7eb; border-radius: 8px; transition: 0.2s;
+      position: relative; user-select: none;
+    }
     .o-tab.active { background: var(--text-1); color: #fff; }
-    .o-badge { position: absolute; top: -6px; right: -6px; background: #ef4444; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; border: 2px solid var(--bg); display: none; }
+    .o-badge {
+      position: absolute; top: -6px; right: -6px; background: #ef4444; color: #fff;
+      font-size: 10px; padding: 2px 6px; border-radius: 10px; border: 2px solid var(--bg);
+      display: none; font-weight: 800;
+    }
     .o-badge.show { display: inline-block; }
 
-    .orders-container { padding: 16px 20px; }
+    .orders-container { padding: 14px 20px; }
     .tab-content { display: none; }
-    .tab-content.active { display: flex; flex-direction: column; gap: 16px; }
+    .tab-content.active { display: flex; flex-direction: column; gap: 14px; }
 
-    .order-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border-left: 4px solid var(--brand); }
-    .oc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 1px dashed var(--border); padding-bottom: 12px; }
-    .oc-id { font-size: 16px; font-weight: 900; color: var(--text-1); }
+    /* ── ORDER CARD ── */
+    .order-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-card); padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04); border-left: 4px solid var(--brand);
+    }
+    .oc-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 10px; border-bottom: 1px dashed var(--border); padding-bottom: 10px;
+    }
+    .oc-id   { font-size: 15px; font-weight: 900; color: var(--text-1); }
     .oc-time { font-size: 12px; font-weight: 700; color: var(--text-2); background: #f3f4f6; padding: 4px 8px; border-radius: 6px; }
-    .oc-items { font-size: 14px; font-weight: 600; color: var(--text-2); line-height: 1.5; margin-bottom: 16px; }
-    .oc-footer { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .oc-total { font-size: 18px; font-weight: 900; color: var(--text-1); }
+    .oc-items { font-size: 13px; font-weight: 600; color: var(--text-2); line-height: 1.7; margin-bottom: 14px; }
+    .oc-footer { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .oc-total-label { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; }
+    .oc-total { font-size: 20px; font-weight: 900; color: var(--text-1); }
     .oc-actions { display: flex; gap: 10px; }
-    .btn-card { flex: 1; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 800; border: none; font-family: inherit; }
+
+    .btn-card {
+      flex: 1; padding: 13px; border-radius: var(--radius-btn); font-size: 13px;
+      font-weight: 800; border: none; font-family: inherit; width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
     .btn-accept { background: #10b981; color: #fff; }
-    .btn-ready { background: var(--brand); color: #fff; }
+    .btn-ready  { background: var(--brand); color: #fff; }
+    .btn-card:disabled { opacity: 0.5; pointer-events: none; }
+
+    .otp-box {
+      text-align: center; margin-bottom: 12px; padding: 10px; background: #f9fafb;
+      border-radius: 10px; border: 1px dashed var(--border);
+    }
+    .otp-label { font-size: 10px; font-weight: 800; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; }
+    .otp-value { font-size: 22px; font-weight: 900; color: var(--brand); letter-spacing: 4px; }
+
+    .waiting-box {
+      text-align: center; padding: 12px; background: var(--amber-lite);
+      color: var(--amber); border-radius: var(--radius-btn); font-weight: 800; font-size: 12px;
+    }
+
+    .empty-state {
+      text-align: center; padding: 48px 20px; color: var(--text-3);
+      font-weight: 700; font-size: 14px; line-height: 1.8;
+    }
+    .empty-state i { font-size: 32px; margin-bottom: 12px; display: block; }
 
     /* ── MENU ── */
     .menu-wrap { padding: 20px; }
-    .menu-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .menu-item.out-of-stock { opacity: 0.5; background: #f9fafb; filter: grayscale(1); }
-    .mi-name { font-size: 15px; font-weight: 800; color: var(--text-1); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
-    .mi-price { font-size: 13px; font-weight: 700; color: var(--text-2); }
-    .mi-edit { color: var(--brand); font-size: 12px; margin-left: 8px; background: #fff7ed; padding: 2px 6px; border-radius: 4px; cursor:pointer; }
+    .menu-section-title {
+      font-size: 13px; font-weight: 800; color: var(--text-2);
+      text-transform: uppercase; letter-spacing: 0.6px; margin: 20px 0 10px;
+      padding-bottom: 8px; border-bottom: 2px solid var(--border);
+    }
+    .menu-section-title:first-child { margin-top: 0; }
 
-    /* ── NAV ── */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); display: flex; justify-content: space-around; padding: 12px 10px 24px; border-top-left-radius: 24px; border-top-right-radius: 24px; z-index: 100; }
-    .b-nav-item { color: #9ca3af; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 8px 16px; border-radius: 12px; transition: 0.2s; }
+    .menu-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 16px; display: flex;
+      justify-content: space-between; align-items: center; margin-bottom: 10px;
+      transition: opacity 0.2s, filter 0.2s;
+    }
+    .menu-item.out-of-stock { opacity: 0.45; filter: grayscale(0.8); }
+
+    .mi-left { flex: 1; min-width: 0; }
+    .mi-name {
+      font-size: 14px; font-weight: 800; color: var(--text-1);
+      margin-bottom: 3px; display: flex; align-items: center; gap: 8px;
+    }
+    .veg-dot {
+      width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .veg-dot-inner { width: 5px; height: 5px; border-radius: 50%; }
+    .mi-category { font-size: 11px; font-weight: 700; color: var(--text-3); margin-bottom: 4px; }
+
+    .mi-price-row { display: flex; align-items: center; gap: 8px; }
+    .mi-price { font-size: 14px; font-weight: 800; color: var(--text-1); }
+
+    /* Inline price editor */
+    .price-edit-wrap { display: flex; align-items: center; gap: 6px; }
+    .price-input {
+      width: 80px; border: 2px solid var(--brand); border-radius: 8px;
+      padding: 4px 8px; font-size: 14px; font-weight: 800; font-family: inherit;
+      color: var(--text-1); outline: none;
+    }
+    .price-save-btn, .price-cancel-btn {
+      padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 800;
+      border: none; font-family: inherit;
+    }
+    .price-save-btn   { background: var(--green); color: #fff; }
+    .price-cancel-btn { background: #e5e7eb; color: var(--text-2); }
+
+    .mi-edit-btn {
+      font-size: 11px; font-weight: 800; color: var(--brand);
+      background: var(--brand-lite); padding: 3px 8px; border-radius: 6px;
+      border: none; font-family: inherit; flex-shrink: 0;
+    }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--nav-bg); display: flex; justify-content: space-around;
+      padding: 12px 10px 28px; border-top-left-radius: 22px; border-top-right-radius: 22px;
+      z-index: 100;
+    }
+    .b-nav-item {
+      color: #6b7280; display: flex; flex-direction: column; align-items: center;
+      gap: 4px; font-size: 10px; font-weight: 800; padding: 8px 20px;
+      border-radius: 12px; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .b-nav-item i { font-size: 18px; }
     .b-nav-item.active { color: #fff; }
     .b-nav-item.active i { color: var(--brand); }
-
-    .empty-state { text-align: center; padding: 40px 20px; color: #9ca3af; font-weight: 700; font-size: 14px; }
   </style>
 </head>
 <body>
 
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <!-- Header -->
   <div class="app-header">
     <div class="header-left">
       <h1 id="res-name-display">EatSwada Partner</h1>
       <div id="res-status-badge" class="status-badge status-online">Online</div>
     </div>
-    
     <div class="master-switch-wrap">
       <div class="master-label">Accept Orders</div>
-      <label class="switch tap">
-        <input type="checkbox" id="master-toggle" checked onchange="toggleRestaurantStatus(this.checked)">
+      <label class="switch tap" id="master-switch-label">
+        <input type="checkbox" id="master-toggle" checked>
         <span class="slider"></span>
       </label>
     </div>
   </div>
 
+  <!-- Metrics -->
   <div class="metrics-row">
     <div class="metric-card">
-      <div class="metric-title">Today's Orders</div>
-      <div class="metric-val" id="metric-orders">0</div>
+      <div class="metric-title">Active Orders</div>
+      <div class="metric-val" id="metric-orders">—</div>
     </div>
-    <button class="tap" style="background:#f3f4f6; border:none; padding:0 20px; border-radius:12px; font-size:12px; font-weight:800;" onclick="fetchData()">
+    <div class="metric-card">
+      <div class="metric-title">Today's Total</div>
+      <div class="metric-val" id="metric-today">—</div>
+    </div>
+    <button class="sync-btn tap" id="sync-btn" onclick="manualSync()">
       <i class="fa-solid fa-rotate-right"></i> Sync
     </button>
   </div>
 
+  <!-- Main -->
   <div class="main-area">
+
+    <!-- Orders View -->
     <div class="view-section active" id="view-orders">
       <div class="order-tabs">
-        <div class="o-tab active tap" onclick="switchOrderTab('new')">New <span class="o-badge" id="badge-new">0</span></div>
-        <div class="o-tab tap" onclick="switchOrderTab('prep')">Cooking <span class="o-badge" id="badge-prep">0</span></div>
-        <div class="o-tab tap" onclick="switchOrderTab('ready')">Ready <span class="o-badge" id="badge-ready">0</span></div>
+        <div class="o-tab active tap" id="otab-new"  onclick="switchOrderTab('new', this)">
+          New <span class="o-badge" id="badge-new">0</span>
+        </div>
+        <div class="o-tab tap" id="otab-prep"  onclick="switchOrderTab('prep', this)">
+          Cooking <span class="o-badge" id="badge-prep">0</span>
+        </div>
+        <div class="o-tab tap" id="otab-ready" onclick="switchOrderTab('ready', this)">
+          Ready <span class="o-badge" id="badge-ready">0</span>
+        </div>
       </div>
       <div class="orders-container">
         <div class="tab-content active" id="tab-new"></div>
-        <div class="tab-content" id="tab-prep"></div>
-        <div class="tab-content" id="tab-ready"></div>
+        <div class="tab-content"        id="tab-prep"></div>
+        <div class="tab-content"        id="tab-ready"></div>
       </div>
     </div>
 
+    <!-- Menu View -->
     <div class="view-section" id="view-menu">
       <div class="menu-wrap">
-        <div style="font-size: 18px; font-weight: 900; margin-bottom: 4px;">Menu Control</div>
-        <p style="font-size: 12px; font-weight:600; color:var(--text-2); margin-bottom: 20px;">Toggle item availability or update pricing.</p>
+        <div style="font-size:17px;font-weight:900;margin-bottom:4px;">Menu Control</div>
+        <p style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:20px;">
+          Toggle availability or tap <strong>Edit</strong> to update pricing inline.
+        </p>
         <div id="menu-grid">
-           <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><br>Syncing Menu...</div>
+          <!-- Skeleton -->
+          <div class="skel-order-card">
+            <div class="skeleton skel-line wide"></div>
+            <div class="skeleton skel-line short"></div>
+            <div class="skeleton skel-line thin"></div>
+            <div class="skeleton skel-btn"></div>
+          </div>
+          <div class="skel-order-card">
+            <div class="skeleton skel-line wide"></div>
+            <div class="skeleton skel-line short"></div>
+            <div class="skeleton skel-btn"></div>
+          </div>
         </div>
       </div>
     </div>
+
   </div>
 
+  <!-- Bottom Nav -->
   <div class="bottom-nav">
-    <div class="b-nav-item active tap" onclick="switchMainTab('orders', this)"><i class="fa-solid fa-receipt"></i></div>
-    <div class="b-nav-item tap" onclick="switchMainTab('menu', this)"><i class="fa-solid fa-utensils"></i></div>
+    <div class="b-nav-item active tap" id="nav-orders" onclick="switchMainTab('orders', this)">
+      <i class="fa-solid fa-receipt"></i> Orders
+    </div>
+    <div class="b-nav-item tap" id="nav-menu" onclick="switchMainTab('menu', this)">
+      <i class="fa-solid fa-utensils"></i> Menu
+    </div>
   </div>
 
   <script>
-    let currentTab = 'orders';
+    /* ═══════════════════════════════════════════════════════════════
+     *  CONSTANTS & STATE
+     * ═══════════════════════════════════════════════════════════════ */
+    const BASE_URL    = 'https://eatswada.onrender.com';
+    const TOKEN_KEY   = 'nearbite_token';  // Single canonical key — never use 'token'
+    let   pollingTimer = null;
+    let   currentOrderTab = 'new';
 
+    /* ═══════════════════════════════════════════════════════════════
+     *  AUTH HELPERS
+     * ═══════════════════════════════════════════════════════════════ */
+    function getToken() {
+      return localStorage.getItem(TOKEN_KEY) || null;
+    }
+
+    function redirectToLogin() {
+      localStorage.removeItem(TOKEN_KEY);
+      window.location.href = 'index.html';
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+     *  TOAST SYSTEM
+     *  Usage: showToast('message', 'success' | 'error' | 'info' | 'warning')
+     * ═══════════════════════════════════════════════════════════════ */
+    function showToast(message, type = 'info', duration = 3500) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info', warning: 'fa-triangle-exclamation' };
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i> ${message}`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('out');
+        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+      }, duration);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+     *  SKELETON LOADERS
+     * ═══════════════════════════════════════════════════════════════ */
+    function showOrderSkeletons(count = 2) {
+      const tabs = ['tab-new', 'tab-prep', 'tab-ready'];
+      tabs.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        let html = '';
+        for (let i = 0; i < count; i++) {
+          html += `
+            <div class="skel-order-card">
+              <div class="skeleton skel-line wide"></div>
+              <div class="skeleton skel-line short"></div>
+              <div class="skeleton skel-line thin"></div>
+              <div class="skeleton skel-btn"></div>
+            </div>`;
+        }
+        el.innerHTML = html;
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+     *  POLLING — pauses when tab is hidden, resumes on focus
+     * ═══════════════════════════════════════════════════════════════ */
+    function startPolling() {
+      stopPolling();
+      pollingTimer = setInterval(fetchData, 12000);
+    }
+
+    function stopPolling() {
+      if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { stopPolling(); }
+      else                 { fetchData(); startPolling(); }
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+     *  NAVIGATION
+     * ═══════════════════════════════════════════════════════════════ */
     function switchMainTab(tabId, el) {
       document.querySelectorAll('.b-nav-item').forEach(i => i.classList.remove('active'));
       el.classList.add('active');
       document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-      document.getElementById(`view-${tabId}`).classList.add('active');
+      const target = document.getElementById(`view-${tabId}`);
+      if (target) target.classList.add('active');
       fetchData();
     }
 
-    function switchOrderTab(tabId) {
+    function switchOrderTab(tabId, el) {
+      currentOrderTab = tabId;
       document.querySelectorAll('.o-tab').forEach(t => t.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      el.classList.add('active');
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      document.getElementById(`tab-${tabId}`).classList.add('active');
+      const target = document.getElementById(`tab-${tabId}`);
+      if (target) target.classList.add('active');
     }
 
-    function generateOTP(orderId) { return parseInt(orderId.slice(-5), 16).toString().slice(-4).padStart(4, '0'); }
-
+    /* ═══════════════════════════════════════════════════════════════
+     *  MASTER FETCH ORCHESTRATOR
+     * ═══════════════════════════════════════════════════════════════ */
     async function fetchData() {
-      const token = localStorage.getItem('token') || localStorage.getItem('nearbite_token'); 
-      if (!token) { window.location.href = 'index.html'; return; }
+      const token = getToken();
+      if (!token) { redirectToLogin(); return; }
 
-      fetchVendorOrders(token);
-      fetchVendorMenu(token);
+      const activeView = document.querySelector('.view-section.active');
+      const viewId = activeView ? activeView.id : 'view-orders';
+
+      if (viewId === 'view-orders') await fetchVendorOrders(token);
+      else                          await fetchVendorMenu(token);
     }
 
-    // ── MASTER RESTAURANT TOGGLE ──
-    async function toggleRestaurantStatus(isOnline) {
-       const token = localStorage.getItem('nearbite_token');
-       // Note to Developer: You will need to add this simple endpoint to your vendorRoutes!
-       try {
-           await fetch('https://eatswada.onrender.com/api/vendor/status', {
-              method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-              body: JSON.stringify({ isActive: isOnline })
-           });
-           
-           const badge = document.getElementById('res-status-badge');
-           if(isOnline) {
-               badge.className = 'status-badge status-online'; badge.innerText = 'Online';
-           } else {
-               badge.className = 'status-badge status-offline'; badge.innerText = 'Offline';
-           }
-       } catch(e) { console.error("Could not update status."); }
+    function manualSync() {
+      const btn = document.getElementById('sync-btn');
+      if (btn) btn.classList.add('spinning');
+      fetchData().finally(() => {
+        setTimeout(() => { if (btn) btn.classList.remove('spinning'); }, 600);
+      });
     }
 
-    // ── ORDERS ENGINE ──
+    /* ═══════════════════════════════════════════════════════════════
+     *  RESTAURANT HEADER (loaded once on boot)
+     * ═══════════════════════════════════════════════════════════════ */
+    async function loadRestaurantHeader(token) {
+      try {
+        const res = await fetch(`${BASE_URL}/api/vendor/restaurant`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.status === 401 || res.status === 403) { redirectToLogin(); return; }
+        if (!res.ok) return; // Non-critical — header keeps default text
+
+        const result = await res.json();
+        if (!result.success || !result.data) return;
+
+        const r = result.data;
+        const nameEl  = document.getElementById('res-name-display');
+        const badgeEl = document.getElementById('res-status-badge');
+        const toggle  = document.getElementById('master-toggle');
+
+        if (nameEl)  nameEl.textContent = r.name || 'EatSwada Partner';
+        if (toggle)  toggle.checked = Boolean(r.isActive);
+        if (badgeEl) updateStatusBadge(Boolean(r.isActive));
+      } catch (_) {
+        // Network failure on header load — non-fatal, silent.
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+     *  MASTER TOGGLE
+     * ═══════════════════════════════════════════════════════════════ */
+    function updateStatusBadge(isOnline) {
+      const badge = document.getElementById('res-status-badge');
+      if (!badge) return;
+      badge.className = `status-badge ${isOnline ? 'status-online' : 'status-offline'}`;
+      badge.textContent = isOnline ? 'Online' : 'Offline';
+    }
+
+    document.getElementById('master-toggle').addEventListener('change', async function () {
+      const isOnline = this.checked;
+      const token    = getToken();
+      if (!token) { redirectToLogin(); return; }
+
+      const switchLabel = document.getElementById('master-switch-label');
+      if (switchLabel) switchLabel.classList.add('disabled');
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/vendor/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ isActive: isOnline }),
+        });
+        const result = await res.json();
+
+        if (!res.ok || !result.success) {
+          // Revert the toggle on failure
+          this.checked = !isOnline;
+          showToast(result.message || 'Could not update status. Try again.', 'error');
+          return;
+        }
+
+        updateStatusBadge(isOnline);
+        showToast(`Restaurant is now ${isOnline ? 'Online ✓' : 'Offline'}`, isOnline ? 'success' : 'warning');
+      } catch (_) {
+        this.checked = !isOnline;
+        showToast('Connection error. Status not saved.', 'error');
+      } finally {
+        if (switchLabel) switchLabel.classList.remove('disabled');
+      }
+    });
+
+    /* ═══════════════════════════════════════════════════════════════
+     *  ORDERS ENGINE
+     * ═══════════════════════════════════════════════════════════════ */
     async function fetchVendorOrders(token) {
       try {
-        const response = await fetch('https://eatswada.onrender.com/api/vendor/orders', { headers: { 'Authorization': `Bearer ${token}` } });
-        if(response.status === 403) { window.location.href = 'index.html'; return; }
-        const result = await response.json();
-        
-        if (response.ok && result.success) {
-          if(result.data.length > 0 && result.data[0].restaurantName) {
-            document.getElementById('res-name-display').innerText = result.data[0].restaurantName;
-          }
-          renderOrders(result.data);
+        const res = await fetch(`${BASE_URL}/api/vendor/orders`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.status === 401 || res.status === 403) { redirectToLogin(); return; }
+
+        if (!res.ok) {
+          showOrdersError('Server returned an error. Please sync again.');
+          return;
         }
-      } catch (err) { console.error(err); }
+
+        const result = await res.json();
+
+        if (!result.success || !Array.isArray(result.data)) {
+          showOrdersError('Unexpected response from server.');
+          return;
+        }
+
+        renderOrders(result.data);
+      } catch (_) {
+        showOrdersError('Connection error. Check your internet and sync.');
+      }
+    }
+
+    function showOrdersError(message) {
+      const tabs = ['tab-new', 'tab-prep', 'tab-ready'];
+      tabs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.innerHTML = `
+            <div class="error-state">
+              <div class="err-icon"><i class="fa-solid fa-wifi"></i></div>
+              <h3>Connection Error</h3>
+              <p>${message}</p>
+              <button class="retry-btn tap" onclick="manualSync()">Retry</button>
+            </div>`;
+        }
+      });
+    }
+
+    function generateOTP(orderId) {
+      // Deterministic 4-digit PIN from the last 5 hex chars of the order ID.
+      const raw = String(orderId || '').slice(-5);
+      return parseInt(raw, 16).toString().padStart(6, '0').slice(-4);
     }
 
     function renderOrders(orders) {
-      const tabNew = document.getElementById('tab-new'); const tabPrep = document.getElementById('tab-prep'); const tabReady = document.getElementById('tab-ready');
-      tabNew.innerHTML = ''; tabPrep.innerHTML = ''; tabReady.innerHTML = '';
+      const tabNew   = document.getElementById('tab-new');
+      const tabPrep  = document.getElementById('tab-prep');
+      const tabReady = document.getElementById('tab-ready');
+      if (!tabNew || !tabPrep || !tabReady) return;
+
+      tabNew.innerHTML = tabPrep.innerHTML = tabReady.innerHTML = '';
       let cNew = 0, cPrep = 0, cReady = 0;
+      let todayCount = 0;
 
-      orders.forEach(order => {
-        if(order.status === 'cancelled' || order.status === 'delivered') return;
+      const today = new Date().toDateString();
 
-        const timeStr = new Date(order.createdAt).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'});
-        const itemsText = order.items.map(i => `<span>${i.quantity}x</span> ${i.name}`).join('<br>');
+      // Guard: orders must be a non-empty array
+      if (!Array.isArray(orders)) return;
 
-        let cardHtml = `
+      for (let i = 0; i < orders.length; i++) {
+        const order = orders[i];
+        if (!order || typeof order !== 'object') continue;
+
+        const status = typeof order.status === 'string' ? order.status : '';
+        if (status === 'cancelled' || status === 'delivered') continue;
+
+        // Count today's orders regardless of current status
+        if (order.createdAt && new Date(order.createdAt).toDateString() === today) {
+          todayCount++;
+        }
+
+        const timeStr = order.createdAt
+          ? new Date(order.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+          : '—';
+
+        // Safe items render — guard against null/non-array items
+        let itemsHtml = '—';
+        if (Array.isArray(order.items) && order.items.length > 0) {
+          itemsHtml = order.items.map(item => {
+            if (!item || typeof item !== 'object') return '';
+            const qty  = Number(item.quantity) || 1;
+            const name = typeof item.name === 'string' ? item.name : 'Item';
+            return `<span style="font-weight:900;color:var(--brand);">${qty}×</span> ${name}`;
+          }).filter(Boolean).join('<br>');
+        }
+
+        const orderNum = order.orderNumber || ('ORD-' + String(order._id || '').slice(-5).toUpperCase());
+        const total    = typeof order.total === 'number' ? `₹${order.total}` : (order.total || '—');
+        const orderId  = String(order._id || '');
+
+        const baseCard = `
           <div class="order-card">
             <div class="oc-header">
-              <div class="oc-id">${order.orderNumber || 'ORD-' + String(order._id).slice(-5).toUpperCase()}</div>
+              <div class="oc-id">${orderNum}</div>
               <div class="oc-time">${timeStr}</div>
             </div>
-            <div class="oc-items">${itemsText}</div>
+            <div class="oc-items">${itemsHtml}</div>
             <div class="oc-footer">
-              <div style="font-size:11px; font-weight:700; color:var(--text-3); text-transform:uppercase;">Bill Total</div>
-              <div class="oc-total">₹${order.total}</div>
-            </div>
-        `;
-
-        if (order.status === 'pending' || order.status === 'placed') {
-          cNew++;
-          tabNew.innerHTML += cardHtml + `
-            <div class="oc-actions">
-              <button class="btn-card btn-accept tap" style="width:100%;" onclick="updateOrderStatus('${order._id}', 'preparing')">Accept Order</button>
-            </div></div>`;
-        } 
-        else if (order.status === 'preparing') {
-          cPrep++;
-          tabPrep.innerHTML += cardHtml + `
-            <div style="text-align:center; margin-bottom:12px; font-size:12px; font-weight:800; color:#1c1c1c;">Rider PIN: <span style="letter-spacing:2px; color:var(--brand);">${generateOTP(order._id)}</span></div>
-            <button class="btn-card btn-ready tap" style="width:100%;" onclick="updateOrderStatus('${order._id}', 'out_for_delivery')">Food is Ready</button></div>`;
-        } 
-        else if (order.status === 'out_for_delivery') {
-          cReady++;
-          tabReady.innerHTML += cardHtml + `<div style="text-align:center; padding:12px; background:#fff7ed; color:#ea580c; border-radius:10px; font-weight:800; font-size:12px;">Waiting for Rider</div></div>`;
-        }
-      });
-
-      document.getElementById('badge-new').innerText = cNew; document.getElementById('badge-new').className = cNew > 0 ? 'o-badge show' : 'o-badge';
-      document.getElementById('badge-prep').innerText = cPrep; document.getElementById('badge-prep').className = cPrep > 0 ? 'o-badge show' : 'o-badge';
-      document.getElementById('badge-ready').innerText = cReady; document.getElementById('badge-ready').className = cReady > 0 ? 'o-badge show' : 'o-badge';
-      document.getElementById('metric-orders').innerText = cNew + cPrep + cReady;
-    }
-
-    async function updateOrderStatus(id, status) {
-       const token = localStorage.getItem('nearbite_token');
-       await fetch(`https://eatswada.onrender.com/api/orders/${id}/status`, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ status })
-       });
-       fetchData(); 
-    }
-
-    // ── MENU ENGINE (LOCKED VIEW) ──
-    async function fetchVendorMenu(token) {
-      try {
-        const response = await fetch('https://eatswada.onrender.com/api/vendor/menu', { headers: { 'Authorization': `Bearer ${token}` } });
-        const result = await response.json();
-        
-        if (response.ok && result.success) {
-          const grid = document.getElementById('menu-grid');
-          if (result.data.length === 0) {
-             grid.innerHTML = '<div class="empty-state">No items assigned to your restaurant by EatSwada Admin yet.</div>'; return;
-          }
-          grid.innerHTML = result.data.map(item => `
-            <div class="menu-item ${item.inStock ? '' : 'out-of-stock'}">
               <div>
+                <div class="oc-total-label">Bill Total</div>
+                <div class="oc-total">${total}</div>
+              </div>
+            </div>`;
+
+        if (status === 'pending' || status === 'placed') {
+          cNew++;
+          tabNew.innerHTML += baseCard + `
+            <div class="oc-actions">
+              <button class="btn-card btn-accept tap" onclick="updateOrderStatus('${orderId}', 'preparing', this)">
+                <i class="fa-solid fa-check"></i> Accept Order
+              </button>
+            </div>
+          </div>`;
+        } else if (status === 'preparing') {
+          cPrep++;
+          tabPrep.innerHTML += baseCard + `
+            <div class="otp-box">
+              <div class="otp-label">Rider Pickup PIN</div>
+              <div class="otp-value">${generateOTP(orderId)}</div>
+            </div>
+            <div class="oc-actions">
+              <button class="btn-card btn-ready tap" onclick="updateOrderStatus('${orderId}', 'out_for_delivery', this)">
+                <i class="fa-solid fa-bag-shopping"></i> Food is Ready
+              </button>
+            </div>
+          </div>`;
+        } else if (status === 'out_for_delivery') {
+          cReady++;
+          tabReady.innerHTML += baseCard + `
+            <div class="waiting-box"><i class="fa-solid fa-motorcycle"></i> Rider is on the way</div>
+          </div>`;
+        }
+      }
+
+      // Empty state messages per tab
+      if (cNew   === 0) tabNew.innerHTML   = `<div class="empty-state"><i class="fa-solid fa-inbox"></i>No new orders right now.<br><span style="font-size:12px;font-weight:600;">Syncs every 12 seconds.</span></div>`;
+      if (cPrep  === 0) tabPrep.innerHTML  = `<div class="empty-state"><i class="fa-solid fa-fire-burner"></i>Nothing cooking right now.</div>`;
+      if (cReady === 0) tabReady.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open"></i>No orders waiting for pickup.</div>`;
+
+      // Badges
+      setBadge('badge-new',   cNew);
+      setBadge('badge-prep',  cPrep);
+      setBadge('badge-ready', cReady);
+
+      // Metrics
+      const metricOrders = document.getElementById('metric-orders');
+      const metricToday  = document.getElementById('metric-today');
+      if (metricOrders) metricOrders.textContent = cNew + cPrep + cReady;
+      if (metricToday)  metricToday.textContent  = todayCount;
+    }
+
+    function setBadge(id, count) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = count;
+      el.className = count > 0 ? 'o-badge show' : 'o-badge';
+    }
+
+    async function updateOrderStatus(id, status, btn) {
+      const token = getToken();
+      if (!token) { redirectToLogin(); return; }
+
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/orders/${id}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ status }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          showToast(err.message || 'Could not update order status.', 'error');
+          if (btn) { btn.disabled = false; btn.innerHTML = 'Retry'; }
+          return;
+        }
+
+        showToast('Order status updated.', 'success');
+        await fetchVendorOrders(token);
+      } catch (_) {
+        showToast('Connection error. Could not update order.', 'error');
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Retry'; }
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+     *  MENU ENGINE
+     *  Backend now returns grouped-by-category object (Rule #2).
+     * ═══════════════════════════════════════════════════════════════ */
+    async function fetchVendorMenu(token) {
+      const grid = document.getElementById('menu-grid');
+      if (!grid) return;
+
+      // Skeleton while loading
+      grid.innerHTML = `
+        <div class="skel-order-card">
+          <div class="skeleton skel-line wide"></div>
+          <div class="skeleton skel-line short"></div>
+          <div class="skeleton skel-btn"></div>
+        </div>
+        <div class="skel-order-card">
+          <div class="skeleton skel-line wide"></div>
+          <div class="skeleton skel-line short"></div>
+          <div class="skeleton skel-btn"></div>
+        </div>`;
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/vendor/menu`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.status === 401 || res.status === 403) { redirectToLogin(); return; }
+
+        if (!res.ok) {
+          grid.innerHTML = `<div class="error-state"><div class="err-icon"><i class="fa-solid fa-wifi"></i></div><h3>Could Not Load Menu</h3><p>Server error. Please sync.</p><button class="retry-btn tap" onclick="manualSync()">Retry</button></div>`;
+          return;
+        }
+
+        const result = await res.json();
+
+        if (!result.success || typeof result.data !== 'object' || result.data === null) {
+          grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-utensils"></i>No menu items found.<br><span style="font-size:12px;">Items assigned by EatSwada Admin will appear here.</span></div>`;
+          return;
+        }
+
+        renderMenu(result.data);
+      } catch (_) {
+        grid.innerHTML = `<div class="error-state"><div class="err-icon"><i class="fa-solid fa-wifi"></i></div><h3>Connection Error</h3><p>Check your internet and try again.</p><button class="retry-btn tap" onclick="manualSync()">Retry</button></div>`;
+      }
+    }
+
+    function renderMenu(grouped) {
+      const grid = document.getElementById('menu-grid');
+      if (!grid) return;
+
+      // grouped is { "Category": [ items... ] }
+      if (typeof grouped !== 'object' || grouped === null) {
+        grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-utensils"></i>No items yet.</div>`;
+        return;
+      }
+
+      const categories = Object.keys(grouped);
+
+      if (categories.length === 0) {
+        grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-utensils"></i>No menu items found.<br><span style="font-size:12px;">Items assigned by EatSwada Admin will appear here.</span></div>`;
+        return;
+      }
+
+      let html = '';
+
+      for (let ci = 0; ci < categories.length; ci++) {
+        const cat   = categories[ci];
+        const items = grouped[cat];
+
+        if (!Array.isArray(items) || items.length === 0) continue;
+
+        html += `<div class="menu-section-title">${cat}</div>`;
+
+        for (let ii = 0; ii < items.length; ii++) {
+          const item = items[ii];
+          if (!item || typeof item !== 'object') continue;
+
+          const isVeg   = Boolean(item.isVeg);
+          const inStock = item.inStock !== false;
+          const vegColor = isVeg ? '#16a34a' : '#dc2626';
+          const itemId   = String(item._id || '');
+          const price    = typeof item.price === 'number' ? item.price : Number(item.price) || 0;
+          const name     = typeof item.name === 'string' ? item.name : 'Unnamed Item';
+
+          html += `
+            <div class="menu-item ${inStock ? '' : 'out-of-stock'}" id="mi-row-${itemId}">
+              <div class="mi-left">
                 <div class="mi-name">
-                  <div style="width:10px; height:10px; border:1px solid ${item.isVeg ? '#16a34a' : '#dc2626'}; border-radius:2px; display:flex; align-items:center; justify-content:center;">
-                     <div style="width:4px; height:4px; background:${item.isVeg ? '#16a34a' : '#dc2626'}; border-radius:50%;"></div>
+                  <div class="veg-dot" style="border:1.5px solid ${vegColor};">
+                    <div class="veg-dot-inner" style="background:${vegColor};"></div>
                   </div>
-                  ${item.name}
+                  ${name}
                 </div>
-                <div class="mi-price">₹<span id="price-${item._id}">${item.price}</span> 
-                  <span class="mi-edit tap" onclick="editPrice('${item._id}', ${item.price})"><i class="fa-solid fa-pen"></i> Update</span>
+                <div id="mi-price-row-${itemId}" class="mi-price-row">
+                  <div class="mi-price" id="mi-price-${itemId}">₹${price}</div>
+                  <button class="mi-edit-btn tap" onclick="openPriceEditor('${itemId}', ${price})">
+                    <i class="fa-solid fa-pen"></i> Edit
+                  </button>
                 </div>
               </div>
               <label class="switch tap">
-                <input type="checkbox" ${item.inStock ? 'checked' : ''} onchange="toggleItemStock('${item._id}', this.checked)">
+                <input type="checkbox" ${inStock ? 'checked' : ''}
+                  onchange="toggleItemStock('${itemId}', this.checked, this)">
                 <span class="slider"></span>
               </label>
-            </div>
-          `).join('');
+            </div>`;
         }
-      } catch(e) {}
+      }
+
+      grid.innerHTML = html;
     }
 
-    async function toggleItemStock(id, inStock) {
-       const token = localStorage.getItem('nearbite_token');
-       await fetch(`https://eatswada.onrender.com/api/vendor/menu/${id}`, {
-          method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ inStock })
-       });
-       fetchVendorMenu(token); 
+    /* ── Inline price editor (replaces prompt()) ── */
+    function openPriceEditor(id, currentPrice) {
+      const row = document.getElementById(`mi-price-row-${id}`);
+      if (!row) return;
+
+      row.innerHTML = `
+        <div class="price-edit-wrap">
+          <span style="font-size:14px;font-weight:800;">₹</span>
+          <input class="price-input" id="price-input-${id}" type="number"
+            value="${currentPrice}" min="0" step="1" inputmode="numeric">
+          <button class="price-save-btn tap"   onclick="savePriceEdit('${id}', ${currentPrice})">Save</button>
+          <button class="price-cancel-btn tap" onclick="cancelPriceEdit('${id}', ${currentPrice})">✕</button>
+        </div>`;
+
+      const input = document.getElementById(`price-input-${id}`);
+      if (input) { input.focus(); input.select(); }
     }
 
-    async function editPrice(id, currentPrice) {
-      const newPrice = prompt("Enter new price in ₹:", currentPrice);
-      if (!newPrice || newPrice == currentPrice || isNaN(newPrice)) return;
-      const token = localStorage.getItem('nearbite_token');
-      await fetch(`https://eatswada.onrender.com/api/vendor/menu/${id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ price: Number(newPrice) })
-      });
-      document.getElementById(`price-${id}`).innerText = newPrice;
+    function cancelPriceEdit(id, originalPrice) {
+      const row = document.getElementById(`mi-price-row-${id}`);
+      if (!row) return;
+      row.innerHTML = `
+        <div class="mi-price" id="mi-price-${id}">₹${originalPrice}</div>
+        <button class="mi-edit-btn tap" onclick="openPriceEditor('${id}', ${originalPrice})">
+          <i class="fa-solid fa-pen"></i> Edit
+        </button>`;
     }
 
-    document.addEventListener('DOMContentLoaded', () => { fetchData(); setInterval(fetchData, 10000); });
+    async function savePriceEdit(id, originalPrice) {
+      const input = document.getElementById(`price-input-${id}`);
+      if (!input) return;
+
+      const newPrice = Number(input.value);
+
+      if (isNaN(newPrice) || newPrice < 0) {
+        showToast('Enter a valid price (₹0 or more).', 'error'); return;
+      }
+      if (newPrice === originalPrice) {
+        cancelPriceEdit(id, originalPrice); return;
+      }
+
+      const token = getToken();
+      if (!token) { redirectToLogin(); return; }
+
+      // Optimistic UI
+      cancelPriceEdit(id, newPrice);
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/vendor/menu/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ price: newPrice }),
+        });
+
+        const result = await res.json().catch(() => ({}));
+
+        if (!res.ok || !result.success) {
+          cancelPriceEdit(id, originalPrice); // Revert
+          showToast(result.message || 'Price update failed.', 'error');
+          return;
+        }
+
+        showToast(`Price updated to ₹${newPrice}`, 'success');
+      } catch (_) {
+        cancelPriceEdit(id, originalPrice);
+        showToast('Connection error. Price not saved.', 'error');
+      }
+    }
+
+    async function toggleItemStock(id, inStock, toggleEl) {
+      const token = getToken();
+      if (!token) { redirectToLogin(); return; }
+
+      // Disable toggle while saving
+      if (toggleEl) toggleEl.disabled = true;
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/vendor/menu/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ inStock }),
+        });
+
+        const result = await res.json().catch(() => ({}));
+
+        if (!res.ok || !result.success) {
+          // Revert toggle
+          if (toggleEl) toggleEl.checked = !inStock;
+          showToast(result.message || 'Could not update stock status.', 'error');
+          return;
+        }
+
+        // Update the card's visual state without a full re-fetch
+        const row = document.getElementById(`mi-row-${id}`);
+        if (row) {
+          if (inStock) row.classList.remove('out-of-stock');
+          else         row.classList.add('out-of-stock');
+        }
+
+        showToast(inStock ? 'Item marked In Stock.' : 'Item marked Out of Stock.', inStock ? 'success' : 'warning');
+      } catch (_) {
+        if (toggleEl) { toggleEl.checked = !inStock; }
+        showToast('Connection error. Stock status not saved.', 'error');
+      } finally {
+        if (toggleEl) toggleEl.disabled = false;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+     *  BOOT
+     * ═══════════════════════════════════════════════════════════════ */
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = getToken();
+      if (!token) { redirectToLogin(); return; }
+
+      // Show skeletons immediately
+      showOrderSkeletons(2);
+
+      // Load restaurant name/status in header (non-blocking)
+      loadRestaurantHeader(token);
+
+      // Load orders
+      await fetchVendorOrders(token);
+
+      // Start auto-refresh
+      startPolling();
+    });
   </script>
 </body>
 </html>
