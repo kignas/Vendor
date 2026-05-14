@@ -131,7 +131,7 @@
     .master-switch-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
     .master-label { font-size: 10px; font-weight: 800; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* Toggle switch */
+    /* ── TOGGLE SWITCH (shared: master + per-item stock) ── */
     .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider {
@@ -145,6 +145,24 @@
     input:checked + .slider { background-color: var(--green); }
     input:checked + .slider:before { transform: translateX(20px); }
     .switch.disabled { opacity: 0.5; pointer-events: none; }
+
+    /* Stock toggle variant — slightly smaller, with label pill */
+    .stock-toggle-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .stock-label {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      transition: color 0.2s;
+    }
+    .stock-label.in  { color: var(--green); }
+    .stock-label.out { color: var(--red); }
 
     /* ── METRICS BAR ── */
     .metrics-row {
@@ -389,7 +407,7 @@
           Toggle availability or tap <strong>Edit</strong> to update pricing inline.
         </p>
         <div id="menu-grid">
-          <!-- Skeleton -->
+          <!-- Skeleton placeholder shown before fetch -->
           <div class="skel-order-card">
             <div class="skeleton skel-line wide"></div>
             <div class="skeleton skel-line short"></div>
@@ -422,8 +440,8 @@
      *  CONSTANTS & STATE
      * ═══════════════════════════════════════════════════════════════ */
     const BASE_URL    = 'https://eatswada.onrender.com';
-    const TOKEN_KEY   = 'nearbite_token';  // Single canonical key — never use 'token'
-    let   pollingTimer = null;
+    const TOKEN_KEY   = 'nearbite_token'; // single canonical key — never use 'token'
+    let   pollingTimer    = null;
     let   currentOrderTab = 'new';
 
     /* ═══════════════════════════════════════════════════════════════
@@ -440,44 +458,52 @@
 
     /* ═══════════════════════════════════════════════════════════════
      *  TOAST SYSTEM
-     *  Usage: showToast('message', 'success' | 'error' | 'info' | 'warning')
      * ═══════════════════════════════════════════════════════════════ */
-    function showToast(message, type = 'info', duration = 3500) {
+    function showToast(message, type, duration) {
+      type     = type     || 'info';
+      duration = duration || 3500;
+
       const container = document.getElementById('toast-container');
       if (!container) return;
 
-      const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info', warning: 'fa-triangle-exclamation' };
+      const icons = {
+        success: 'fa-circle-check',
+        error:   'fa-circle-xmark',
+        info:    'fa-circle-info',
+        warning: 'fa-triangle-exclamation',
+      };
+
       const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i> ${message}`;
+      toast.className = 'toast ' + type;
+      toast.innerHTML = '<i class="fa-solid ' + (icons[type] || icons.info) + '"></i> ' + message;
       container.appendChild(toast);
 
-      setTimeout(() => {
+      setTimeout(function () {
         toast.classList.add('out');
-        toast.addEventListener('animationend', () => toast.remove(), { once: true });
+        toast.addEventListener('animationend', function () { toast.remove(); }, { once: true });
       }, duration);
     }
 
     /* ═══════════════════════════════════════════════════════════════
      *  SKELETON LOADERS
      * ═══════════════════════════════════════════════════════════════ */
-    function showOrderSkeletons(count = 2) {
-      const tabs = ['tab-new', 'tab-prep', 'tab-ready'];
-      tabs.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        let html = '';
-        for (let i = 0; i < count; i++) {
-          html += `
-            <div class="skel-order-card">
-              <div class="skeleton skel-line wide"></div>
-              <div class="skeleton skel-line short"></div>
-              <div class="skeleton skel-line thin"></div>
-              <div class="skeleton skel-btn"></div>
-            </div>`;
+    function showOrderSkeletons(count) {
+      count = count || 2;
+      var tabs = ['tab-new', 'tab-prep', 'tab-ready'];
+      for (var t = 0; t < tabs.length; t++) {
+        var el = document.getElementById(tabs[t]);
+        if (!el) continue;
+        var html = '';
+        for (var i = 0; i < count; i++) {
+          html += '<div class="skel-order-card">'
+                + '<div class="skeleton skel-line wide"></div>'
+                + '<div class="skeleton skel-line short"></div>'
+                + '<div class="skeleton skel-line thin"></div>'
+                + '<div class="skeleton skel-btn"></div>'
+                + '</div>';
         }
         el.innerHTML = html;
-      });
+      }
     }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -492,7 +518,7 @@
       if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
     }
 
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener('visibilitychange', function () {
       if (document.hidden) { stopPolling(); }
       else                 { fetchData(); startPolling(); }
     });
@@ -501,20 +527,29 @@
      *  NAVIGATION
      * ═══════════════════════════════════════════════════════════════ */
     function switchMainTab(tabId, el) {
-      document.querySelectorAll('.b-nav-item').forEach(i => i.classList.remove('active'));
+      var navItems = document.querySelectorAll('.b-nav-item');
+      for (var i = 0; i < navItems.length; i++) navItems[i].classList.remove('active');
       el.classList.add('active');
-      document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-      const target = document.getElementById(`view-${tabId}`);
+
+      var views = document.querySelectorAll('.view-section');
+      for (var j = 0; j < views.length; j++) views[j].classList.remove('active');
+
+      var target = document.getElementById('view-' + tabId);
       if (target) target.classList.add('active');
+
       fetchData();
     }
 
     function switchOrderTab(tabId, el) {
       currentOrderTab = tabId;
-      document.querySelectorAll('.o-tab').forEach(t => t.classList.remove('active'));
+      var tabs = document.querySelectorAll('.o-tab');
+      for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
       el.classList.add('active');
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      const target = document.getElementById(`tab-${tabId}`);
+
+      var contents = document.querySelectorAll('.tab-content');
+      for (var j = 0; j < contents.length; j++) contents[j].classList.remove('active');
+
+      var target = document.getElementById('tab-' + tabId);
       if (target) target.classList.add('active');
     }
 
@@ -522,21 +557,21 @@
      *  MASTER FETCH ORCHESTRATOR
      * ═══════════════════════════════════════════════════════════════ */
     async function fetchData() {
-      const token = getToken();
+      var token = getToken();
       if (!token) { redirectToLogin(); return; }
 
-      const activeView = document.querySelector('.view-section.active');
-      const viewId = activeView ? activeView.id : 'view-orders';
+      var activeView = document.querySelector('.view-section.active');
+      var viewId = activeView ? activeView.id : 'view-orders';
 
       if (viewId === 'view-orders') await fetchVendorOrders(token);
       else                          await fetchVendorMenu(token);
     }
 
     function manualSync() {
-      const btn = document.getElementById('sync-btn');
+      var btn = document.getElementById('sync-btn');
       if (btn) btn.classList.add('spinning');
-      fetchData().finally(() => {
-        setTimeout(() => { if (btn) btn.classList.remove('spinning'); }, 600);
+      fetchData().finally(function () {
+        setTimeout(function () { if (btn) btn.classList.remove('spinning'); }, 600);
       });
     }
 
@@ -545,22 +580,22 @@
      * ═══════════════════════════════════════════════════════════════ */
     async function loadRestaurantHeader(token) {
       try {
-        const res = await fetch(`${BASE_URL}/api/vendor/restaurant`, {
-          headers: { Authorization: `Bearer ${token}` },
+        var res = await fetch(BASE_URL + '/api/vendor/restaurant', {
+          headers: { Authorization: 'Bearer ' + token },
         });
 
         if (res.status === 401 || res.status === 403) { redirectToLogin(); return; }
-        if (!res.ok) return; // Non-critical — header keeps default text
+        if (!res.ok) return; // non-critical — header keeps default text
 
-        const result = await res.json();
-        if (!result.success || !result.data) return;
+        var result = await res.json();
+        if (!result.success || !result.data || typeof result.data !== 'object') return;
 
-        const r = result.data;
-        const nameEl  = document.getElementById('res-name-display');
-        const badgeEl = document.getElementById('res-status-badge');
-        const toggle  = document.getElementById('master-toggle');
+        var r       = result.data;
+        var nameEl  = document.getElementById('res-name-display');
+        var badgeEl = document.getElementById('res-status-badge');
+        var toggle  = document.getElementById('master-toggle');
 
-        if (nameEl)  nameEl.textContent = r.name || 'EatSwada Partner';
+        if (nameEl && typeof r.name === 'string') nameEl.textContent = r.name || 'EatSwada Partner';
         if (toggle)  toggle.checked = Boolean(r.isActive);
         if (badgeEl) updateStatusBadge(Boolean(r.isActive));
       } catch (_) {
@@ -572,37 +607,37 @@
      *  MASTER TOGGLE
      * ═══════════════════════════════════════════════════════════════ */
     function updateStatusBadge(isOnline) {
-      const badge = document.getElementById('res-status-badge');
+      var badge = document.getElementById('res-status-badge');
       if (!badge) return;
-      badge.className = `status-badge ${isOnline ? 'status-online' : 'status-offline'}`;
+      badge.className = 'status-badge ' + (isOnline ? 'status-online' : 'status-offline');
       badge.textContent = isOnline ? 'Online' : 'Offline';
     }
 
     document.getElementById('master-toggle').addEventListener('change', async function () {
-      const isOnline = this.checked;
-      const token    = getToken();
+      var isOnline   = this.checked;
+      var token      = getToken();
       if (!token) { redirectToLogin(); return; }
 
-      const switchLabel = document.getElementById('master-switch-label');
+      var switchLabel = document.getElementById('master-switch-label');
       if (switchLabel) switchLabel.classList.add('disabled');
 
       try {
-        const res = await fetch(`${BASE_URL}/api/vendor/status`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ isActive: isOnline }),
+        var res = await fetch(BASE_URL + '/api/vendor/status', {
+          method:  'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          body:    JSON.stringify({ isActive: isOnline }),
         });
-        const result = await res.json();
+
+        var result = await res.json().catch(function () { return {}; });
 
         if (!res.ok || !result.success) {
-          // Revert the toggle on failure
           this.checked = !isOnline;
           showToast(result.message || 'Could not update status. Try again.', 'error');
           return;
         }
 
         updateStatusBadge(isOnline);
-        showToast(`Restaurant is now ${isOnline ? 'Online ✓' : 'Offline'}`, isOnline ? 'success' : 'warning');
+        showToast('Restaurant is now ' + (isOnline ? 'Online ✓' : 'Offline'), isOnline ? 'success' : 'warning');
       } catch (_) {
         this.checked = !isOnline;
         showToast('Connection error. Status not saved.', 'error');
@@ -616,8 +651,8 @@
      * ═══════════════════════════════════════════════════════════════ */
     async function fetchVendorOrders(token) {
       try {
-        const res = await fetch(`${BASE_URL}/api/vendor/orders`, {
-          headers: { Authorization: `Bearer ${token}` },
+        var res = await fetch(BASE_URL + '/api/vendor/orders', {
+          headers: { Authorization: 'Bearer ' + token },
         });
 
         if (res.status === 401 || res.status === 403) { redirectToLogin(); return; }
@@ -627,7 +662,7 @@
           return;
         }
 
-        const result = await res.json();
+        var result = await res.json();
 
         if (!result.success || !Array.isArray(result.data)) {
           showOrdersError('Unexpected response from server.');
@@ -641,47 +676,46 @@
     }
 
     function showOrdersError(message) {
-      const tabs = ['tab-new', 'tab-prep', 'tab-ready'];
-      tabs.forEach(id => {
-        const el = document.getElementById(id);
+      var tabs = ['tab-new', 'tab-prep', 'tab-ready'];
+      for (var i = 0; i < tabs.length; i++) {
+        var el = document.getElementById(tabs[i]);
         if (el) {
-          el.innerHTML = `
-            <div class="error-state">
-              <div class="err-icon"><i class="fa-solid fa-wifi"></i></div>
-              <h3>Connection Error</h3>
-              <p>${message}</p>
-              <button class="retry-btn tap" onclick="manualSync()">Retry</button>
-            </div>`;
+          el.innerHTML =
+            '<div class="error-state">'
+            + '<div class="err-icon"><i class="fa-solid fa-wifi"></i></div>'
+            + '<h3>Connection Error</h3>'
+            + '<p>' + message + '</p>'
+            + '<button class="retry-btn tap" onclick="manualSync()">Retry</button>'
+            + '</div>';
         }
-      });
+      }
     }
 
     function generateOTP(orderId) {
       // Deterministic 4-digit PIN from the last 5 hex chars of the order ID.
-      const raw = String(orderId || '').slice(-5);
+      var raw = String(orderId || '').slice(-5);
       return parseInt(raw, 16).toString().padStart(6, '0').slice(-4);
     }
 
     function renderOrders(orders) {
-      const tabNew   = document.getElementById('tab-new');
-      const tabPrep  = document.getElementById('tab-prep');
-      const tabReady = document.getElementById('tab-ready');
+      var tabNew   = document.getElementById('tab-new');
+      var tabPrep  = document.getElementById('tab-prep');
+      var tabReady = document.getElementById('tab-ready');
       if (!tabNew || !tabPrep || !tabReady) return;
 
       tabNew.innerHTML = tabPrep.innerHTML = tabReady.innerHTML = '';
-      let cNew = 0, cPrep = 0, cReady = 0;
-      let todayCount = 0;
-
-      const today = new Date().toDateString();
+      var cNew = 0, cPrep = 0, cReady = 0;
+      var todayCount = 0;
+      var today = new Date().toDateString();
 
       // Guard: orders must be a non-empty array
       if (!Array.isArray(orders)) return;
 
-      for (let i = 0; i < orders.length; i++) {
-        const order = orders[i];
+      for (var i = 0; i < orders.length; i++) {
+        var order = orders[i];
         if (!order || typeof order !== 'object') continue;
 
-        const status = typeof order.status === 'string' ? order.status : '';
+        var status = typeof order.status === 'string' ? order.status : '';
         if (status === 'cancelled' || status === 'delivered') continue;
 
         // Count today's orders regardless of current status
@@ -689,73 +723,76 @@
           todayCount++;
         }
 
-        const timeStr = order.createdAt
+        var timeStr = order.createdAt
           ? new Date(order.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
           : '—';
 
         // Safe items render — guard against null/non-array items
-        let itemsHtml = '—';
+        var itemsHtml = '—';
         if (Array.isArray(order.items) && order.items.length > 0) {
-          itemsHtml = order.items.map(item => {
-            if (!item || typeof item !== 'object') return '';
-            const qty  = Number(item.quantity) || 1;
-            const name = typeof item.name === 'string' ? item.name : 'Item';
-            return `<span style="font-weight:900;color:var(--brand);">${qty}×</span> ${name}`;
-          }).filter(Boolean).join('<br>');
+          var itemParts = [];
+          for (var ii = 0; ii < order.items.length; ii++) {
+            var item = order.items[ii];
+            if (!item || typeof item !== 'object') continue;
+            var qty  = Number(item.quantity) || 1;
+            var name = typeof item.name === 'string' ? item.name : 'Item';
+            itemParts.push('<span style="font-weight:900;color:var(--brand);">' + qty + '×</span> ' + name);
+          }
+          if (itemParts.length > 0) itemsHtml = itemParts.join('<br>');
         }
 
-        const orderNum = order.orderNumber || ('ORD-' + String(order._id || '').slice(-5).toUpperCase());
-        const total    = typeof order.total === 'number' ? `₹${order.total}` : (order.total || '—');
-        const orderId  = String(order._id || '');
+        var orderNum = order.orderNumber || ('ORD-' + String(order._id || '').slice(-5).toUpperCase());
+        var total    = typeof order.total === 'number' ? '₹' + order.total : (order.total || '—');
+        var orderId  = String(order._id || '');
 
-        const baseCard = `
-          <div class="order-card">
-            <div class="oc-header">
-              <div class="oc-id">${orderNum}</div>
-              <div class="oc-time">${timeStr}</div>
-            </div>
-            <div class="oc-items">${itemsHtml}</div>
-            <div class="oc-footer">
-              <div>
-                <div class="oc-total-label">Bill Total</div>
-                <div class="oc-total">${total}</div>
-              </div>
-            </div>`;
+        var baseCard =
+          '<div class="order-card">'
+          + '<div class="oc-header">'
+          +   '<div class="oc-id">' + orderNum + '</div>'
+          +   '<div class="oc-time">' + timeStr + '</div>'
+          + '</div>'
+          + '<div class="oc-items">' + itemsHtml + '</div>'
+          + '<div class="oc-footer">'
+          +   '<div>'
+          +     '<div class="oc-total-label">Bill Total</div>'
+          +     '<div class="oc-total">' + total + '</div>'
+          +   '</div>'
+          + '</div>';
 
         if (status === 'pending' || status === 'placed') {
           cNew++;
-          tabNew.innerHTML += baseCard + `
-            <div class="oc-actions">
-              <button class="btn-card btn-accept tap" onclick="updateOrderStatus('${orderId}', 'preparing', this)">
-                <i class="fa-solid fa-check"></i> Accept Order
-              </button>
-            </div>
-          </div>`;
+          tabNew.innerHTML += baseCard
+            + '<div class="oc-actions">'
+            +   '<button class="btn-card btn-accept tap" onclick="updateOrderStatus(\'' + orderId + '\', \'preparing\', this)">'
+            +     '<i class="fa-solid fa-check"></i> Accept Order'
+            +   '</button>'
+            + '</div>'
+            + '</div>';
         } else if (status === 'preparing') {
           cPrep++;
-          tabPrep.innerHTML += baseCard + `
-            <div class="otp-box">
-              <div class="otp-label">Rider Pickup PIN</div>
-              <div class="otp-value">${generateOTP(orderId)}</div>
-            </div>
-            <div class="oc-actions">
-              <button class="btn-card btn-ready tap" onclick="updateOrderStatus('${orderId}', 'out_for_delivery', this)">
-                <i class="fa-solid fa-bag-shopping"></i> Food is Ready
-              </button>
-            </div>
-          </div>`;
+          tabPrep.innerHTML += baseCard
+            + '<div class="otp-box">'
+            +   '<div class="otp-label">Rider Pickup PIN</div>'
+            +   '<div class="otp-value">' + generateOTP(orderId) + '</div>'
+            + '</div>'
+            + '<div class="oc-actions">'
+            +   '<button class="btn-card btn-ready tap" onclick="updateOrderStatus(\'' + orderId + '\', \'out_for_delivery\', this)">'
+            +     '<i class="fa-solid fa-bag-shopping"></i> Food is Ready'
+            +   '</button>'
+            + '</div>'
+            + '</div>';
         } else if (status === 'out_for_delivery') {
           cReady++;
-          tabReady.innerHTML += baseCard + `
-            <div class="waiting-box"><i class="fa-solid fa-motorcycle"></i> Rider is on the way</div>
-          </div>`;
+          tabReady.innerHTML += baseCard
+            + '<div class="waiting-box"><i class="fa-solid fa-motorcycle"></i> Rider is on the way</div>'
+            + '</div>';
         }
       }
 
       // Empty state messages per tab
-      if (cNew   === 0) tabNew.innerHTML   = `<div class="empty-state"><i class="fa-solid fa-inbox"></i>No new orders right now.<br><span style="font-size:12px;font-weight:600;">Syncs every 12 seconds.</span></div>`;
-      if (cPrep  === 0) tabPrep.innerHTML  = `<div class="empty-state"><i class="fa-solid fa-fire-burner"></i>Nothing cooking right now.</div>`;
-      if (cReady === 0) tabReady.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open"></i>No orders waiting for pickup.</div>`;
+      if (cNew   === 0) tabNew.innerHTML   = '<div class="empty-state"><i class="fa-solid fa-inbox"></i>No new orders right now.<br><span style="font-size:12px;font-weight:600;">Syncs every 12 seconds.</span></div>';
+      if (cPrep  === 0) tabPrep.innerHTML  = '<div class="empty-state"><i class="fa-solid fa-fire-burner"></i>Nothing cooking right now.</div>';
+      if (cReady === 0) tabReady.innerHTML = '<div class="empty-state"><i class="fa-solid fa-box-open"></i>No orders waiting for pickup.</div>';
 
       // Badges
       setBadge('badge-new',   cNew);
@@ -763,34 +800,34 @@
       setBadge('badge-ready', cReady);
 
       // Metrics
-      const metricOrders = document.getElementById('metric-orders');
-      const metricToday  = document.getElementById('metric-today');
+      var metricOrders = document.getElementById('metric-orders');
+      var metricToday  = document.getElementById('metric-today');
       if (metricOrders) metricOrders.textContent = cNew + cPrep + cReady;
       if (metricToday)  metricToday.textContent  = todayCount;
     }
 
     function setBadge(id, count) {
-      const el = document.getElementById(id);
+      var el = document.getElementById(id);
       if (!el) return;
       el.textContent = count;
       el.className = count > 0 ? 'o-badge show' : 'o-badge';
     }
 
     async function updateOrderStatus(id, status, btn) {
-      const token = getToken();
+      var token = getToken();
       if (!token) { redirectToLogin(); return; }
 
       if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
 
       try {
-        const res = await fetch(`${BASE_URL}/api/orders/${id}/status`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ status }),
+        var res = await fetch(BASE_URL + '/api/orders/' + id + '/status', {
+          method:  'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          body:    JSON.stringify({ status: status }),
         });
 
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
+          var err = await res.json().catch(function () { return {}; });
           showToast(err.message || 'Could not update order status.', 'error');
           if (btn) { btn.disabled = false; btn.innerHTML = 'Retry'; }
           return;
@@ -806,149 +843,157 @@
 
     /* ═══════════════════════════════════════════════════════════════
      *  MENU ENGINE
-     *  Backend now returns grouped-by-category object (Rule #2).
+     *  Backend returns grouped-by-category object.
      * ═══════════════════════════════════════════════════════════════ */
     async function fetchVendorMenu(token) {
-      const grid = document.getElementById('menu-grid');
+      var grid = document.getElementById('menu-grid');
       if (!grid) return;
 
-      // Skeleton while loading
-      grid.innerHTML = `
-        <div class="skel-order-card">
-          <div class="skeleton skel-line wide"></div>
-          <div class="skeleton skel-line short"></div>
-          <div class="skeleton skel-btn"></div>
-        </div>
-        <div class="skel-order-card">
-          <div class="skeleton skel-line wide"></div>
-          <div class="skeleton skel-line short"></div>
-          <div class="skeleton skel-btn"></div>
-        </div>`;
+      // Show skeleton while loading
+      grid.innerHTML =
+        '<div class="skel-order-card">'
+        + '<div class="skeleton skel-line wide"></div>'
+        + '<div class="skeleton skel-line short"></div>'
+        + '<div class="skeleton skel-btn"></div>'
+        + '</div>'
+        + '<div class="skel-order-card">'
+        + '<div class="skeleton skel-line wide"></div>'
+        + '<div class="skeleton skel-line short"></div>'
+        + '<div class="skeleton skel-btn"></div>'
+        + '</div>';
 
       try {
-        const res = await fetch(`${BASE_URL}/api/vendor/menu`, {
-          headers: { Authorization: `Bearer ${token}` },
+        var res = await fetch(BASE_URL + '/api/vendor/menu', {
+          headers: { Authorization: 'Bearer ' + token },
         });
 
         if (res.status === 401 || res.status === 403) { redirectToLogin(); return; }
 
         if (!res.ok) {
-          grid.innerHTML = `<div class="error-state"><div class="err-icon"><i class="fa-solid fa-wifi"></i></div><h3>Could Not Load Menu</h3><p>Server error. Please sync.</p><button class="retry-btn tap" onclick="manualSync()">Retry</button></div>`;
+          grid.innerHTML = '<div class="error-state"><div class="err-icon"><i class="fa-solid fa-wifi"></i></div><h3>Could Not Load Menu</h3><p>Server error. Please sync.</p><button class="retry-btn tap" onclick="manualSync()">Retry</button></div>';
           return;
         }
 
-        const result = await res.json();
+        var result = await res.json();
 
         if (!result.success || typeof result.data !== 'object' || result.data === null) {
-          grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-utensils"></i>No menu items found.<br><span style="font-size:12px;">Items assigned by EatSwada Admin will appear here.</span></div>`;
+          grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-utensils"></i>No menu items found.<br><span style="font-size:12px;">Items assigned by EatSwada Admin will appear here.</span></div>';
           return;
         }
 
         renderMenu(result.data);
       } catch (_) {
-        grid.innerHTML = `<div class="error-state"><div class="err-icon"><i class="fa-solid fa-wifi"></i></div><h3>Connection Error</h3><p>Check your internet and try again.</p><button class="retry-btn tap" onclick="manualSync()">Retry</button></div>`;
+        grid.innerHTML = '<div class="error-state"><div class="err-icon"><i class="fa-solid fa-wifi"></i></div><h3>Connection Error</h3><p>Check your internet and try again.</p><button class="retry-btn tap" onclick="manualSync()">Retry</button></div>';
       }
     }
 
     function renderMenu(grouped) {
-      const grid = document.getElementById('menu-grid');
+      var grid = document.getElementById('menu-grid');
       if (!grid) return;
 
-      // grouped is { "Category": [ items... ] }
       if (typeof grouped !== 'object' || grouped === null) {
-        grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-utensils"></i>No items yet.</div>`;
+        grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-utensils"></i>No items yet.</div>';
         return;
       }
 
-      const categories = Object.keys(grouped);
+      var categories = Object.keys(grouped);
 
       if (categories.length === 0) {
-        grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-utensils"></i>No menu items found.<br><span style="font-size:12px;">Items assigned by EatSwada Admin will appear here.</span></div>`;
+        grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-utensils"></i>No menu items found.<br><span style="font-size:12px;">Items assigned by EatSwada Admin will appear here.</span></div>';
         return;
       }
 
-      let html = '';
+      var html = '';
 
-      for (let ci = 0; ci < categories.length; ci++) {
-        const cat   = categories[ci];
-        const items = grouped[cat];
+      for (var ci = 0; ci < categories.length; ci++) {
+        var cat   = categories[ci];
+        var items = grouped[cat];
 
         if (!Array.isArray(items) || items.length === 0) continue;
 
-        html += `<div class="menu-section-title">${cat}</div>`;
+        html += '<div class="menu-section-title">' + cat + '</div>';
 
-        for (let ii = 0; ii < items.length; ii++) {
-          const item = items[ii];
+        for (var ii = 0; ii < items.length; ii++) {
+          var item = items[ii];
           if (!item || typeof item !== 'object') continue;
 
-          const isVeg   = Boolean(item.isVeg);
-          const inStock = item.inStock !== false;
-          const vegColor = isVeg ? '#16a34a' : '#dc2626';
-          const itemId   = String(item._id || '');
-          const price    = typeof item.price === 'number' ? item.price : Number(item.price) || 0;
-          const name     = typeof item.name === 'string' ? item.name : 'Unnamed Item';
+          var isVeg    = Boolean(item.isVeg);
+          var inStock  = item.inStock !== false;
+          var vegColor = isVeg ? '#16a34a' : '#dc2626';
+          var itemId   = String(item._id || '');
+          var price    = typeof item.price === 'number' ? item.price : (Number(item.price) || 0);
+          var name     = typeof item.name  === 'string' ? item.name  : 'Unnamed Item';
 
-          html += `
-            <div class="menu-item ${inStock ? '' : 'out-of-stock'}" id="mi-row-${itemId}">
-              <div class="mi-left">
-                <div class="mi-name">
-                  <div class="veg-dot" style="border:1.5px solid ${vegColor};">
-                    <div class="veg-dot-inner" style="background:${vegColor};"></div>
-                  </div>
-                  ${name}
-                </div>
-                <div id="mi-price-row-${itemId}" class="mi-price-row">
-                  <div class="mi-price" id="mi-price-${itemId}">₹${price}</div>
-                  <button class="mi-edit-btn tap" onclick="openPriceEditor('${itemId}', ${price})">
-                    <i class="fa-solid fa-pen"></i> Edit
-                  </button>
-                </div>
-              </div>
-              <label class="switch tap">
-                <input type="checkbox" ${inStock ? 'checked' : ''}
-                  onchange="toggleItemStock('${itemId}', this.checked, this)">
-                <span class="slider"></span>
-              </label>
-            </div>`;
+          // Stock label text matches current state
+          var stockLabelClass = inStock ? 'in' : 'out';
+          var stockLabelText  = inStock ? 'In Stock' : 'Out of Stock';
+
+          html +=
+            '<div class="menu-item ' + (inStock ? '' : 'out-of-stock') + '" id="mi-row-' + itemId + '">'
+            + '<div class="mi-left">'
+            +   '<div class="mi-name">'
+            +     '<div class="veg-dot" style="border:1.5px solid ' + vegColor + ';">'
+            +       '<div class="veg-dot-inner" style="background:' + vegColor + ';"></div>'
+            +     '</div>'
+            +     name
+            +   '</div>'
+            +   '<div id="mi-price-row-' + itemId + '" class="mi-price-row">'
+            +     '<div class="mi-price" id="mi-price-' + itemId + '">₹' + price + '</div>'
+            +     '<button class="mi-edit-btn tap" onclick="openPriceEditor(\'' + itemId + '\', ' + price + ')">'
+            +       '<i class="fa-solid fa-pen"></i> Edit'
+            +     '</button>'
+            +   '</div>'
+            + '</div>'
+            + '<div class="stock-toggle-wrap">'
+            +   '<label class="switch tap" id="mi-switch-' + itemId + '">'
+            +     '<input type="checkbox" id="mi-chk-' + itemId + '" ' + (inStock ? 'checked' : '')
+            +       ' onchange="toggleItemStock(\'' + itemId + '\', this)">'
+            +     '<span class="slider"></span>'
+            +   '</label>'
+            +   '<span class="stock-label ' + stockLabelClass + '" id="mi-lbl-' + itemId + '">' + stockLabelText + '</span>'
+            + '</div>'
+            + '</div>';
         }
       }
 
       grid.innerHTML = html;
     }
 
-    /* ── Inline price editor (replaces prompt()) ── */
+    /* ═══════════════════════════════════════════════════════════════
+     *  INLINE PRICE EDITOR
+     * ═══════════════════════════════════════════════════════════════ */
     function openPriceEditor(id, currentPrice) {
-      const row = document.getElementById(`mi-price-row-${id}`);
+      var row = document.getElementById('mi-price-row-' + id);
       if (!row) return;
 
-      row.innerHTML = `
-        <div class="price-edit-wrap">
-          <span style="font-size:14px;font-weight:800;">₹</span>
-          <input class="price-input" id="price-input-${id}" type="number"
-            value="${currentPrice}" min="0" step="1" inputmode="numeric">
-          <button class="price-save-btn tap"   onclick="savePriceEdit('${id}', ${currentPrice})">Save</button>
-          <button class="price-cancel-btn tap" onclick="cancelPriceEdit('${id}', ${currentPrice})">✕</button>
-        </div>`;
+      row.innerHTML =
+        '<div class="price-edit-wrap">'
+        + '<span style="font-size:14px;font-weight:800;">₹</span>'
+        + '<input class="price-input" id="price-input-' + id + '" type="number"'
+        +   ' value="' + currentPrice + '" min="0" step="1" inputmode="numeric">'
+        + '<button class="price-save-btn tap"   onclick="savePriceEdit(\'' + id + '\', ' + currentPrice + ')">Save</button>'
+        + '<button class="price-cancel-btn tap" onclick="cancelPriceEdit(\'' + id + '\', ' + currentPrice + ')">✕</button>'
+        + '</div>';
 
-      const input = document.getElementById(`price-input-${id}`);
+      var input = document.getElementById('price-input-' + id);
       if (input) { input.focus(); input.select(); }
     }
 
     function cancelPriceEdit(id, originalPrice) {
-      const row = document.getElementById(`mi-price-row-${id}`);
+      var row = document.getElementById('mi-price-row-' + id);
       if (!row) return;
-      row.innerHTML = `
-        <div class="mi-price" id="mi-price-${id}">₹${originalPrice}</div>
-        <button class="mi-edit-btn tap" onclick="openPriceEditor('${id}', ${originalPrice})">
-          <i class="fa-solid fa-pen"></i> Edit
-        </button>`;
+      row.innerHTML =
+        '<div class="mi-price" id="mi-price-' + id + '">₹' + originalPrice + '</div>'
+        + '<button class="mi-edit-btn tap" onclick="openPriceEditor(\'' + id + '\', ' + originalPrice + ')">'
+        +   '<i class="fa-solid fa-pen"></i> Edit'
+        + '</button>';
     }
 
     async function savePriceEdit(id, originalPrice) {
-      const input = document.getElementById(`price-input-${id}`);
+      var input = document.getElementById('price-input-' + id);
       if (!input) return;
 
-      const newPrice = Number(input.value);
+      var newPrice = Number(input.value);
 
       if (isNaN(newPrice) || newPrice < 0) {
         showToast('Enter a valid price (₹0 or more).', 'error'); return;
@@ -957,78 +1002,105 @@
         cancelPriceEdit(id, originalPrice); return;
       }
 
-      const token = getToken();
+      var token = getToken();
       if (!token) { redirectToLogin(); return; }
 
-      // Optimistic UI
+      // Optimistic UI — show new price immediately
       cancelPriceEdit(id, newPrice);
 
       try {
-        const res = await fetch(`${BASE_URL}/api/vendor/menu/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ price: newPrice }),
+        var res = await fetch(BASE_URL + '/api/vendor/menu/' + id, {
+          method:  'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          body:    JSON.stringify({ price: newPrice }),
         });
 
-        const result = await res.json().catch(() => ({}));
+        var result = await res.json().catch(function () { return {}; });
 
         if (!res.ok || !result.success) {
-          cancelPriceEdit(id, originalPrice); // Revert
+          cancelPriceEdit(id, originalPrice); // revert
           showToast(result.message || 'Price update failed.', 'error');
           return;
         }
 
-        showToast(`Price updated to ₹${newPrice}`, 'success');
+        showToast('Price updated to ₹' + newPrice, 'success');
       } catch (_) {
         cancelPriceEdit(id, originalPrice);
         showToast('Connection error. Price not saved.', 'error');
       }
     }
 
-    async function toggleItemStock(id, inStock, toggleEl) {
-      const token = getToken();
+    /* ═══════════════════════════════════════════════════════════════
+     *  STOCK TOGGLE  ← UPGRADED
+     *  Now calls the dedicated PUT /api/vendor/menu/:id/toggle-stock
+     *  route instead of the general update route.  The server does
+     *  an atomic boolean flip — the client never sends an inStock
+     *  value, eliminating the race condition from the old approach.
+     * ═══════════════════════════════════════════════════════════════ */
+    async function toggleItemStock(id, checkboxEl) {
+      var token = getToken();
       if (!token) { redirectToLogin(); return; }
 
-      // Disable toggle while saving
-      if (toggleEl) toggleEl.disabled = true;
+      // Capture what the user just toggled TO (optimistic)
+      var optimisticInStock = checkboxEl.checked;
+
+      // Disable while in-flight to prevent double-click
+      var switchWrap = document.getElementById('mi-switch-' + id);
+      if (switchWrap) switchWrap.classList.add('disabled');
 
       try {
-        const res = await fetch(`${BASE_URL}/api/vendor/menu/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ inStock }),
+        var res = await fetch(BASE_URL + '/api/vendor/menu/' + id + '/toggle-stock', {
+          method:  'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          // No body required — server does the atomic flip from its own DB value
         });
 
-        const result = await res.json().catch(() => ({}));
+        var result = await res.json().catch(function () { return {}; });
 
         if (!res.ok || !result.success) {
-          // Revert toggle
-          if (toggleEl) toggleEl.checked = !inStock;
+          // Revert checkbox to previous state
+          checkboxEl.checked = !optimisticInStock;
           showToast(result.message || 'Could not update stock status.', 'error');
           return;
         }
 
-        // Update the card's visual state without a full re-fetch
-        const row = document.getElementById(`mi-row-${id}`);
+        // Use the authoritative value returned by the server
+        var serverInStock = Boolean(result.inStock);
+
+        // Sync checkbox to server truth (handles edge cases)
+        checkboxEl.checked = serverInStock;
+
+        // Update card visual
+        var row = document.getElementById('mi-row-' + id);
         if (row) {
-          if (inStock) row.classList.remove('out-of-stock');
-          else         row.classList.add('out-of-stock');
+          if (serverInStock) row.classList.remove('out-of-stock');
+          else               row.classList.add('out-of-stock');
         }
 
-        showToast(inStock ? 'Item marked In Stock.' : 'Item marked Out of Stock.', inStock ? 'success' : 'warning');
+        // Update stock label
+        var lbl = document.getElementById('mi-lbl-' + id);
+        if (lbl) {
+          lbl.className   = 'stock-label ' + (serverInStock ? 'in' : 'out');
+          lbl.textContent = serverInStock ? 'In Stock' : 'Out of Stock';
+        }
+
+        showToast(
+          serverInStock ? 'Item marked In Stock.' : 'Item marked Out of Stock.',
+          serverInStock ? 'success' : 'warning'
+        );
       } catch (_) {
-        if (toggleEl) { toggleEl.checked = !inStock; }
+        checkboxEl.checked = !optimisticInStock;
         showToast('Connection error. Stock status not saved.', 'error');
       } finally {
-        if (toggleEl) toggleEl.disabled = false;
+        if (switchWrap) switchWrap.classList.remove('disabled');
       }
     }
 
     /* ═══════════════════════════════════════════════════════════════
      *  BOOT
      * ═══════════════════════════════════════════════════════════════ */
-    document.addEventListener('DOMContentLoaded', async () => {
-      const token = getToken();
+    document.addEventListener('DOMContentLoaded', async function () {
+      var token = getToken();
       if (!token) { redirectToLogin(); return; }
 
       // Show skeletons immediately
