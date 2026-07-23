@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sign in · Nearbite Vendor Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+<style>
+
+  /* ============================================================
+     1. DESIGN TOKENS — matches vendor-orders.html
+     ============================================================ */
+  :root{
+    --ink:        #1A1D29;
+    --ink-soft:   #5B5F72;
+    --paper:      #F2F3F6;
+    --card:       #FFFFFF;
+    --line:       #E3E5EA;
+
+    --flame:      #E4572E;
+    --flame-dark: #C43F1B;
+    --flame-soft: #FBE7E0;
+
+    --basil:      #2F6F4E;
+    --rust:       #9C3B3B;
+    --rust-soft:  #F5E6E6;
+
+    --font-display: 'Poppins', sans-serif;
+    --font-body:    'IBM Plex Sans', sans-serif;
+    --font-mono:    'IBM Plex Mono', monospace;
+
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(26,29,41,0.04), 0 4px 16px rgba(26,29,41,0.06);
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin: 0;
+    min-height: 100vh;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  button{ font-family: inherit; }
+  :focus-visible{ outline: 2px solid var(--flame); outline-offset: 2px; }
+
+  /* ============================================================
+     2. AUTH CARD
+     ============================================================ */
+  .auth-shell{ width: 100%; max-width: 380px; }
+
+  .auth-card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 28px 26px 26px;
+  }
+
+  .brand{
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .brand-eyebrow{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--flame-dark);
+  }
+  .brand h1{
+    font-family: var(--font-display);
+    font-size: 21px;
+    font-weight: 700;
+    margin: 6px 0 4px;
+    line-height: 1.25;
+  }
+  .brand p{
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  /* ============================================================
+     3. FORM
+     ============================================================ */
+  .field{ margin-bottom: 16px; }
+  .field label{
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .field input{
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+    color: var(--ink);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .field input:focus{
+    background: var(--card);
+    border-color: var(--flame);
+  }
+  .field.has-error input{ border-color: var(--rust); }
+  .field-error{
+    display: none;
+    font-size: 12px;
+    color: var(--rust);
+    margin-top: 5px;
+  }
+  .field.has-error .field-error{ display: block; }
+
+  .password-wrap{ position: relative; }
+  .password-wrap input{ padding-right: 40px; }
+  .toggle-pw{
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    display: flex;
+  }
+  .toggle-pw svg{ width: 18px; height: 18px; }
+  .toggle-pw:hover{ color: var(--ink); }
+
+  .form-banner{
+    display: none;
+    background: var(--rust-soft);
+    color: var(--rust);
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .form-banner.show{ display: block; }
+
+  .btn-submit{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--flame);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    padding: 13px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.08s ease, opacity 0.15s ease;
+  }
+  .btn-submit:hover{ background: var(--flame-dark); }
+  .btn-submit:active{ transform: scale(0.98); }
+  .btn-submit:disabled{ opacity: 0.7; cursor: wait; transform: none; }
+
+  .spinner{
+    width: 15px; height: 15px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex: 0 0 auto;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce){
+    .spinner{ animation: none; border-top-color: rgba(255,255,255,0.4); }
+  }
+
+  fieldset{ border: none; padding: 0; margin: 0; }
+  fieldset:disabled{ opacity: 0.75; }
+
+  /* ============================================================
+     4. SESSION-CHECK OVERLAY (shown briefly while an existing
+        token is verified against the backend on page load)
+     ============================================================ */
+  .session-check-overlay{
+    position: fixed; inset: 0;
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    z-index: 50;
+  }
+  .session-check-overlay.hidden{ display: none; }
+  .session-check-overlay .brand-eyebrow{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .session-check-overlay .big-spinner{
+    width: 26px; height: 26px;
+    border: 3px solid var(--line);
+    border-top-color: var(--flame);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .session-check-overlay .big-spinner{ animation: none; }
+  }
+
+  /* ============================================================
+     5. TOASTS
+     ============================================================ */
+  .toast-stack{
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+    z-index: 100;
+    width: min(92vw, 380px);
+  }
+  .toast{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--ink);
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 9px;
+    font-size: 13px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--basil);
+    animation: toast-in 0.2s ease;
+  }
+  .toast.error{ border-left-color: var(--rust); }
+  @keyframes toast-in{
+    from{ opacity: 0; transform: translateY(6px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce){ .toast{ animation: none; } }
+
+</style>
+</head>
+<body>
+
+  <div class="session-check-overlay" id="sessionCheckOverlay">
+    <span class="brand-eyebrow">Nearbite Vendor</span>
+    <div class="big-spinner"></div>
+  </div>
+
+  <div class="auth-shell">
+    <div class="auth-card">
+      <div class="brand">
+        <span class="brand-eyebrow">Nearbite Vendor</span>
+        <h1>Sign in to your kitchen</h1>
+        <p>Manage orders, menu and your restaurant from here.</p>
+      </div>
+
+      <div class="form-banner" id="formBanner"></div>
+
+      <form id="loginForm" novalidate>
+        <fieldset id="formFieldset">
+          <div class="field" id="emailField">
+            <label for="emailInput">Email</label>
+            <input type="email" id="emailInput" autocomplete="username" placeholder="you@restaurant.com" />
+            <span class="field-error" id="emailError">Enter a valid email address.</span>
+          </div>
+
+          <div class="field" id="passwordField">
+            <label for="passwordInput">Password</label>
+            <div class="password-wrap">
+              <input type="password" id="passwordInput" autocomplete="current-password" placeholder="••••••••" />
+              <button type="button" class="toggle-pw" id="togglePw" aria-label="Show password">
+                <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+            <span class="field-error" id="passwordError">Enter your password.</span>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <span id="submitLabel">Sign in</span>
+          </button>
+        </fieldset>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     CONFIG
+     ============================================================ */
+  const API_BASE  = 'https://eatswada.onrender.com/api/vendor'; // resource routes — used here only to verify an existing token
+  const AUTH_BASE = 'https://eatswada.onrender.com/api/auth';   // login lives here, per your authRoutes.js mount (/api/auth + /vendor/login)
+  const TOKEN_KEY = 'nearbite_vendor_token';
+
+  /* ============================================================
+     DOM REFS
+     ============================================================ */
+  const el = {
+    overlay:      document.getElementById('sessionCheckOverlay'),
+    form:         document.getElementById('loginForm'),
+    fieldset:     document.getElementById('formFieldset'),
+    emailField:   document.getElementById('emailField'),
+    emailInput:   document.getElementById('emailInput'),
+    emailError:   document.getElementById('emailError'),
+    passwordField:   document.getElementById('passwordField'),
+    passwordInput:   document.getElementById('passwordInput'),
+    passwordError:   document.getElementById('passwordError'),
+    togglePw:     document.getElementById('togglePw'),
+    eyeIcon:      document.getElementById('eyeIcon'),
+    submitBtn:    document.getElementById('submitBtn'),
+    submitLabel:  document.getElementById('submitLabel'),
+    formBanner:   document.getElementById('formBanner'),
+    toastStack:   document.getElementById('toastStack'),
+  };
+
+  const EYE_OPEN   = '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>';
+  const EYE_CLOSED = '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-3.22 4.44M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+
+  /* ============================================================
+     TOASTS
+     ============================================================ */
+  function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast' + (type === 'success' ? '' : ' ' + type);
+    toast.textContent = message;
+    el.toastStack.appendChild(toast);
+    setTimeout(() => toast.remove(), 4200);
+  }
+
+  function showBanner(message) {
+    el.formBanner.textContent = message;
+    el.formBanner.classList.add('show');
+  }
+  function clearBanner() {
+    el.formBanner.textContent = '';
+    el.formBanner.classList.remove('show');
+  }
+
+  /* ============================================================
+     VALIDATION
+     ============================================================ */
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function setFieldError(fieldEl, hasError) {
+    fieldEl.classList.toggle('has-error', hasError);
+  }
+
+  function validate() {
+    let valid = true;
+    const email = el.emailInput.value.trim();
+    const password = el.passwordInput.value;
+
+    const emailOk = EMAIL_RE.test(email);
+    setFieldError(el.emailField, !emailOk);
+    if (!emailOk) valid = false;
+
+    const passwordOk = password.length > 0;
+    setFieldError(el.passwordField, !passwordOk);
+    if (!passwordOk) valid = false;
+
+    return valid;
+  }
+
+  el.emailInput.addEventListener('input', () => setFieldError(el.emailField, false));
+  el.passwordInput.addEventListener('input', () => setFieldError(el.passwordField, false));
+
+  /* ============================================================
+     PASSWORD VISIBILITY TOGGLE
+     ============================================================ */
+  let pwVisible = false;
+  el.togglePw.addEventListener('click', () => {
+    pwVisible = !pwVisible;
+    el.passwordInput.type = pwVisible ? 'text' : 'password';
+    el.eyeIcon.innerHTML = pwVisible ? EYE_CLOSED : EYE_OPEN;
+    el.togglePw.setAttribute('aria-label', pwVisible ? 'Hide password' : 'Show password');
+  });
+
+  /* ============================================================
+     LOADING STATE
+     ============================================================ */
+  function setLoading(isLoading) {
+    el.fieldset.disabled = isLoading;
+    el.submitBtn.disabled = isLoading;
+    el.submitLabel.textContent = isLoading ? 'Signing in…' : 'Sign in';
+    if (isLoading) {
+      if (!el.submitBtn.querySelector('.spinner')) {
+        const spinner = document.createElement('span');
+        spinner.className = 'spinner';
+        el.submitBtn.prepend(spinner);
+      }
+    } else {
+      const spinner = el.submitBtn.querySelector('.spinner');
+      if (spinner) spinner.remove();
+    }
+  }
+
+  /* ============================================================
+     LOGIN SUBMIT
+     ============================================================ */
+  el.form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearBanner();
+
+    if (!validate()) {
+      (el.emailField.classList.contains('has-error') ? el.emailInput : el.passwordInput).focus();
+      return;
+    }
+
+    setLoading(true);
+
+    let res, body;
+    try {
+      res = await fetch(AUTH_BASE + '/vendor/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: el.emailInput.value.trim(),
+          password: el.passwordInput.value,
+        }),
+      });
+    } catch (networkErr) {
+      setLoading(false);
+      showBanner('Can\u2019t reach the server. Check your connection and try again.');
+      return;
+    }
+
+    try {
+      body = await res.json();
+    } catch (parseErr) {
+      body = null;
+    }
+
+    if (!res.ok || !body || !body.success) {
+      setLoading(false);
+      showBanner((body && body.message) || 'Something went wrong. Please try again.');
+      return;
+    }
+
+    // Success — persist session and hand off to the dashboard.
+    localStorage.setItem(TOKEN_KEY, body.token);
+    if (body.user)       localStorage.setItem('nearbite_vendor_user', JSON.stringify(body.user));
+    if (body.restaurant) localStorage.setItem('nearbite_vendor_restaurant', JSON.stringify(body.restaurant));
+
+    window.location.href = 'index.html';
+  });
+
+  /* ============================================================
+     EXISTING SESSION CHECK
+     Verifies a stored token is still valid by calling an already-
+     protected resource route, rather than trusting localStorage blindly.
+     ============================================================ */
+  async function checkExistingSession() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      el.overlay.classList.add('hidden');
+      return;
+    }
+
+    try {
+      const res = await fetch(API_BASE + '/restaurant', {
+        headers: { Authorization: 'Bearer ' + token },
+      });
+      if (res.ok) {
+        window.location.href = 'index.html';
+        return; // leave overlay up during navigation, nothing else to do
+      }
+      localStorage.removeItem(TOKEN_KEY);
+    } catch (err) {
+      // Network hiccup while checking — don't trap the user behind the
+      // overlay indefinitely, just let them sign in manually.
+    }
+    el.overlay.classList.add('hidden');
+  }
+
+  checkExistingSession();
+})();
+</script>
+</body>
+</html>
