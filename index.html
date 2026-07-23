@@ -1,1120 +1,897 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Vendor Portal – EatSwada Partner</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Orders · Nearbite Vendor Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+<style>
 
-  <style>
-    /* ── DESIGN TOKENS ── */
-    :root {
-      --brand:      #FC8019;
-      --brand-lite: #fff7ed;
-      --bg:         #f3f4f6;
-      --surface:    #ffffff;
-      --text-1:     #111827;
-      --text-2:     #4b5563;
-      --text-3:     #9ca3af;
-      --border:     #e5e7eb;
-      --nav-bg:     #1f2937;
-      --green:      #16a34a;
-      --green-lite: #dcfce7;
-      --red:        #dc2626;
-      --red-lite:   #fee2e2;
-      --amber:      #ea580c;
-      --amber-lite: #fff7ed;
-      --radius-card: 16px;
-      --radius-btn:  10px;
-    }
+  /* ============================================================
+     1. DESIGN TOKENS
+     ============================================================ */
+  :root{
+    --ink:        #1A1D29;
+    --ink-soft:   #5B5F72;
+    --paper:      #F2F3F6;
+    --card:       #FFFFFF;
+    --line:       #E3E5EA;
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    --flame:      #E4572E;  /* new order / primary action   */
+    --flame-dark: #C43F1B;
+    --flame-soft: #FBE7E0;
 
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text-1);
-      display: flex;
-      flex-direction: column;
-      height: 100dvh;
-      overflow: hidden;
-      -webkit-tap-highlight-color: transparent;
-    }
+    --basil:      #2F6F4E;  /* accept / confirmed / delivered */
+    --basil-soft: #E3F0E8;
 
-    .tap { cursor: pointer; transition: transform 0.12s cubic-bezier(0.25, 1, 0.5, 1); }
-    .tap:active { transform: scale(0.95); }
+    --turmeric:      #C97A11; /* preparing / in progress */
+    --turmeric-soft: #FBEED9;
 
-    /* ── TOAST SYSTEM ── */
-    #toast-container {
-      position: fixed;
-      top: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      align-items: center;
-      pointer-events: none;
-      width: calc(100% - 32px);
-      max-width: 400px;
-    }
+    --rust:       #9C3B3B;  /* reject / cancelled */
+    --rust-soft:  #F5E6E6;
 
-    .toast {
-      padding: 12px 16px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 700;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      animation: toast-in 0.3s ease forwards;
-      width: 100%;
-      pointer-events: all;
-    }
-    .toast.success { background: var(--green); }
-    .toast.error   { background: var(--red); }
-    .toast.info    { background: var(--text-1); }
-    .toast.warning { background: var(--amber); }
-    .toast.out     { animation: toast-out 0.3s ease forwards; }
+    --font-display: 'Poppins', sans-serif;
+    --font-body:    'IBM Plex Sans', sans-serif;
+    --font-mono:    'IBM Plex Mono', monospace;
 
-    @keyframes toast-in  { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes toast-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-12px); } }
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(26,29,41,0.04), 0 4px 16px rgba(26,29,41,0.06);
+  }
 
-    /* ── SKELETON LOADER ── */
-    .skeleton {
-      background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.4s infinite;
-      border-radius: 8px;
-    }
-    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  *{ box-sizing: border-box; }
 
-    .skel-order-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-    .skel-line { height: 14px; margin-bottom: 10px; }
-    .skel-line.wide  { width: 70%; }
-    .skel-line.short { width: 40%; }
-    .skel-line.thin  { width: 55%; height: 10px; }
-    .skel-btn  { height: 44px; border-radius: var(--radius-btn); margin-top: 12px; }
+  body{
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
 
-    /* ── HEADER ── */
-    .app-header {
-      background: var(--surface);
-      padding: 16px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    .header-left h1 { font-size: 17px; font-weight: 900; color: var(--text-1); letter-spacing: -0.4px; margin-bottom: 4px; }
+  button{ font-family: inherit; }
 
-    .status-badge {
-      font-size: 11px; font-weight: 800; padding: 4px 8px;
-      border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; text-transform: uppercase;
-    }
-    .status-badge::before {
-      content: ''; width: 6px; height: 6px; border-radius: 50%; display: inline-block; background: currentColor;
-    }
-    .status-online  { background: var(--green-lite); color: var(--green); }
-    .status-offline { background: var(--red-lite);   color: var(--red); }
+  :focus-visible{
+    outline: 2px solid var(--flame);
+    outline-offset: 2px;
+  }
 
-    .master-switch-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-    .master-label { font-size: 10px; font-weight: 800; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; }
+  /* ============================================================
+     2. APP SHELL / TOP BAR
+     ============================================================ */
+  .app-shell{
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 16px 16px 48px;
+  }
 
-    /* ── TOGGLE SWITCH (shared: master + per-item stock) ── */
-    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute; cursor: pointer; inset: 0;
-      background-color: #d1d5db; transition: .3s; border-radius: 24px;
-    }
-    .slider:before {
-      position: absolute; content: ""; height: 18px; width: 18px;
-      left: 3px; bottom: 3px; background: #fff; transition: .3s; border-radius: 50%;
-    }
-    input:checked + .slider { background-color: var(--green); }
-    input:checked + .slider:before { transform: translateX(20px); }
-    .switch.disabled { opacity: 0.5; pointer-events: none; }
+  .topbar{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 2px 16px;
+  }
 
-    /* Stock toggle variant — slightly smaller, with label pill */
-    .stock-toggle-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      flex-shrink: 0;
-    }
-    .stock-label {
-      font-size: 9px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      transition: color 0.2s;
-    }
-    .stock-label.in  { color: var(--green); }
-    .stock-label.out { color: var(--red); }
+  .brand{ display: flex; flex-direction: column; }
+  .brand-eyebrow{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .brand h1{
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    margin: 2px 0 0;
+  }
 
-    /* ── METRICS BAR ── */
-    .metrics-row {
-      display: flex; gap: 10px; padding: 12px 20px;
-      background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0;
-    }
-    .metric-card {
-      flex: 1; background: #f9fafb; border: 1px solid var(--border);
-      border-radius: 12px; padding: 10px 14px;
-    }
-    .metric-title { font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.4px; }
-    .metric-val   { font-size: 22px; font-weight: 900; color: var(--text-1); }
-    .sync-btn {
-      background: #f3f4f6; border: 1px solid var(--border); padding: 0 18px;
-      border-radius: 12px; font-size: 12px; font-weight: 800; font-family: inherit;
-      color: var(--text-2); display: flex; align-items: center; gap: 6px;
-    }
-    .sync-btn.spinning i { animation: spin 0.7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+  .status-toggle{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .status-toggle .dot{
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--ink-soft);
+    transition: background 0.15s ease;
+  }
+  .status-toggle.open .dot{ background: var(--basil); }
+  .status-toggle.closed .dot{ background: var(--rust); }
+  .status-toggle:disabled, .status-toggle.busy{ opacity: 0.6; cursor: wait; }
 
-    /* ── MAIN SCROLL AREA ── */
-    .main-area { flex: 1; overflow-y: auto; padding-bottom: 84px; position: relative; -webkit-overflow-scrolling: touch; }
+  /* ============================================================
+     3. TAB RAIL
+     ============================================================ */
+  .tab-rail{
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 18px;
+    scrollbar-width: none;
+  }
+  .tab-rail::-webkit-scrollbar{ display: none; }
 
-    .view-section { display: none; }
-    .view-section.active { display: block; animation: fadeIn 0.2s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .tab{
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .tab[aria-selected="true"]{
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .tab .count{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--flame-soft);
+    color: var(--flame-dark);
+  }
+  .tab[aria-selected="true"] .count{
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+  }
 
-    /* ── ERROR STATE ── */
-    .error-state {
-      margin: 24px 20px; padding: 20px; background: var(--red-lite);
-      border: 1px solid #fca5a5; border-radius: var(--radius-card);
-      text-align: center; color: var(--red);
-    }
-    .error-state .err-icon { font-size: 28px; margin-bottom: 10px; }
-    .error-state h3 { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
-    .error-state p  { font-size: 12px; font-weight: 600; opacity: 0.8; }
-    .retry-btn {
-      margin-top: 14px; padding: 10px 20px; background: var(--red); color: #fff;
-      border: none; border-radius: var(--radius-btn); font-size: 13px; font-weight: 800;
-      font-family: inherit; display: inline-block;
-    }
+  .toolbar-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .refresh-btn{
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: none;
+    color: var(--ink-soft);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .refresh-btn svg{ width: 13px; height: 13px; }
+  .refresh-btn:hover{ color: var(--ink); }
 
-    /* ── ORDER TABS ── */
-    .order-tabs {
-      display: flex; padding: 14px 20px 0; gap: 8px;
-      background: var(--bg); position: sticky; top: 0; z-index: 10;
-    }
-    .o-tab {
-      flex: 1; text-align: center; padding: 10px 0; font-size: 12px; font-weight: 800;
-      color: var(--text-2); background: #e5e7eb; border-radius: 8px; transition: 0.2s;
-      position: relative; user-select: none;
-    }
-    .o-tab.active { background: var(--text-1); color: #fff; }
-    .o-badge {
-      position: absolute; top: -6px; right: -6px; background: #ef4444; color: #fff;
-      font-size: 10px; padding: 2px 6px; border-radius: 10px; border: 2px solid var(--bg);
-      display: none; font-weight: 800;
-    }
-    .o-badge.show { display: inline-block; }
+  /* ============================================================
+     4. TICKET RAIL + TICKET CARD (signature element)
+     ============================================================ */
+  .ticket-rail{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+    gap: 14px;
+  }
 
-    .orders-container { padding: 14px 20px; }
-    .tab-content { display: none; }
-    .tab-content.active { display: flex; flex-direction: column; gap: 14px; }
+  .ticket{
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--ink-soft);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 14px 12px;
+    animation: ticket-in 0.25s ease;
+  }
+  @keyframes ticket-in{
+    from{ opacity: 0; transform: translateY(4px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ticket{ animation: none; }
+  }
 
-    /* ── ORDER CARD ── */
-    .order-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-card); padding: 16px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.04); border-left: 4px solid var(--brand);
-    }
-    .oc-header {
-      display: flex; justify-content: space-between; align-items: flex-start;
-      margin-bottom: 10px; border-bottom: 1px dashed var(--border); padding-bottom: 10px;
-    }
-    .oc-id   { font-size: 15px; font-weight: 900; color: var(--text-1); }
-    .oc-time { font-size: 12px; font-weight: 700; color: var(--text-2); background: #f3f4f6; padding: 4px 8px; border-radius: 6px; }
-    .oc-items { font-size: 13px; font-weight: 600; color: var(--text-2); line-height: 1.7; margin-bottom: 14px; }
-    .oc-footer { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-    .oc-total-label { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; }
-    .oc-total { font-size: 20px; font-weight: 900; color: var(--text-1); }
-    .oc-actions { display: flex; gap: 10px; }
+  .ticket.status-placed{ border-left-color: var(--flame); }
+  .ticket.status-confirmed,
+  .ticket.status-preparing{ border-left-color: var(--turmeric); }
+  .ticket.status-out_for_delivery{ border-left-color: var(--ink-soft); }
+  .ticket.status-delivered{ border-left-color: var(--basil); }
+  .ticket.status-cancelled{ border-left-color: var(--rust); }
 
-    .btn-card {
-      flex: 1; padding: 13px; border-radius: var(--radius-btn); font-size: 13px;
-      font-weight: 800; border: none; font-family: inherit; width: 100%;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .btn-accept { background: #10b981; color: #fff; }
-    .btn-ready  { background: var(--brand); color: #fff; }
-    .btn-card:disabled { opacity: 0.5; pointer-events: none; }
+  .ticket-head{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 9px;
+    margin-bottom: 9px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .ticket-no{
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+  }
+  .ticket-time{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
 
-    .otp-box {
-      text-align: center; margin-bottom: 12px; padding: 10px; background: #f9fafb;
-      border-radius: 10px; border: 1px dashed var(--border);
-    }
-    .otp-label { font-size: 10px; font-weight: 800; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; }
-    .otp-value { font-size: 22px; font-weight: 900; color: var(--brand); letter-spacing: 4px; }
+  .ticket-items{
+    list-style: none;
+    margin: 0 0 10px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .ticket-items li{
+    display: flex;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .ticket-items .qty{
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--ink-soft);
+    flex: 0 0 auto;
+  }
+  .ticket-items .more{
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
 
-    .waiting-box {
-      text-align: center; padding: 12px; background: var(--amber-lite);
-      color: var(--amber); border-radius: var(--radius-btn); font-weight: 800; font-size: 12px;
-    }
+  .ticket-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 9px;
+    border-top: 1px dashed var(--line);
+  }
+  .ticket-total{
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 14px;
+  }
 
-    .empty-state {
-      text-align: center; padding: 48px 20px; color: var(--text-3);
-      font-weight: 700; font-size: 14px; line-height: 1.8;
-    }
-    .empty-state i { font-size: 32px; margin-bottom: 12px; display: block; }
+  .ticket-actions{ display: flex; gap: 8px; }
 
-    /* ── MENU ── */
-    .menu-wrap { padding: 20px; }
-    .menu-section-title {
-      font-size: 13px; font-weight: 800; color: var(--text-2);
-      text-transform: uppercase; letter-spacing: 0.6px; margin: 20px 0 10px;
-      padding-bottom: 8px; border-bottom: 2px solid var(--border);
-    }
-    .menu-section-title:first-child { margin-top: 0; }
+  .btn{
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.08s ease, opacity 0.15s ease;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn:disabled{ opacity: 0.55; cursor: wait; transform: none; }
 
-    .menu-item {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 14px; padding: 14px 16px; display: flex;
-      justify-content: space-between; align-items: center; margin-bottom: 10px;
-      transition: opacity 0.2s, filter 0.2s;
-    }
-    .menu-item.out-of-stock { opacity: 0.45; filter: grayscale(0.8); }
+  .btn.accept{ background: var(--basil); color: #fff; }
+  .btn.reject{ background: var(--rust-soft); color: var(--rust); }
+  .btn.advance{ background: var(--turmeric); color: #fff; }
+  .btn.ghost{ background: var(--paper); color: var(--ink); }
+  .btn.danger{ background: var(--rust); color: #fff; }
 
-    .mi-left { flex: 1; min-width: 0; }
-    .mi-name {
-      font-size: 14px; font-weight: 800; color: var(--text-1);
-      margin-bottom: 3px; display: flex; align-items: center; gap: 8px;
-    }
-    .veg-dot {
-      width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .veg-dot-inner { width: 5px; height: 5px; border-radius: 50%; }
-    .mi-category { font-size: 11px; font-weight: 700; color: var(--text-3); margin-bottom: 4px; }
+  .badge{
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+  .badge.dispatch{ background: var(--paper); color: var(--ink-soft); }
+  .badge.delivered{ background: var(--basil-soft); color: var(--basil); }
+  .badge.cancelled{ background: var(--rust-soft); color: var(--rust); }
 
-    .mi-price-row { display: flex; align-items: center; gap: 8px; }
-    .mi-price { font-size: 14px; font-weight: 800; color: var(--text-1); }
+  .ticket-note{
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
 
-    /* Inline price editor */
-    .price-edit-wrap { display: flex; align-items: center; gap: 6px; }
-    .price-input {
-      width: 80px; border: 2px solid var(--brand); border-radius: 8px;
-      padding: 4px 8px; font-size: 14px; font-weight: 800; font-family: inherit;
-      color: var(--text-1); outline: none;
-    }
-    .price-save-btn, .price-cancel-btn {
-      padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 800;
-      border: none; font-family: inherit;
-    }
-    .price-save-btn   { background: var(--green); color: #fff; }
-    .price-cancel-btn { background: #e5e7eb; color: var(--text-2); }
+  /* ============================================================
+     5. SKELETON LOADER
+     ============================================================ */
+  .skeleton-ticket{
+    height: 168px;
+    border-radius: var(--radius);
+    background: linear-gradient(100deg, #EDEEF1 30%, #F6F7F9 50%, #EDEEF1 70%);
+    background-size: 200% 100%;
+    animation: shimmer 1.3s ease-in-out infinite;
+  }
+  @keyframes shimmer{
+    from{ background-position: 200% 0; }
+    to{ background-position: -200% 0; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .skeleton-ticket{ animation: none; background: #EDEEF1; }
+  }
 
-    .mi-edit-btn {
-      font-size: 11px; font-weight: 800; color: var(--brand);
-      background: var(--brand-lite); padding: 3px 8px; border-radius: 6px;
-      border: none; font-family: inherit; flex-shrink: 0;
-    }
+  /* ============================================================
+     6. EMPTY / ERROR STATES
+     ============================================================ */
+  .state-panel{
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 56px 20px;
+    color: var(--ink-soft);
+  }
+  .state-panel svg{ width: 34px; height: 34px; margin-bottom: 10px; opacity: 0.5; }
+  .state-panel h3{
+    font-family: var(--font-display);
+    color: var(--ink);
+    font-size: 15px;
+    margin: 0 0 4px;
+  }
+  .state-panel p{ font-size: 13px; margin: 0; max-width: 320px; margin-inline: auto; }
 
-    /* ── BOTTOM NAV ── */
-    .bottom-nav {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: var(--nav-bg); display: flex; justify-content: space-around;
-      padding: 12px 10px 28px; border-top-left-radius: 22px; border-top-right-radius: 22px;
-      z-index: 100;
-    }
-    .b-nav-item {
-      color: #6b7280; display: flex; flex-direction: column; align-items: center;
-      gap: 4px; font-size: 10px; font-weight: 800; padding: 8px 20px;
-      border-radius: 12px; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.4px;
-    }
-    .b-nav-item i { font-size: 18px; }
-    .b-nav-item.active { color: #fff; }
-    .b-nav-item.active i { color: var(--brand); }
-  </style>
+  /* ============================================================
+     7. TOASTS
+     ============================================================ */
+  .toast-stack{
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+    z-index: 100;
+    width: min(92vw, 380px);
+  }
+  .toast{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--ink);
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 9px;
+    font-size: 13px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--basil);
+    animation: toast-in 0.2s ease;
+  }
+  .toast.error{ border-left-color: var(--rust); }
+  .toast.info{ border-left-color: var(--turmeric); }
+  @keyframes toast-in{
+    from{ opacity: 0; transform: translateY(6px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce){ .toast{ animation: none; } }
+
+  /* ============================================================
+     8. REJECT MODAL
+     ============================================================ */
+  .modal-overlay{
+    position: fixed; inset: 0;
+    background: rgba(26,29,41,0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 200;
+  }
+  .modal-overlay.open{ display: flex; }
+  .modal{
+    background: var(--card);
+    border-radius: 14px;
+    padding: 20px;
+    width: min(100%, 380px);
+    box-shadow: var(--shadow);
+  }
+  .modal h3{
+    font-family: var(--font-display);
+    margin: 0 0 4px;
+    font-size: 16px;
+  }
+  .modal p{ font-size: 13px; color: var(--ink-soft); margin: 0 0 12px; }
+  .modal textarea{
+    width: 100%;
+    min-height: 74px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    resize: vertical;
+    margin-bottom: 14px;
+  }
+  .modal-actions{ display: flex; justify-content: flex-end; gap: 8px; }
+
+</style>
 </head>
 <body>
 
-  <!-- Toast container -->
-  <div id="toast-container"></div>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-eyebrow">Nearbite Vendor</span>
+        <h1 id="restaurantName">Loading restaurant…</h1>
+      </div>
+      <button class="status-toggle" id="statusToggle" type="button" disabled>
+        <span class="dot"></span>
+        <span class="label">—</span>
+      </button>
+    </header>
 
-  <!-- Header -->
-  <div class="app-header">
-    <div class="header-left">
-      <h1 id="res-name-display">EatSwada Partner</h1>
-      <div id="res-status-badge" class="status-badge status-online">Online</div>
+    <nav class="tab-rail" role="tablist" aria-label="Order stages">
+      <button class="tab" role="tab" data-tab="new" aria-selected="true">
+        New <span class="count" id="countNew">0</span>
+      </button>
+      <button class="tab" role="tab" data-tab="preparing" aria-selected="false">
+        Preparing <span class="count" id="countPreparing">0</span>
+      </button>
+      <button class="tab" role="tab" data-tab="dispatch" aria-selected="false">
+        Out for delivery <span class="count" id="countDispatch">0</span>
+      </button>
+      <button class="tab" role="tab" data-tab="history" aria-selected="false">
+        History
+      </button>
+    </nav>
+
+    <div class="toolbar-row">
+      <span id="lastUpdated">Loading…</span>
+      <button class="refresh-btn" id="refreshBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12a9 9 0 1 1-2.64-6.36M21 4v5h-5"/>
+        </svg>
+        Refresh
+      </button>
     </div>
-    <div class="master-switch-wrap">
-      <div class="master-label">Accept Orders</div>
-      <label class="switch tap" id="master-switch-label">
-        <input type="checkbox" id="master-toggle" checked>
-        <span class="slider"></span>
-      </label>
-    </div>
+
+    <main class="ticket-rail" id="ticketRail" aria-live="polite">
+      <div class="skeleton-ticket"></div>
+      <div class="skeleton-ticket"></div>
+      <div class="skeleton-ticket"></div>
+    </main>
   </div>
 
-  <!-- Metrics -->
-  <div class="metrics-row">
-    <div class="metric-card">
-      <div class="metric-title">Active Orders</div>
-      <div class="metric-val" id="metric-orders">—</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-title">Today's Total</div>
-      <div class="metric-val" id="metric-today">—</div>
-    </div>
-    <button class="sync-btn tap" id="sync-btn" onclick="manualSync()">
-      <i class="fa-solid fa-rotate-right"></i> Sync
-    </button>
-  </div>
+  <div class="toast-stack" id="toastStack"></div>
 
-  <!-- Main -->
-  <div class="main-area">
-
-    <!-- Orders View -->
-    <div class="view-section active" id="view-orders">
-      <div class="order-tabs">
-        <div class="o-tab active tap" id="otab-new"  onclick="switchOrderTab('new', this)">
-          New <span class="o-badge" id="badge-new">0</span>
-        </div>
-        <div class="o-tab tap" id="otab-prep"  onclick="switchOrderTab('prep', this)">
-          Cooking <span class="o-badge" id="badge-prep">0</span>
-        </div>
-        <div class="o-tab tap" id="otab-ready" onclick="switchOrderTab('ready', this)">
-          Ready <span class="o-badge" id="badge-ready">0</span>
-        </div>
-      </div>
-      <div class="orders-container">
-        <div class="tab-content active" id="tab-new"></div>
-        <div class="tab-content"        id="tab-prep"></div>
-        <div class="tab-content"        id="tab-ready"></div>
-      </div>
-    </div>
-
-    <!-- Menu View -->
-    <div class="view-section" id="view-menu">
-      <div class="menu-wrap">
-        <div style="font-size:17px;font-weight:900;margin-bottom:4px;">Menu Control</div>
-        <p style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:20px;">
-          Toggle availability or tap <strong>Edit</strong> to update pricing inline.
-        </p>
-        <div id="menu-grid">
-          <!-- Skeleton placeholder shown before fetch -->
-          <div class="skel-order-card">
-            <div class="skeleton skel-line wide"></div>
-            <div class="skeleton skel-line short"></div>
-            <div class="skeleton skel-line thin"></div>
-            <div class="skeleton skel-btn"></div>
-          </div>
-          <div class="skel-order-card">
-            <div class="skeleton skel-line wide"></div>
-            <div class="skeleton skel-line short"></div>
-            <div class="skeleton skel-btn"></div>
-          </div>
-        </div>
+  <div class="modal-overlay" id="rejectModal">
+    <div class="modal">
+      <h3>Reject this order</h3>
+      <p>This reason is shown to the customer in their order history — be specific.</p>
+      <textarea id="rejectReasonInput" placeholder="e.g. Kitchen closed early, item out of stock…"></textarea>
+      <div class="modal-actions">
+        <button class="btn ghost" id="rejectCancelBtn" type="button">Cancel</button>
+        <button class="btn danger" id="rejectConfirmBtn" type="button">Reject order</button>
       </div>
     </div>
-
   </div>
 
-  <!-- Bottom Nav -->
-  <div class="bottom-nav">
-    <div class="b-nav-item active tap" id="nav-orders" onclick="switchMainTab('orders', this)">
-      <i class="fa-solid fa-receipt"></i> Orders
-    </div>
-    <div class="b-nav-item tap" id="nav-menu" onclick="switchMainTab('menu', this)">
-      <i class="fa-solid fa-utensils"></i> Menu
-    </div>
-  </div>
+<script>
+(function () {
+  'use strict';
 
-  <script>
-    /* ═══════════════════════════════════════════════════════════════
-     *  CONSTANTS & STATE
-     * ═══════════════════════════════════════════════════════════════ */
-    const BASE_URL    = 'https://eatswada.onrender.com';
-    const TOKEN_KEY   = 'nearbite_token'; // single canonical key — never use 'token'
-    let   pollingTimer    = null;
-    let   currentOrderTab = 'new';
+  /* ============================================================
+     CONFIG
+     Adjust these two to match your actual deployment / login flow.
+     ============================================================ */
+  const API_BASE      = '/api/vendor';                 // point at your Render URL if this page isn't same-origin
+  const TOKEN_KEY      = 'nearbite_vendor_token';       // localStorage key set by your vendor login page
+  const POLL_INTERVAL  = 15000;                          // live queue refresh, ms
 
-    /* ═══════════════════════════════════════════════════════════════
-     *  AUTH HELPERS
-     * ═══════════════════════════════════════════════════════════════ */
-    function getToken() {
-      return localStorage.getItem(TOKEN_KEY) || null;
-    }
+  /* ============================================================
+     STATE
+     ============================================================ */
+  const state = {
+    activeTab: 'new',
+    queue: [],          // placed / confirmed / preparing / out_for_delivery
+    history: [],        // delivered / cancelled
+    historyLoaded: false,
+    restaurant: null,
+    pollTimer: null,
+    pendingRejectOrderId: null,
+  };
 
-    function redirectToLogin() {
-      localStorage.removeItem(TOKEN_KEY);
-      window.location.href = 'index.html';
-    }
+  /* ============================================================
+     DOM REFS
+     ============================================================ */
+  const el = {
+    restaurantName: document.getElementById('restaurantName'),
+    statusToggle:   document.getElementById('statusToggle'),
+    ticketRail:     document.getElementById('ticketRail'),
+    tabs:           Array.from(document.querySelectorAll('.tab')),
+    countNew:       document.getElementById('countNew'),
+    countPreparing: document.getElementById('countPreparing'),
+    countDispatch:  document.getElementById('countDispatch'),
+    lastUpdated:    document.getElementById('lastUpdated'),
+    refreshBtn:     document.getElementById('refreshBtn'),
+    toastStack:     document.getElementById('toastStack'),
+    rejectModal:    document.getElementById('rejectModal'),
+    rejectReasonInput: document.getElementById('rejectReasonInput'),
+    rejectCancelBtn:   document.getElementById('rejectCancelBtn'),
+    rejectConfirmBtn:  document.getElementById('rejectConfirmBtn'),
+  };
 
-    /* ═══════════════════════════════════════════════════════════════
-     *  TOAST SYSTEM
-     * ═══════════════════════════════════════════════════════════════ */
-    function showToast(message, type, duration) {
-      type     = type     || 'info';
-      duration = duration || 3500;
-
-      const container = document.getElementById('toast-container');
-      if (!container) return;
-
-      const icons = {
-        success: 'fa-circle-check',
-        error:   'fa-circle-xmark',
-        info:    'fa-circle-info',
-        warning: 'fa-triangle-exclamation',
-      };
-
-      const toast = document.createElement('div');
-      toast.className = 'toast ' + type;
-      toast.innerHTML = '<i class="fa-solid ' + (icons[type] || icons.info) + '"></i> ' + message;
-      container.appendChild(toast);
-
-      setTimeout(function () {
-        toast.classList.add('out');
-        toast.addEventListener('animationend', function () { toast.remove(); }, { once: true });
-      }, duration);
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-     *  SKELETON LOADERS
-     * ═══════════════════════════════════════════════════════════════ */
-    function showOrderSkeletons(count) {
-      count = count || 2;
-      var tabs = ['tab-new', 'tab-prep', 'tab-ready'];
-      for (var t = 0; t < tabs.length; t++) {
-        var el = document.getElementById(tabs[t]);
-        if (!el) continue;
-        var html = '';
-        for (var i = 0; i < count; i++) {
-          html += '<div class="skel-order-card">'
-                + '<div class="skeleton skel-line wide"></div>'
-                + '<div class="skeleton skel-line short"></div>'
-                + '<div class="skeleton skel-line thin"></div>'
-                + '<div class="skeleton skel-btn"></div>'
-                + '</div>';
-        }
-        el.innerHTML = html;
-      }
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-     *  POLLING — pauses when tab is hidden, resumes on focus
-     * ═══════════════════════════════════════════════════════════════ */
-    function startPolling() {
-      stopPolling();
-      pollingTimer = setInterval(fetchData, 12000);
-    }
-
-    function stopPolling() {
-      if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
-    }
-
-    document.addEventListener('visibilitychange', function () {
-      if (document.hidden) { stopPolling(); }
-      else                 { fetchData(); startPolling(); }
+  /* ============================================================
+     API HELPERS
+     ============================================================ */
+  async function apiFetch(path, options) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const res = await fetch(API_BASE + path, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        ...(options && options.headers ? options.headers : {}),
+      },
     });
 
-    /* ═══════════════════════════════════════════════════════════════
-     *  NAVIGATION
-     * ═══════════════════════════════════════════════════════════════ */
-    function switchMainTab(tabId, el) {
-      var navItems = document.querySelectorAll('.b-nav-item');
-      for (var i = 0; i < navItems.length; i++) navItems[i].classList.remove('active');
-      el.classList.add('active');
+    let body = null;
+    try { body = await res.json(); } catch (_) { /* no body */ }
 
-      var views = document.querySelectorAll('.view-section');
-      for (var j = 0; j < views.length; j++) views[j].classList.remove('active');
+    if (res.status === 401) {
+      showToast('error', 'Your session expired. Please log in again.');
+      throw new Error('unauthorized');
+    }
+    if (!res.ok) {
+      throw new Error((body && body.message) || 'Something went wrong. Please try again.');
+    }
+    return body;
+  }
 
-      var target = document.getElementById('view-' + tabId);
-      if (target) target.classList.add('active');
+  /* ============================================================
+     TOASTS
+     ============================================================ */
+  function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast' + (type === 'success' ? '' : ' ' + type);
+    toast.textContent = message;
+    el.toastStack.appendChild(toast);
+    setTimeout(() => toast.remove(), 3800);
+  }
 
-      fetchData();
+  /* ============================================================
+     TIME / FORMAT HELPERS
+     ============================================================ */
+  function timeAgo(dateStr) {
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.max(0, Math.round(diffMs / 60000));
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    return hrs + 'h ' + (mins % 60) + 'm ago';
+  }
+
+  function formatMoney(n) {
+    return '₹' + Number(n || 0).toLocaleString('en-IN');
+  }
+
+  /* ============================================================
+     RENDER — TICKET CARD
+     ============================================================ */
+  function renderTicket(order) {
+    const el = document.createElement('article');
+    el.className = 'ticket status-' + order.status;
+    el.dataset.id = order._id;
+
+    const itemsToShow = order.items.slice(0, 4);
+    const extra = order.items.length - itemsToShow.length;
+
+    const itemsHtml = itemsToShow.map(i =>
+      `<li><span class="qty">${i.quantity}×</span><span>${escapeHtml(i.name)}</span></li>`
+    ).join('') + (extra > 0 ? `<li class="more">+${extra} more item${extra > 1 ? 's' : ''}</li>` : '');
+
+    let footHtml = '';
+
+    if (order.status === 'placed') {
+      footHtml = `
+        <div class="ticket-actions">
+          <button class="btn reject" data-action="reject">Reject</button>
+          <button class="btn accept" data-action="accept">Accept</button>
+        </div>`;
+    } else if (order.status === 'confirmed') {
+      footHtml = `<button class="btn advance" data-action="advance">Start preparing</button>`;
+    } else if (order.status === 'preparing') {
+      footHtml = `<button class="btn advance" data-action="advance">Mark out for delivery</button>`;
+    } else if (order.status === 'out_for_delivery') {
+      footHtml = `<span class="badge dispatch">With delivery partner</span>`;
+    } else if (order.status === 'delivered') {
+      footHtml = `<span class="badge delivered">Delivered</span>`;
+    } else if (order.status === 'cancelled') {
+      footHtml = `<span class="badge cancelled">Cancelled</span>`;
     }
 
-    function switchOrderTab(tabId, el) {
-      currentOrderTab = tabId;
-      var tabs = document.querySelectorAll('.o-tab');
-      for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
-      el.classList.add('active');
+    el.innerHTML = `
+      <header class="ticket-head">
+        <span class="ticket-no">#${escapeHtml(order.orderNumber || order._id.slice(-6).toUpperCase())}</span>
+        <span class="ticket-time">${timeAgo(order.createdAt)}</span>
+      </header>
+      <ul class="ticket-items">${itemsHtml}</ul>
+      <footer class="ticket-foot">
+        <span class="ticket-total">${formatMoney(order.total)}</span>
+        ${footHtml}
+      </footer>
+      ${order.status === 'cancelled' && order.cancelReason
+        ? `<p class="ticket-note">Reason: ${escapeHtml(order.cancelReason)}</p>` : ''}
+    `;
 
-      var contents = document.querySelectorAll('.tab-content');
-      for (var j = 0; j < contents.length; j++) contents[j].classList.remove('active');
+    return el;
+  }
 
-      var target = document.getElementById('tab-' + tabId);
-      if (target) target.classList.add('active');
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = String(str == null ? '' : str);
+    return div.innerHTML;
+  }
+
+  /* ============================================================
+     RENDER — EMPTY / TAB SWITCH
+     ============================================================ */
+  const EMPTY_COPY = {
+    new:       ['No new orders yet', 'They\u2019ll land here the moment someone places one.'],
+    preparing: ['Nothing in the kitchen', 'Accepted orders waiting to go out will show up here.'],
+    dispatch:  ['No orders out for delivery', 'Orders move here once they\u2019re handed to a delivery partner.'],
+    history:   ['No past orders', 'Delivered and cancelled orders will appear here.'],
+  };
+
+  function renderEmpty(tab) {
+    const [title, body] = EMPTY_COPY[tab];
+    const div = document.createElement('div');
+    div.className = 'state-panel';
+    div.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="4" y="4" width="16" height="16" rx="2" stroke-dasharray="3 3"/>
+      </svg>
+      <h3>${title}</h3>
+      <p>${body}</p>`;
+    return div;
+  }
+
+  function ordersForTab(tab) {
+    if (tab === 'new')        return state.queue.filter(o => o.status === 'placed');
+    if (tab === 'preparing')  return state.queue.filter(o => o.status === 'confirmed' || o.status === 'preparing');
+    if (tab === 'dispatch')   return state.queue.filter(o => o.status === 'out_for_delivery');
+    if (tab === 'history')    return state.history;
+    return [];
+  }
+
+  function renderActiveTab() {
+    const orders = ordersForTab(state.activeTab);
+    el.ticketRail.innerHTML = '';
+
+    if (!orders.length) {
+      el.ticketRail.appendChild(renderEmpty(state.activeTab));
+      return;
     }
+    orders.forEach(order => el.ticketRail.appendChild(renderTicket(order)));
+  }
 
-    /* ═══════════════════════════════════════════════════════════════
-     *  MASTER FETCH ORCHESTRATOR
-     * ═══════════════════════════════════════════════════════════════ */
-    async function fetchData() {
-      var token = getToken();
-      if (!token) { redirectToLogin(); return; }
+  function renderSkeleton() {
+    el.ticketRail.innerHTML =
+      '<div class="skeleton-ticket"></div><div class="skeleton-ticket"></div><div class="skeleton-ticket"></div>';
+  }
 
-      var activeView = document.querySelector('.view-section.active');
-      var viewId = activeView ? activeView.id : 'view-orders';
+  function updateCounts() {
+    el.countNew.textContent       = state.queue.filter(o => o.status === 'placed').length;
+    el.countPreparing.textContent = state.queue.filter(o => o.status === 'confirmed' || o.status === 'preparing').length;
+    el.countDispatch.textContent  = state.queue.filter(o => o.status === 'out_for_delivery').length;
+  }
 
-      if (viewId === 'view-orders') await fetchVendorOrders(token);
-      else                          await fetchVendorMenu(token);
+  /* ============================================================
+     DATA LOADING
+     ============================================================ */
+  async function loadRestaurant() {
+    try {
+      const res = await apiFetch('/restaurant');
+      state.restaurant = res.data;
+      el.restaurantName.textContent = state.restaurant.name || 'Your restaurant';
+      setStatusToggle(state.restaurant.isActive);
+      el.statusToggle.disabled = false;
+    } catch (err) {
+      el.restaurantName.textContent = 'Restaurant';
+      showToast('error', err.message);
     }
+  }
 
-    function manualSync() {
-      var btn = document.getElementById('sync-btn');
-      if (btn) btn.classList.add('spinning');
-      fetchData().finally(function () {
-        setTimeout(function () { if (btn) btn.classList.remove('spinning'); }, 600);
+  async function loadQueue(isFirstLoad) {
+    try {
+      if (isFirstLoad) renderSkeleton();
+      const res = await apiFetch('/orders?view=queue');
+      state.queue = res.data;
+      updateCounts();
+      if (state.activeTab !== 'history') renderActiveTab();
+      el.lastUpdated.textContent = 'Updated ' + timeAgo(new Date().toISOString());
+    } catch (err) {
+      if (isFirstLoad) {
+        el.ticketRail.innerHTML = '';
+        el.ticketRail.appendChild(renderEmpty(state.activeTab));
+      }
+      showToast('error', err.message);
+    }
+  }
+
+  async function loadHistory() {
+    try {
+      renderSkeleton();
+      const res = await apiFetch('/orders?view=history');
+      state.history = res.data;
+      state.historyLoaded = true;
+      renderActiveTab();
+    } catch (err) {
+      showToast('error', err.message);
+    }
+  }
+
+  /* ============================================================
+     ORDER ACTIONS
+     ============================================================ */
+  async function acceptOrder(id, btn) {
+    btn.disabled = true;
+    try {
+      await apiFetch('/orders/' + id + '/accept', { method: 'PUT' });
+      showToast('success', 'Order accepted');
+      await loadQueue(false);
+    } catch (err) {
+      showToast('error', err.message);
+      btn.disabled = false;
+    }
+  }
+
+  function openRejectModal(id) {
+    state.pendingRejectOrderId = id;
+    el.rejectReasonInput.value = '';
+    el.rejectModal.classList.add('open');
+    el.rejectReasonInput.focus();
+  }
+
+  function closeRejectModal() {
+    state.pendingRejectOrderId = null;
+    el.rejectModal.classList.remove('open');
+  }
+
+  async function confirmReject() {
+    const reason = el.rejectReasonInput.value.trim();
+    if (!reason) {
+      el.rejectReasonInput.focus();
+      return;
+    }
+    const id = state.pendingRejectOrderId;
+    el.rejectConfirmBtn.disabled = true;
+    try {
+      await apiFetch('/orders/' + id + '/reject', {
+        method: 'PUT',
+        body: JSON.stringify({ reason }),
       });
+      showToast('info', 'Order rejected');
+      closeRejectModal();
+      await loadQueue(false);
+    } catch (err) {
+      showToast('error', err.message);
+    } finally {
+      el.rejectConfirmBtn.disabled = false;
     }
+  }
 
-    /* ═══════════════════════════════════════════════════════════════
-     *  RESTAURANT HEADER (loaded once on boot)
-     * ═══════════════════════════════════════════════════════════════ */
-    async function loadRestaurantHeader(token) {
-      try {
-        var res = await fetch(BASE_URL + '/api/vendor/restaurant', {
-          headers: { Authorization: 'Bearer ' + token },
-        });
-
-        if (res.status === 401 || res.status === 403) { redirectToLogin(); return; }
-        if (!res.ok) return; // non-critical — header keeps default text
-
-        var result = await res.json();
-        if (!result.success || !result.data || typeof result.data !== 'object') return;
-
-        var r       = result.data;
-        var nameEl  = document.getElementById('res-name-display');
-        var badgeEl = document.getElementById('res-status-badge');
-        var toggle  = document.getElementById('master-toggle');
-
-        if (nameEl && typeof r.name === 'string') nameEl.textContent = r.name || 'EatSwada Partner';
-        if (toggle)  toggle.checked = Boolean(r.isActive);
-        if (badgeEl) updateStatusBadge(Boolean(r.isActive));
-      } catch (_) {
-        // Network failure on header load — non-fatal, silent.
-      }
+  async function advanceOrder(id, btn) {
+    btn.disabled = true;
+    try {
+      await apiFetch('/orders/' + id + '/status', { method: 'PUT' });
+      showToast('success', 'Order updated');
+      await loadQueue(false);
+    } catch (err) {
+      showToast('error', err.message);
+      btn.disabled = false;
     }
+  }
 
-    /* ═══════════════════════════════════════════════════════════════
-     *  MASTER TOGGLE
-     * ═══════════════════════════════════════════════════════════════ */
-    function updateStatusBadge(isOnline) {
-      var badge = document.getElementById('res-status-badge');
-      if (!badge) return;
-      badge.className = 'status-badge ' + (isOnline ? 'status-online' : 'status-offline');
-      badge.textContent = isOnline ? 'Online' : 'Offline';
+  /* ============================================================
+     RESTAURANT OPEN / CLOSE TOGGLE
+     ============================================================ */
+  function setStatusToggle(isActive) {
+    el.statusToggle.classList.toggle('open', !!isActive);
+    el.statusToggle.classList.toggle('closed', !isActive);
+    el.statusToggle.querySelector('.label').textContent = isActive ? 'Open' : 'Closed';
+  }
+
+  async function toggleRestaurantStatus() {
+    if (!state.restaurant) return;
+    const nextValue = !state.restaurant.isActive;
+    el.statusToggle.classList.add('busy');
+    el.statusToggle.disabled = true;
+    try {
+      const res = await apiFetch('/status', {
+        method: 'PUT',
+        body: JSON.stringify({ isActive: nextValue }),
+      });
+      state.restaurant = res.data;
+      setStatusToggle(state.restaurant.isActive);
+      showToast('success', state.restaurant.isActive ? 'Restaurant is now open' : 'Restaurant is now closed');
+    } catch (err) {
+      showToast('error', err.message);
+    } finally {
+      el.statusToggle.classList.remove('busy');
+      el.statusToggle.disabled = false;
     }
+  }
 
-    document.getElementById('master-toggle').addEventListener('change', async function () {
-      var isOnline   = this.checked;
-      var token      = getToken();
-      if (!token) { redirectToLogin(); return; }
+  /* ============================================================
+     EVENT WIRING
+     ============================================================ */
+  el.ticketRail.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const ticket = btn.closest('.ticket');
+    const id = ticket.dataset.id;
+    const action = btn.dataset.action;
 
-      var switchLabel = document.getElementById('master-switch-label');
-      if (switchLabel) switchLabel.classList.add('disabled');
+    if (action === 'accept')  acceptOrder(id, btn);
+    if (action === 'reject')  openRejectModal(id);
+    if (action === 'advance') advanceOrder(id, btn);
+  });
 
-      try {
-        var res = await fetch(BASE_URL + '/api/vendor/status', {
-          method:  'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-          body:    JSON.stringify({ isActive: isOnline }),
-        });
+  el.tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      el.tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
+      tab.setAttribute('aria-selected', 'true');
+      state.activeTab = tab.dataset.tab;
 
-        var result = await res.json().catch(function () { return {}; });
-
-        if (!res.ok || !result.success) {
-          this.checked = !isOnline;
-          showToast(result.message || 'Could not update status. Try again.', 'error');
-          return;
-        }
-
-        updateStatusBadge(isOnline);
-        showToast('Restaurant is now ' + (isOnline ? 'Online ✓' : 'Offline'), isOnline ? 'success' : 'warning');
-      } catch (_) {
-        this.checked = !isOnline;
-        showToast('Connection error. Status not saved.', 'error');
-      } finally {
-        if (switchLabel) switchLabel.classList.remove('disabled');
+      if (state.activeTab === 'history') {
+        loadHistory();
+      } else {
+        renderActiveTab();
       }
     });
-
-    /* ═══════════════════════════════════════════════════════════════
-     *  ORDERS ENGINE
-     * ═══════════════════════════════════════════════════════════════ */
-    async function fetchVendorOrders(token) {
-      try {
-        var res = await fetch(BASE_URL + '/api/vendor/orders', {
-          headers: { Authorization: 'Bearer ' + token },
-        });
-
-        if (res.status === 401 || res.status === 403) { redirectToLogin(); return; }
-
-        if (!res.ok) {
-          showOrdersError('Server returned an error. Please sync again.');
-          return;
-        }
-
-        var result = await res.json();
-
-        if (!result.success || !Array.isArray(result.data)) {
-          showOrdersError('Unexpected response from server.');
-          return;
-        }
-
-        renderOrders(result.data);
-      } catch (_) {
-        showOrdersError('Connection error. Check your internet and sync.');
-      }
-    }
-
-    function showOrdersError(message) {
-      var tabs = ['tab-new', 'tab-prep', 'tab-ready'];
-      for (var i = 0; i < tabs.length; i++) {
-        var el = document.getElementById(tabs[i]);
-        if (el) {
-          el.innerHTML =
-            '<div class="error-state">'
-            + '<div class="err-icon"><i class="fa-solid fa-wifi"></i></div>'
-            + '<h3>Connection Error</h3>'
-            + '<p>' + message + '</p>'
-            + '<button class="retry-btn tap" onclick="manualSync()">Retry</button>'
-            + '</div>';
-        }
-      }
-    }
-
-    function generateOTP(orderId) {
-      // Deterministic 4-digit PIN from the last 5 hex chars of the order ID.
-      var raw = String(orderId || '').slice(-5);
-      return parseInt(raw, 16).toString().padStart(6, '0').slice(-4);
-    }
-
-    function renderOrders(orders) {
-      var tabNew   = document.getElementById('tab-new');
-      var tabPrep  = document.getElementById('tab-prep');
-      var tabReady = document.getElementById('tab-ready');
-      if (!tabNew || !tabPrep || !tabReady) return;
-
-      tabNew.innerHTML = tabPrep.innerHTML = tabReady.innerHTML = '';
-      var cNew = 0, cPrep = 0, cReady = 0;
-      var todayCount = 0;
-      var today = new Date().toDateString();
-
-      // Guard: orders must be a non-empty array
-      if (!Array.isArray(orders)) return;
-
-      for (var i = 0; i < orders.length; i++) {
-        var order = orders[i];
-        if (!order || typeof order !== 'object') continue;
-
-        var status = typeof order.status === 'string' ? order.status : '';
-        if (status === 'cancelled' || status === 'delivered') continue;
-
-        // Count today's orders regardless of current status
-        if (order.createdAt && new Date(order.createdAt).toDateString() === today) {
-          todayCount++;
-        }
-
-        var timeStr = order.createdAt
-          ? new Date(order.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
-          : '—';
-
-        // Safe items render — guard against null/non-array items
-        var itemsHtml = '—';
-        if (Array.isArray(order.items) && order.items.length > 0) {
-          var itemParts = [];
-          for (var ii = 0; ii < order.items.length; ii++) {
-            var item = order.items[ii];
-            if (!item || typeof item !== 'object') continue;
-            var qty  = Number(item.quantity) || 1;
-            var name = typeof item.name === 'string' ? item.name : 'Item';
-            itemParts.push('<span style="font-weight:900;color:var(--brand);">' + qty + '×</span> ' + name);
-          }
-          if (itemParts.length > 0) itemsHtml = itemParts.join('<br>');
-        }
-
-        var orderNum = order.orderNumber || ('ORD-' + String(order._id || '').slice(-5).toUpperCase());
-        var total    = typeof order.total === 'number' ? '₹' + order.total : (order.total || '—');
-        var orderId  = String(order._id || '');
-
-        var baseCard =
-          '<div class="order-card">'
-          + '<div class="oc-header">'
-          +   '<div class="oc-id">' + orderNum + '</div>'
-          +   '<div class="oc-time">' + timeStr + '</div>'
-          + '</div>'
-          + '<div class="oc-items">' + itemsHtml + '</div>'
-          + '<div class="oc-footer">'
-          +   '<div>'
-          +     '<div class="oc-total-label">Bill Total</div>'
-          +     '<div class="oc-total">' + total + '</div>'
-          +   '</div>'
-          + '</div>';
-
-        if (status === 'pending' || status === 'placed') {
-          cNew++;
-          tabNew.innerHTML += baseCard
-            + '<div class="oc-actions">'
-            +   '<button class="btn-card btn-accept tap" onclick="updateOrderStatus(\'' + orderId + '\', \'preparing\', this)">'
-            +     '<i class="fa-solid fa-check"></i> Accept Order'
-            +   '</button>'
-            + '</div>'
-            + '</div>';
-        } else if (status === 'preparing') {
-          cPrep++;
-          tabPrep.innerHTML += baseCard
-            + '<div class="otp-box">'
-            +   '<div class="otp-label">Rider Pickup PIN</div>'
-            +   '<div class="otp-value">' + generateOTP(orderId) + '</div>'
-            + '</div>'
-            + '<div class="oc-actions">'
-            +   '<button class="btn-card btn-ready tap" onclick="updateOrderStatus(\'' + orderId + '\', \'out_for_delivery\', this)">'
-            +     '<i class="fa-solid fa-bag-shopping"></i> Food is Ready'
-            +   '</button>'
-            + '</div>'
-            + '</div>';
-        } else if (status === 'out_for_delivery') {
-          cReady++;
-          tabReady.innerHTML += baseCard
-            + '<div class="waiting-box"><i class="fa-solid fa-motorcycle"></i> Rider is on the way</div>'
-            + '</div>';
-        }
-      }
-
-      // Empty state messages per tab
-      if (cNew   === 0) tabNew.innerHTML   = '<div class="empty-state"><i class="fa-solid fa-inbox"></i>No new orders right now.<br><span style="font-size:12px;font-weight:600;">Syncs every 12 seconds.</span></div>';
-      if (cPrep  === 0) tabPrep.innerHTML  = '<div class="empty-state"><i class="fa-solid fa-fire-burner"></i>Nothing cooking right now.</div>';
-      if (cReady === 0) tabReady.innerHTML = '<div class="empty-state"><i class="fa-solid fa-box-open"></i>No orders waiting for pickup.</div>';
-
-      // Badges
-      setBadge('badge-new',   cNew);
-      setBadge('badge-prep',  cPrep);
-      setBadge('badge-ready', cReady);
-
-      // Metrics
-      var metricOrders = document.getElementById('metric-orders');
-      var metricToday  = document.getElementById('metric-today');
-      if (metricOrders) metricOrders.textContent = cNew + cPrep + cReady;
-      if (metricToday)  metricToday.textContent  = todayCount;
-    }
-
-    function setBadge(id, count) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.textContent = count;
-      el.className = count > 0 ? 'o-badge show' : 'o-badge';
-    }
-
-    async function updateOrderStatus(id, status, btn) {
-      var token = getToken();
-      if (!token) { redirectToLogin(); return; }
-
-      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
-
-      try {
-        var res = await fetch(BASE_URL + '/api/orders/' + id + '/status', {
-          method:  'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-          body:    JSON.stringify({ status: status }),
-        });
-
-        if (!res.ok) {
-          var err = await res.json().catch(function () { return {}; });
-          showToast(err.message || 'Could not update order status.', 'error');
-          if (btn) { btn.disabled = false; btn.innerHTML = 'Retry'; }
-          return;
-        }
-
-        showToast('Order status updated.', 'success');
-        await fetchVendorOrders(token);
-      } catch (_) {
-        showToast('Connection error. Could not update order.', 'error');
-        if (btn) { btn.disabled = false; btn.innerHTML = 'Retry'; }
-      }
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-     *  MENU ENGINE
-     *  Backend returns grouped-by-category object.
-     * ═══════════════════════════════════════════════════════════════ */
-    async function fetchVendorMenu(token) {
-      var grid = document.getElementById('menu-grid');
-      if (!grid) return;
-
-      // Show skeleton while loading
-      grid.innerHTML =
-        '<div class="skel-order-card">'
-        + '<div class="skeleton skel-line wide"></div>'
-        + '<div class="skeleton skel-line short"></div>'
-        + '<div class="skeleton skel-btn"></div>'
-        + '</div>'
-        + '<div class="skel-order-card">'
-        + '<div class="skeleton skel-line wide"></div>'
-        + '<div class="skeleton skel-line short"></div>'
-        + '<div class="skeleton skel-btn"></div>'
-        + '</div>';
-
-      try {
-        var res = await fetch(BASE_URL + '/api/vendor/menu', {
-          headers: { Authorization: 'Bearer ' + token },
-        });
-
-        if (res.status === 401 || res.status === 403) { redirectToLogin(); return; }
-
-        if (!res.ok) {
-          grid.innerHTML = '<div class="error-state"><div class="err-icon"><i class="fa-solid fa-wifi"></i></div><h3>Could Not Load Menu</h3><p>Server error. Please sync.</p><button class="retry-btn tap" onclick="manualSync()">Retry</button></div>';
-          return;
-        }
-
-        var result = await res.json();
-
-        if (!result.success || typeof result.data !== 'object' || result.data === null) {
-          grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-utensils"></i>No menu items found.<br><span style="font-size:12px;">Items assigned by EatSwada Admin will appear here.</span></div>';
-          return;
-        }
-
-        renderMenu(result.data);
-      } catch (_) {
-        grid.innerHTML = '<div class="error-state"><div class="err-icon"><i class="fa-solid fa-wifi"></i></div><h3>Connection Error</h3><p>Check your internet and try again.</p><button class="retry-btn tap" onclick="manualSync()">Retry</button></div>';
-      }
-    }
-
-    function renderMenu(grouped) {
-      var grid = document.getElementById('menu-grid');
-      if (!grid) return;
-
-      if (typeof grouped !== 'object' || grouped === null) {
-        grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-utensils"></i>No items yet.</div>';
-        return;
-      }
-
-      var categories = Object.keys(grouped);
-
-      if (categories.length === 0) {
-        grid.innerHTML = '<div class="empty-state"><i class="fa-solid fa-utensils"></i>No menu items found.<br><span style="font-size:12px;">Items assigned by EatSwada Admin will appear here.</span></div>';
-        return;
-      }
-
-      var html = '';
-
-      for (var ci = 0; ci < categories.length; ci++) {
-        var cat   = categories[ci];
-        var items = grouped[cat];
-
-        if (!Array.isArray(items) || items.length === 0) continue;
-
-        html += '<div class="menu-section-title">' + cat + '</div>';
-
-        for (var ii = 0; ii < items.length; ii++) {
-          var item = items[ii];
-          if (!item || typeof item !== 'object') continue;
-
-          var isVeg    = Boolean(item.isVeg);
-          var inStock  = item.inStock !== false;
-          var vegColor = isVeg ? '#16a34a' : '#dc2626';
-          var itemId   = String(item._id || '');
-          var price    = typeof item.price === 'number' ? item.price : (Number(item.price) || 0);
-          var name     = typeof item.name  === 'string' ? item.name  : 'Unnamed Item';
-
-          // Stock label text matches current state
-          var stockLabelClass = inStock ? 'in' : 'out';
-          var stockLabelText  = inStock ? 'In Stock' : 'Out of Stock';
-
-          html +=
-            '<div class="menu-item ' + (inStock ? '' : 'out-of-stock') + '" id="mi-row-' + itemId + '">'
-            + '<div class="mi-left">'
-            +   '<div class="mi-name">'
-            +     '<div class="veg-dot" style="border:1.5px solid ' + vegColor + ';">'
-            +       '<div class="veg-dot-inner" style="background:' + vegColor + ';"></div>'
-            +     '</div>'
-            +     name
-            +   '</div>'
-            +   '<div id="mi-price-row-' + itemId + '" class="mi-price-row">'
-            +     '<div class="mi-price" id="mi-price-' + itemId + '">₹' + price + '</div>'
-            +     '<button class="mi-edit-btn tap" onclick="openPriceEditor(\'' + itemId + '\', ' + price + ')">'
-            +       '<i class="fa-solid fa-pen"></i> Edit'
-            +     '</button>'
-            +   '</div>'
-            + '</div>'
-            + '<div class="stock-toggle-wrap">'
-            +   '<label class="switch tap" id="mi-switch-' + itemId + '">'
-            +     '<input type="checkbox" id="mi-chk-' + itemId + '" ' + (inStock ? 'checked' : '')
-            +       ' onchange="toggleItemStock(\'' + itemId + '\', this)">'
-            +     '<span class="slider"></span>'
-            +   '</label>'
-            +   '<span class="stock-label ' + stockLabelClass + '" id="mi-lbl-' + itemId + '">' + stockLabelText + '</span>'
-            + '</div>'
-            + '</div>';
-        }
-      }
-
-      grid.innerHTML = html;
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-     *  INLINE PRICE EDITOR
-     * ═══════════════════════════════════════════════════════════════ */
-    function openPriceEditor(id, currentPrice) {
-      var row = document.getElementById('mi-price-row-' + id);
-      if (!row) return;
-
-      row.innerHTML =
-        '<div class="price-edit-wrap">'
-        + '<span style="font-size:14px;font-weight:800;">₹</span>'
-        + '<input class="price-input" id="price-input-' + id + '" type="number"'
-        +   ' value="' + currentPrice + '" min="0" step="1" inputmode="numeric">'
-        + '<button class="price-save-btn tap"   onclick="savePriceEdit(\'' + id + '\', ' + currentPrice + ')">Save</button>'
-        + '<button class="price-cancel-btn tap" onclick="cancelPriceEdit(\'' + id + '\', ' + currentPrice + ')">✕</button>'
-        + '</div>';
-
-      var input = document.getElementById('price-input-' + id);
-      if (input) { input.focus(); input.select(); }
-    }
-
-    function cancelPriceEdit(id, originalPrice) {
-      var row = document.getElementById('mi-price-row-' + id);
-      if (!row) return;
-      row.innerHTML =
-        '<div class="mi-price" id="mi-price-' + id + '">₹' + originalPrice + '</div>'
-        + '<button class="mi-edit-btn tap" onclick="openPriceEditor(\'' + id + '\', ' + originalPrice + ')">'
-        +   '<i class="fa-solid fa-pen"></i> Edit'
-        + '</button>';
-    }
-
-    async function savePriceEdit(id, originalPrice) {
-      var input = document.getElementById('price-input-' + id);
-      if (!input) return;
-
-      var newPrice = Number(input.value);
-
-      if (isNaN(newPrice) || newPrice < 0) {
-        showToast('Enter a valid price (₹0 or more).', 'error'); return;
-      }
-      if (newPrice === originalPrice) {
-        cancelPriceEdit(id, originalPrice); return;
-      }
-
-      var token = getToken();
-      if (!token) { redirectToLogin(); return; }
-
-      // Optimistic UI — show new price immediately
-      cancelPriceEdit(id, newPrice);
-
-      try {
-        var res = await fetch(BASE_URL + '/api/vendor/menu/' + id, {
-          method:  'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-          body:    JSON.stringify({ price: newPrice }),
-        });
-
-        var result = await res.json().catch(function () { return {}; });
-
-        if (!res.ok || !result.success) {
-          cancelPriceEdit(id, originalPrice); // revert
-          showToast(result.message || 'Price update failed.', 'error');
-          return;
-        }
-
-        showToast('Price updated to ₹' + newPrice, 'success');
-      } catch (_) {
-        cancelPriceEdit(id, originalPrice);
-        showToast('Connection error. Price not saved.', 'error');
-      }
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-     *  STOCK TOGGLE  ← UPGRADED
-     *  Now calls the dedicated PUT /api/vendor/menu/:id/toggle-stock
-     *  route instead of the general update route.  The server does
-     *  an atomic boolean flip — the client never sends an inStock
-     *  value, eliminating the race condition from the old approach.
-     * ═══════════════════════════════════════════════════════════════ */
-    async function toggleItemStock(id, checkboxEl) {
-      var token = getToken();
-      if (!token) { redirectToLogin(); return; }
-
-      // Capture what the user just toggled TO (optimistic)
-      var optimisticInStock = checkboxEl.checked;
-
-      // Disable while in-flight to prevent double-click
-      var switchWrap = document.getElementById('mi-switch-' + id);
-      if (switchWrap) switchWrap.classList.add('disabled');
-
-      try {
-        var res = await fetch(BASE_URL + '/api/vendor/menu/' + id + '/toggle-stock', {
-          method:  'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-          // No body required — server does the atomic flip from its own DB value
-        });
-
-        var result = await res.json().catch(function () { return {}; });
-
-        if (!res.ok || !result.success) {
-          // Revert checkbox to previous state
-          checkboxEl.checked = !optimisticInStock;
-          showToast(result.message || 'Could not update stock status.', 'error');
-          return;
-        }
-
-        // Use the authoritative value returned by the server
-        var serverInStock = Boolean(result.inStock);
-
-        // Sync checkbox to server truth (handles edge cases)
-        checkboxEl.checked = serverInStock;
-
-        // Update card visual
-        var row = document.getElementById('mi-row-' + id);
-        if (row) {
-          if (serverInStock) row.classList.remove('out-of-stock');
-          else               row.classList.add('out-of-stock');
-        }
-
-        // Update stock label
-        var lbl = document.getElementById('mi-lbl-' + id);
-        if (lbl) {
-          lbl.className   = 'stock-label ' + (serverInStock ? 'in' : 'out');
-          lbl.textContent = serverInStock ? 'In Stock' : 'Out of Stock';
-        }
-
-        showToast(
-          serverInStock ? 'Item marked In Stock.' : 'Item marked Out of Stock.',
-          serverInStock ? 'success' : 'warning'
-        );
-      } catch (_) {
-        checkboxEl.checked = !optimisticInStock;
-        showToast('Connection error. Stock status not saved.', 'error');
-      } finally {
-        if (switchWrap) switchWrap.classList.remove('disabled');
-      }
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-     *  BOOT
-     * ═══════════════════════════════════════════════════════════════ */
-    document.addEventListener('DOMContentLoaded', async function () {
-      var token = getToken();
-      if (!token) { redirectToLogin(); return; }
-
-      // Show skeletons immediately
-      showOrderSkeletons(2);
-
-      // Load restaurant name/status in header (non-blocking)
-      loadRestaurantHeader(token);
-
-      // Load orders
-      await fetchVendorOrders(token);
-
-      // Start auto-refresh
-      startPolling();
-    });
-  </script>
+  });
+
+  el.statusToggle.addEventListener('click', toggleRestaurantStatus);
+  el.refreshBtn.addEventListener('click', () => loadQueue(false));
+  el.rejectCancelBtn.addEventListener('click', closeRejectModal);
+  el.rejectConfirmBtn.addEventListener('click', confirmReject);
+  el.rejectModal.addEventListener('click', (e) => {
+    if (e.target === el.rejectModal) closeRejectModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && el.rejectModal.classList.contains('open')) closeRejectModal();
+  });
+
+  /* ============================================================
+     POLLING — pauses while tab is hidden to save battery/data
+     ============================================================ */
+  function startPolling() {
+    stopPolling();
+    state.pollTimer = setInterval(() => {
+      if (document.hidden) return;
+      loadQueue(false);
+    }, POLL_INTERVAL);
+  }
+  function stopPolling() {
+    if (state.pollTimer) clearInterval(state.pollTimer);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) loadQueue(false);
+  });
+
+  /* ============================================================
+     INIT
+     ============================================================ */
+  async function init() {
+    await Promise.all([loadRestaurant(), loadQueue(true)]);
+    startPolling();
+  }
+
+  init();
+})();
+</script>
 </body>
 </html>
