@@ -624,22 +624,6 @@
     border-top: 1px dashed var(--line);
   }
 
-  .icon-btn{
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px; height: 30px;
-    border: 1px solid var(--line);
-    background: var(--card);
-    border-radius: 7px;
-    color: var(--ink-soft);
-    cursor: pointer;
-  }
-  .icon-btn svg{ width: 14px; height: 14px; }
-  .icon-btn:hover{ color: var(--ink); border-color: var(--ink-soft); }
-  .icon-btn.danger:hover{ color: var(--rust); border-color: var(--rust); }
-  .row-actions{ display: flex; gap: 6px; }
-
   .switch{
     position: relative;
     display: inline-block;
@@ -717,79 +701,6 @@
     border-radius: 7px;
     padding: 7px 9px;
   }
-
-  /* ============================================================
-     12. MENU ITEM MODAL — form fields
-     ============================================================ */
-  .modal.modal-wide{ width: min(100%, 460px); max-height: 88vh; overflow-y: auto; }
-  .form-grid{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 4px;
-  }
-  .form-field{ margin-bottom: 12px; }
-  .form-field.span-2{ grid-column: 1 / -1; }
-  .form-field label{
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--ink-soft);
-    margin-bottom: 4px;
-  }
-  .form-field input[type="text"],
-  .form-field input[type="number"],
-  .form-field input[type="url"],
-  .form-field textarea,
-  .form-field select{
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    font-size: 13px;
-    font-family: inherit;
-  }
-  .form-field textarea{ min-height: 56px; resize: vertical; }
-  .form-field input.invalid{ border-color: var(--rust); }
-  .field-error{
-    font-size: 11px;
-    color: var(--rust);
-    margin-top: 3px;
-    min-height: 14px;
-  }
-  .form-check{
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    margin-bottom: 10px;
-  }
-  .form-check input{ margin: 0; }
-  .modal-result{
-    font-size: 12px;
-    border-radius: 8px;
-    padding: 0;
-    max-height: 0;
-    overflow: hidden;
-    transition: all 0.15s ease;
-  }
-  .modal-result.show{
-    padding: 8px 10px;
-    max-height: 60px;
-    margin-bottom: 10px;
-  }
-  .modal-result.show.success{ background: var(--basil-soft); color: var(--basil); }
-  .modal-result.show.error{ background: var(--rust-soft); color: var(--rust); }
-  .btn-spinner{
-    display: inline-block;
-    width: 11px; height: 11px;
-    border: 2px solid rgba(255,255,255,0.5);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    vertical-align: -1px;
-  }
-  @keyframes spin{ to{ transform: rotate(360deg); } }
 
 </style>
 </head>
@@ -880,12 +791,7 @@
     <section class="dashboard-section" id="section-menu" hidden>
       <div class="toolbar-row">
         <span id="menuCount">Loading…</span>
-        <button class="refresh-btn" id="menuAddBtn" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-          Add item
-        </button>
+        <span>Menu is managed by the CEO. You can only change stock availability.</span>
       </div>
 
       <main class="menu-grid" id="menuGrid" aria-live="polite">
@@ -1041,73 +947,6 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="menuItemModal">
-    <div class="modal modal-wide">
-      <h3 id="menuItemModalTitle">Add menu item</h3>
-      <p>Item details for your restaurant's menu.</p>
-
-      <div class="modal-result" id="menuItemModalResult"></div>
-
-      <form id="menuItemForm">
-        <input type="hidden" id="mi-id" />
-
-        <div class="form-field">
-          <label for="mi-name">Item name</label>
-          <input type="text" id="mi-name" autocomplete="off" />
-          <div class="field-error" data-error-for="mi-name"></div>
-        </div>
-
-        <div class="form-field">
-          <label for="mi-description">Description</label>
-          <textarea id="mi-description"></textarea>
-        </div>
-
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="mi-category">Category</label>
-            <input type="text" id="mi-category" placeholder="e.g. Main Course" />
-          </div>
-          <div class="form-field">
-            <label for="mi-price">Price (₹)</label>
-            <input type="number" id="mi-price" min="0" step="1" />
-            <div class="field-error" data-error-for="mi-price"></div>
-          </div>
-        </div>
-
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="mi-originalPrice">Original price (optional)</label>
-            <input type="number" id="mi-originalPrice" min="0" step="1" />
-          </div>
-          <div class="form-field">
-            <label for="mi-image">Image URL</label>
-            <input type="url" id="mi-image" placeholder="https://…" />
-          </div>
-        </div>
-
-        <label class="form-check">
-          <input type="checkbox" id="mi-isVeg" /> Vegetarian
-        </label>
-        <label class="form-check">
-          <input type="checkbox" id="mi-inStock" /> In stock
-        </label>
-        <label class="form-check">
-          <input type="checkbox" id="mi-isBestseller" /> Best seller
-        </label>
-        <label class="form-check">
-          <input type="checkbox" id="mi-isRecommended" /> Recommended
-        </label>
-      </form>
-
-      <div class="modal-actions">
-        <button class="btn ghost" id="menuItemCancelBtn" type="button">Cancel</button>
-        <button class="btn accept" id="menuItemSaveBtn" type="button">
-          <span id="menuItemSaveText">Create item</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
 <script>
 (function () {
   'use strict';
@@ -1182,14 +1021,6 @@
     // Menu / Inventory
     menuGrid:     document.getElementById('menuGrid'),
     menuCount:    document.getElementById('menuCount'),
-    menuAddBtn:   document.getElementById('menuAddBtn'),
-    menuItemModal:       document.getElementById('menuItemModal'),
-    menuItemModalTitle:  document.getElementById('menuItemModalTitle'),
-    menuItemModalResult: document.getElementById('menuItemModalResult'),
-    menuItemForm:        document.getElementById('menuItemForm'),
-    menuItemCancelBtn:   document.getElementById('menuItemCancelBtn'),
-    menuItemSaveBtn:     document.getElementById('menuItemSaveBtn'),
-    menuItemSaveText:    document.getElementById('menuItemSaveText'),
   };
 
   /* ============================================================
@@ -1638,7 +1469,7 @@
         <rect x="4" y="4" width="16" height="16" rx="2" stroke-dasharray="3 3"/>
       </svg>
       <h3>No menu items yet</h3>
-      <p>Add your first item to start taking orders for it.</p>`;
+      <p>Menu items will appear here once added by the CEO.</p>`;
     return div;
   }
 
@@ -1659,14 +1490,6 @@
           <div class="menu-card-name">
             <span class="veg-dot" style="background:${item.isVeg ? '#1e9e4a' : '#c0392b'};"></span>
             <span class="name-text">${escapeHtml(item.name)}</span>
-          </div>
-          <div class="row-actions">
-            <button class="icon-btn menu-item-edit-btn" data-id="${item._id}" title="Edit item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-            </button>
-            <button class="icon-btn danger menu-item-delete-btn" data-id="${item._id}" data-name="${escapeHtml(item.name)}" title="Delete item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6"/></svg>
-            </button>
           </div>
         </div>
         <div class="menu-card-meta">${escapeHtml(item.category || 'Uncategorized')}</div>
@@ -1748,157 +1571,8 @@
     }
   }
 
-  async function deleteMenuItem(id, name) {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
-    try {
-      await menuFetch('/menu/' + id, { method: 'DELETE' });
-      showToast('success', 'Menu item deleted.');
-      state.menuItems = state.menuItems.filter(i => i._id !== id);
-      renderMenuGrid();
-    } catch (err) {
-      showToast('error', err.message || 'Could not delete menu item.');
-    }
-  }
-
-  el.menuGrid.addEventListener('click', (e) => {
-    const editBtn = e.target.closest('.menu-item-edit-btn');
-    if (editBtn) { openEditMenuItemModal(editBtn.dataset.id); return; }
-    const delBtn = e.target.closest('.menu-item-delete-btn');
-    if (delBtn) { deleteMenuItem(delBtn.dataset.id, delBtn.dataset.name); return; }
-  });
   el.menuGrid.addEventListener('change', (e) => {
     if (e.target.classList.contains('menu-item-toggle')) toggleMenuItemStock(e.target);
-  });
-
-  /* ---- Add / Edit modal ---- */
-  const miEl = {
-    id:             document.getElementById('mi-id'),
-    name:           document.getElementById('mi-name'),
-    description:    document.getElementById('mi-description'),
-    category:       document.getElementById('mi-category'),
-    price:          document.getElementById('mi-price'),
-    originalPrice:  document.getElementById('mi-originalPrice'),
-    image:          document.getElementById('mi-image'),
-    isVeg:          document.getElementById('mi-isVeg'),
-    inStock:        document.getElementById('mi-inStock'),
-    isBestseller:   document.getElementById('mi-isBestseller'),
-    isRecommended:  document.getElementById('mi-isRecommended'),
-  };
-  let menuItemSaving = false;
-
-  function setMenuFieldError(id, msg) {
-    const errEl = document.querySelector(`[data-error-for="${id}"]`);
-    const input = document.getElementById(id);
-    if (errEl) errEl.textContent = msg || '';
-    if (input) input.classList.toggle('invalid', !!msg);
-  }
-
-  function clearMenuFormErrors() {
-    el.menuItemForm.querySelectorAll('[data-error-for]').forEach(e => e.textContent = '');
-    el.menuItemForm.querySelectorAll('.invalid').forEach(e => e.classList.remove('invalid'));
-    el.menuItemModalResult.className = 'modal-result';
-  }
-
-  function openAddMenuItemModal() {
-    el.menuItemForm.reset();
-    clearMenuFormErrors();
-    miEl.id.value = '';
-    miEl.inStock.checked = true;
-    miEl.isVeg.checked = true;
-    el.menuItemModalTitle.textContent = 'Add menu item';
-    el.menuItemSaveText.textContent = 'Create item';
-    el.menuItemModal.classList.add('open');
-  }
-
-  function openEditMenuItemModal(id) {
-    const item = state.menuItems.find(i => i._id === id);
-    if (!item) return;
-
-    el.menuItemForm.reset();
-    clearMenuFormErrors();
-    miEl.id.value = item._id;
-    miEl.name.value = item.name || '';
-    miEl.description.value = item.description || '';
-    miEl.category.value = item.category || '';
-    miEl.price.value = item.price ?? '';
-    miEl.originalPrice.value = item.originalPrice ?? '';
-    miEl.image.value = item.image || '';
-    miEl.isVeg.checked = !!item.isVeg;
-    miEl.inStock.checked = !!item.inStock;
-    miEl.isBestseller.checked = !!item.isBestseller;
-    miEl.isRecommended.checked = !!item.isRecommended;
-    el.menuItemModalTitle.textContent = 'Edit menu item';
-    el.menuItemSaveText.textContent = 'Save changes';
-    el.menuItemModal.classList.add('open');
-  }
-
-  function closeMenuItemModal() {
-    el.menuItemModal.classList.remove('open');
-  }
-
-  async function saveMenuItem() {
-    if (menuItemSaving) return;
-
-    let valid = true;
-    setMenuFieldError('mi-name', '');
-    setMenuFieldError('mi-price', '');
-
-    const name = miEl.name.value.trim();
-    if (!name) { setMenuFieldError('mi-name', 'Item name is required.'); valid = false; }
-
-    const price = Number(miEl.price.value);
-    if (!price || price < 0) { setMenuFieldError('mi-price', 'Enter a valid price.'); valid = false; }
-
-    if (!valid) return;
-
-    const id = miEl.id.value;
-    const originalPriceRaw = miEl.originalPrice.value;
-
-    const body = {
-      name,
-      description: miEl.description.value.trim(),
-      category: miEl.category.value.trim() || 'Main Course',
-      price,
-      originalPrice: originalPriceRaw ? Number(originalPriceRaw) : undefined,
-      image: miEl.image.value.trim(),
-      isVeg: miEl.isVeg.checked,
-      inStock: miEl.inStock.checked,
-      isBestseller: miEl.isBestseller.checked,
-      isRecommended: miEl.isRecommended.checked,
-    };
-
-    menuItemSaving = true;
-    el.menuItemSaveBtn.disabled = true;
-    const savingLabel = id ? 'Saving…' : 'Creating…';
-    el.menuItemSaveText.innerHTML = `<span class="btn-spinner"></span> ${savingLabel}`;
-
-    try {
-      if (id) {
-        await menuFetch('/menu/' + id, { method: 'PUT', body: JSON.stringify(body) });
-        el.menuItemModalResult.textContent = 'Menu item updated.';
-      } else {
-        await menuFetch('/menu', { method: 'POST', body: JSON.stringify(body) });
-        el.menuItemModalResult.textContent = 'Menu item created.';
-      }
-      el.menuItemModalResult.className = 'modal-result show success';
-      showToast('success', id ? 'Menu item updated.' : 'Menu item created.');
-      await loadMenu();
-      setTimeout(closeMenuItemModal, 700);
-    } catch (err) {
-      el.menuItemModalResult.textContent = err.message || 'Could not save menu item.';
-      el.menuItemModalResult.className = 'modal-result show error';
-    } finally {
-      menuItemSaving = false;
-      el.menuItemSaveBtn.disabled = false;
-      el.menuItemSaveText.textContent = id ? 'Save changes' : 'Create item';
-    }
-  }
-
-  el.menuAddBtn.addEventListener('click', openAddMenuItemModal);
-  el.menuItemCancelBtn.addEventListener('click', closeMenuItemModal);
-  el.menuItemSaveBtn.addEventListener('click', saveMenuItem);
-  el.menuItemModal.addEventListener('click', (e) => {
-    if (e.target === el.menuItemModal) closeMenuItemModal();
   });
 
   /* ============================================================
@@ -1953,7 +1627,6 @@
     if (e.key !== 'Escape') return;
     if (el.rejectModal.classList.contains('open')) closeRejectModal();
     if (el.availabilityModal.classList.contains('open')) closeAvailabilityModal();
-    if (el.menuItemModal.classList.contains('open')) closeMenuItemModal();
   });
 
   /* ============================================================
@@ -1985,4 +1658,4 @@
 })();
 </script>
 </body>
-  </html>
+</html>
