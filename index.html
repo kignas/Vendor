@@ -108,6 +108,7 @@
     transition: background 0.15s ease;
   }
   .status-toggle.open .dot{ background: var(--basil); }
+  .status-toggle.closed-today .dot{ background: var(--turmeric); }
   .status-toggle.closed .dot{ background: var(--rust); }
   .status-toggle:disabled, .status-toggle.busy{ opacity: 0.6; cursor: wait; }
 
@@ -416,6 +417,66 @@
   }
   .modal-actions{ display: flex; justify-content: flex-end; gap: 8px; }
 
+  /* ============================================================
+     9. AVAILABILITY MODAL
+     ============================================================ */
+  .avail-options{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .avail-option{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .avail-option input{ margin: 0; }
+  .avail-option.selected{
+    border-color: var(--ink);
+    background: var(--paper);
+    font-weight: 600;
+  }
+  .avail-fieldset{ border: none; padding: 0; margin: 0 0 4px; }
+  .avail-fieldset legend{
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    padding: 0;
+  }
+  .avail-autohours{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+  .avail-hours{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .avail-hours label{
+    display: block;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  .avail-hours input[type="time"]{
+    width: 100%;
+    padding: 7px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+
 </style>
 </head>
 <body>
@@ -478,6 +539,48 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="availabilityModal">
+    <div class="modal">
+      <h3>Restaurant availability</h3>
+      <p>Choose how customers see your restaurant right now.</p>
+
+      <div class="avail-options">
+        <label class="avail-option" data-value="open">
+          <input type="radio" name="availStatus" value="open" /> Open
+        </label>
+        <label class="avail-option" data-value="closed_today">
+          <input type="radio" name="availStatus" value="closed_today" /> Closed Today
+        </label>
+        <label class="avail-option" data-value="temporarily_closed">
+          <input type="radio" name="availStatus" value="temporarily_closed" /> Temporarily Closed
+        </label>
+      </div>
+
+      <fieldset class="avail-fieldset">
+        <legend>Business hours (for the upcoming auto-hours feature)</legend>
+        <div class="avail-autohours">
+          <input type="checkbox" id="availAutoHours" />
+          <label for="availAutoHours">Use automatic business hours</label>
+        </div>
+        <div class="avail-hours">
+          <div>
+            <label for="availOpensAt">Opens at</label>
+            <input type="time" id="availOpensAt" />
+          </div>
+          <div>
+            <label for="availClosesAt">Closes at</label>
+            <input type="time" id="availClosesAt" />
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="modal-actions">
+        <button class="btn ghost" id="availabilityCancelBtn" type="button">Cancel</button>
+        <button class="btn accept" id="availabilityConfirmBtn" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
 <script>
 (function () {
   'use strict';
@@ -489,6 +592,11 @@
   const API_BASE = 'https://eatswada.onrender.com/api/vendor';              
   const TOKEN_KEY      = 'nearbite_vendor_token';       // localStorage key set by your vendor login page
   const POLL_INTERVAL  = 15000;                          // live queue refresh, ms
+
+  // Restaurant Availability lives under /api/restaurants (shared with the
+  // CEO panel), not /api/vendor — derived from API_BASE so the domain is
+  // only defined in one place.
+  const RESTAURANT_API_BASE = API_BASE.replace(/\/vendor\/?$/, '') + '/restaurants';
 
   /* ============================================================
      STATE
@@ -521,6 +629,12 @@
     rejectReasonInput: document.getElementById('rejectReasonInput'),
     rejectCancelBtn:   document.getElementById('rejectCancelBtn'),
     rejectConfirmBtn:  document.getElementById('rejectConfirmBtn'),
+    availabilityModal:      document.getElementById('availabilityModal'),
+    availabilityCancelBtn:  document.getElementById('availabilityCancelBtn'),
+    availabilityConfirmBtn: document.getElementById('availabilityConfirmBtn'),
+    availAutoHours: document.getElementById('availAutoHours'),
+    availOpensAt:   document.getElementById('availOpensAt'),
+    availClosesAt:  document.getElementById('availClosesAt'),
   };
 
   /* ============================================================
@@ -529,6 +643,35 @@
   async function apiFetch(path, options) {
     const token = localStorage.getItem(TOKEN_KEY);
     const res = await fetch(API_BASE + path, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        ...(options && options.headers ? options.headers : {}),
+      },
+    });
+
+    let body = null;
+    try { body = await res.json(); } catch (_) { /* no body */ }
+
+    if (res.status === 401) {
+      showToast('error', 'Your session expired. Please log in again.');
+      throw new Error('unauthorized');
+    }
+    if (!res.ok) {
+      throw new Error((body && body.message) || 'Something went wrong. Please try again.');
+    }
+    return body;
+  }
+
+  // Same as apiFetch above, but targets RESTAURANT_API_BASE instead of the
+  // vendor-scoped API_BASE — used only for the Availability endpoint, which
+  // lives under /api/restaurants/:id/availability and is shared with the
+  // CEO panel. The backend still enforces that a vendor can only modify
+  // their own restaurant, regardless of what id is sent.
+  async function apiFetchRestaurants(path, options) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const res = await fetch(RESTAURANT_API_BASE + path, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -696,7 +839,7 @@
       const res = await apiFetch('/restaurant');
       state.restaurant = res.data;
       el.restaurantName.textContent = state.restaurant.name || 'Your restaurant';
-      setStatusToggle(state.restaurant.isActive);
+      setStatusToggle(state.restaurant);
       el.statusToggle.disabled = false;
     } catch (err) {
       el.restaurantName.textContent = 'Restaurant';
@@ -796,32 +939,89 @@
   }
 
   /* ============================================================
-     RESTAURANT OPEN / CLOSE TOGGLE
+     RESTAURANT AVAILABILITY (Open / Closed Today / Temporarily Closed)
      ============================================================ */
-  function setStatusToggle(isActive) {
-    el.statusToggle.classList.toggle('open', !!isActive);
-    el.statusToggle.classList.toggle('closed', !isActive);
-    el.statusToggle.querySelector('.label').textContent = isActive ? 'Open' : 'Closed';
+  const STATUS_LABELS = {
+    open: 'Open',
+    closed_today: 'Closed Today',
+    temporarily_closed: 'Temporarily Closed',
+  };
+  const STATUS_TOAST_COPY = {
+    open: 'Restaurant is now open.',
+    closed_today: 'Restaurant is closed for today.',
+    temporarily_closed: 'Restaurant is temporarily closed.',
+  };
+
+  function deriveStatusKey(restaurant) {
+    if (!restaurant) return 'open';
+    if (restaurant.isOpen) return 'open';
+    const reason = restaurant.availability && restaurant.availability.closedReason;
+    return reason === 'closed_today' ? 'closed_today' : 'temporarily_closed';
   }
 
-  async function toggleRestaurantStatus() {
+  function setStatusToggle(restaurant) {
+    const key = deriveStatusKey(restaurant);
+    el.statusToggle.classList.remove('open', 'closed-today', 'closed');
+    el.statusToggle.classList.add(key === 'open' ? 'open' : key === 'closed_today' ? 'closed-today' : 'closed');
+    el.statusToggle.querySelector('.label').textContent = STATUS_LABELS[key];
+  }
+
+  function selectAvailOption(value) {
+    el.availabilityModal.querySelectorAll('.avail-option').forEach(opt => {
+      const match = opt.dataset.value === value;
+      opt.classList.toggle('selected', match);
+      opt.querySelector('input').checked = match;
+    });
+  }
+
+  function openAvailabilityModal() {
     if (!state.restaurant) return;
-    const nextValue = !state.restaurant.isActive;
-    el.statusToggle.classList.add('busy');
-    el.statusToggle.disabled = true;
+    selectAvailOption(deriveStatusKey(state.restaurant));
+    const a = state.restaurant.availability || {};
+    el.availAutoHours.checked = !!a.autoHours;
+    el.availOpensAt.value = a.opensAt || '';
+    el.availClosesAt.value = a.closesAt || '';
+    el.availabilityModal.classList.add('open');
+  }
+
+  function closeAvailabilityModal() {
+    el.availabilityModal.classList.remove('open');
+  }
+
+  async function saveAvailability() {
+    if (!state.restaurant) return;
+
+    // The vendor's own restaurant id — never user-editable, always sourced
+    // from the restaurant we already loaded for this logged-in vendor. The
+    // backend independently re-checks ownership on every request regardless.
+    const restaurantId = state.restaurant._id || state.restaurant.id;
+    if (!restaurantId) {
+      showToast('error', 'Could not determine your restaurant. Please refresh and try again.');
+      return;
+    }
+
+    const selected = el.availabilityModal.querySelector('input[name="availStatus"]:checked');
+    const status = selected ? selected.value : 'open';
+    const autoHours = el.availAutoHours.checked;
+    const opensAt = el.availOpensAt.value;
+    const closesAt = el.availClosesAt.value;
+
+    if (!confirm(`Set your restaurant to "${STATUS_LABELS[status]}"?`)) return;
+
+    el.availabilityConfirmBtn.disabled = true;
     try {
-      const res = await apiFetch('/status', {
-        method: 'PUT',
-        body: JSON.stringify({ isActive: nextValue }),
+      const res = await apiFetchRestaurants(`/${restaurantId}/availability`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status, autoHours, opensAt, closesAt }),
       });
       state.restaurant = res.data;
-      setStatusToggle(state.restaurant.isActive);
-      showToast('success', state.restaurant.isActive ? 'Restaurant is now open' : 'Restaurant is now closed');
+      setStatusToggle(state.restaurant);
+      showToast('success', STATUS_TOAST_COPY[status]);
+      closeAvailabilityModal();
     } catch (err) {
-      showToast('error', err.message);
+      showToast('error', err.message || 'Could not update availability.');
     } finally {
-      el.statusToggle.classList.remove('busy');
-      el.statusToggle.disabled = false;
+      el.availabilityConfirmBtn.disabled = false;
     }
   }
 
@@ -854,15 +1054,25 @@
     });
   });
 
-  el.statusToggle.addEventListener('click', toggleRestaurantStatus);
+  el.statusToggle.addEventListener('click', openAvailabilityModal);
   el.refreshBtn.addEventListener('click', () => loadQueue(false));
   el.rejectCancelBtn.addEventListener('click', closeRejectModal);
   el.rejectConfirmBtn.addEventListener('click', confirmReject);
   el.rejectModal.addEventListener('click', (e) => {
     if (e.target === el.rejectModal) closeRejectModal();
   });
+  el.availabilityModal.querySelectorAll('.avail-option').forEach(opt => {
+    opt.addEventListener('click', () => selectAvailOption(opt.dataset.value));
+  });
+  el.availabilityCancelBtn.addEventListener('click', closeAvailabilityModal);
+  el.availabilityConfirmBtn.addEventListener('click', saveAvailability);
+  el.availabilityModal.addEventListener('click', (e) => {
+    if (e.target === el.availabilityModal) closeAvailabilityModal();
+  });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && el.rejectModal.classList.contains('open')) closeRejectModal();
+    if (e.key !== 'Escape') return;
+    if (el.rejectModal.classList.contains('open')) closeRejectModal();
+    if (el.availabilityModal.classList.contains('open')) closeAvailabilityModal();
   });
 
   /* ============================================================
