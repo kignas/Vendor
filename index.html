@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Orders · Nearbite Vendor Portal</title>
+<title>Dashboard · Nearbite Vendor Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -113,7 +113,57 @@
   .status-toggle:disabled, .status-toggle.busy{ opacity: 0.6; cursor: wait; }
 
   /* ============================================================
-     3. TAB RAIL
+     3. SECTION RAIL (primary dashboard navigation)
+     ============================================================ */
+  .section-rail{
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 16px;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-rail::-webkit-scrollbar{ display: none; }
+
+  .section-tab{
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 14px 12px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .section-tab svg{ width: 16px; height: 16px; flex: 0 0 auto; }
+  .section-tab[aria-selected="true"]{
+    color: var(--ink);
+    border-bottom-color: var(--flame);
+  }
+  .section-tab.is-placeholder{ color: #9AA0AF; }
+  .section-tab .soon{
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--paper);
+    color: var(--ink-soft);
+    padding: 1px 5px;
+    border-radius: 999px;
+  }
+
+  .dashboard-section{ display: block; }
+  .dashboard-section[hidden]{ display: none; }
+
+  /* ============================================================
+     3B. TAB RAIL (order-status sub-nav, inside Orders section)
      ============================================================ */
   .tab-rail{
     display: flex;
@@ -477,6 +527,270 @@
     font-family: inherit;
   }
 
+  /* ============================================================
+     10. MENU / INVENTORY
+     ============================================================ */
+  .menu-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+    gap: 14px;
+  }
+
+  .menu-card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    animation: ticket-in 0.25s ease;
+  }
+  @media (prefers-reduced-motion: reduce){ .menu-card{ animation: none; } }
+  .menu-card.out-of-stock{ opacity: 0.6; }
+
+  .thumb-sm{
+    width: 56px; height: 56px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex: 0 0 auto;
+    background: var(--paper);
+  }
+  .thumb-empty{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--line);
+  }
+
+  .menu-card-body{ flex: 1; min-width: 0; }
+  .menu-card-head{
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .menu-card-name{
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .menu-card-name .veg-dot{
+    width: 9px; height: 9px;
+    border-radius: 2px;
+    flex: 0 0 auto;
+  }
+  .menu-card-name span.name-text{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .menu-card-meta{
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .menu-card-price{
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 13px;
+    margin-top: 6px;
+  }
+  .menu-card-price s{
+    font-weight: 400;
+    color: var(--ink-soft);
+    margin-left: 5px;
+  }
+  .menu-card-tags{
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+  .menu-card-tags .badge{
+    background: var(--flame-soft);
+    color: var(--flame-dark);
+  }
+  .menu-card-foot{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 9px;
+    border-top: 1px dashed var(--line);
+  }
+
+  .icon-btn{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; height: 30px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    border-radius: 7px;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .icon-btn svg{ width: 14px; height: 14px; }
+  .icon-btn:hover{ color: var(--ink); border-color: var(--ink-soft); }
+  .icon-btn.danger:hover{ color: var(--rust); border-color: var(--rust); }
+  .row-actions{ display: flex; gap: 6px; }
+
+  .switch{
+    position: relative;
+    display: inline-block;
+    width: 38px; height: 22px;
+    flex: 0 0 auto;
+  }
+  .switch input{
+    opacity: 0; width: 0; height: 0;
+    position: absolute;
+  }
+  .switch .track{
+    position: absolute; inset: 0;
+    background: var(--line);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .switch .track::before{
+    content: "";
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 2px; top: 2px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(26,29,41,0.25);
+    transition: transform 0.15s ease;
+  }
+  .switch input:checked + .track{ background: var(--basil); }
+  .switch input:checked + .track::before{ transform: translateX(16px); }
+  .switch input:disabled + .track{ opacity: 0.6; cursor: wait; }
+
+  /* ============================================================
+     11. COMING SOON / PLACEHOLDER SECTIONS
+     ============================================================ */
+  .coming-soon{
+    text-align: center;
+    padding: 48px 20px 56px;
+  }
+  .coming-soon .icon-wrap{
+    width: 48px; height: 48px;
+    margin: 0 auto 14px;
+    border-radius: 12px;
+    background: var(--flame-soft);
+    color: var(--flame-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .coming-soon .icon-wrap svg{ width: 22px; height: 22px; }
+  .coming-soon h3{
+    font-family: var(--font-display);
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .coming-soon p{
+    font-size: 13px;
+    color: var(--ink-soft);
+    max-width: 340px;
+    margin: 0 auto;
+  }
+  .coming-soon-list{
+    list-style: none;
+    padding: 0;
+    margin: 18px auto 0;
+    max-width: 320px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    text-align: left;
+  }
+  .coming-soon-list li{
+    font-size: 12px;
+    color: var(--ink-soft);
+    background: var(--paper);
+    border-radius: 7px;
+    padding: 7px 9px;
+  }
+
+  /* ============================================================
+     12. MENU ITEM MODAL — form fields
+     ============================================================ */
+  .modal.modal-wide{ width: min(100%, 460px); max-height: 88vh; overflow-y: auto; }
+  .form-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .form-field{ margin-bottom: 12px; }
+  .form-field.span-2{ grid-column: 1 / -1; }
+  .form-field label{
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  .form-field input[type="text"],
+  .form-field input[type="number"],
+  .form-field input[type="url"],
+  .form-field textarea,
+  .form-field select{
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .form-field textarea{ min-height: 56px; resize: vertical; }
+  .form-field input.invalid{ border-color: var(--rust); }
+  .field-error{
+    font-size: 11px;
+    color: var(--rust);
+    margin-top: 3px;
+    min-height: 14px;
+  }
+  .form-check{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+  .form-check input{ margin: 0; }
+  .modal-result{
+    font-size: 12px;
+    border-radius: 8px;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.15s ease;
+  }
+  .modal-result.show{
+    padding: 8px 10px;
+    max-height: 60px;
+    margin-bottom: 10px;
+  }
+  .modal-result.show.success{ background: var(--basil-soft); color: var(--basil); }
+  .modal-result.show.error{ background: var(--rust-soft); color: var(--rust); }
+  .btn-spinner{
+    display: inline-block;
+    width: 11px; height: 11px;
+    border: 2px solid rgba(255,255,255,0.5);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: -1px;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
 </style>
 </head>
 <body>
@@ -493,36 +807,182 @@
       </button>
     </header>
 
-    <nav class="tab-rail" role="tablist" aria-label="Order stages">
-      <button class="tab" role="tab" data-tab="new" aria-selected="true">
-        New <span class="count" id="countNew">0</span>
+    <nav class="section-rail" role="tablist" aria-label="Dashboard sections">
+      <button class="section-tab" role="tab" data-section="orders" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        Orders
       </button>
-      <button class="tab" role="tab" data-tab="preparing" aria-selected="false">
-        Preparing <span class="count" id="countPreparing">0</span>
+      <button class="section-tab" role="tab" data-section="menu" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11h18"/><path d="M5 11a7 7 0 0 1 14 0"/><path d="M3 15h18l-1.5 5a1 1 0 0 1-1 .8H5.5a1 1 0 0 1-1-.8L3 15Z"/></svg>
+        Menu
       </button>
-      <button class="tab" role="tab" data-tab="dispatch" aria-selected="false">
-        Out for delivery <span class="count" id="countDispatch">0</span>
+      <button class="section-tab is-placeholder" role="tab" data-section="analytics" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 10v8"/><path d="M17 6v12"/></svg>
+        Analytics <span class="soon">Soon</span>
       </button>
-      <button class="tab" role="tab" data-tab="history" aria-selected="false">
-        History
+      <button class="section-tab is-placeholder" role="tab" data-section="earnings" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.1 1.3-2 3-2s3 .7 3 1.8c0 2.4-6 1-6 3.4 0 1.1 1.3 1.8 3 1.8s3-.9 3-2"/></svg>
+        Earnings <span class="soon">Soon</span>
+      </button>
+      <button class="section-tab is-placeholder" role="tab" data-section="reviews" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.9 6.4 20.1l1.4-6.3-4.8-4.3 6.4-.6L12 3Z"/></svg>
+        Reviews <span class="soon">Soon</span>
+      </button>
+      <button class="section-tab is-placeholder" role="tab" data-section="settings" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21v-7"/><path d="M3 10V3"/><path d="M12 21v-4"/><path d="M12 13V3"/><path d="M21 21v-9"/><path d="M21 8V3"/><path d="M1 14h4M10 9h4M19 8h4"/></svg>
+        Settings <span class="soon">Soon</span>
+      </button>
+      <button class="section-tab is-placeholder" role="tab" data-section="reports" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12a10 10 0 1 1-5.5-8.9"/><path d="M22 3v6h-6"/></svg>
+        Reports <span class="soon">Soon</span>
       </button>
     </nav>
 
-    <div class="toolbar-row">
-      <span id="lastUpdated">Loading…</span>
-      <button class="refresh-btn" id="refreshBtn" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 12a9 9 0 1 1-2.64-6.36M21 4v5h-5"/>
-        </svg>
-        Refresh
-      </button>
-    </div>
+    <!-- ============================================================
+         SECTION: ORDERS
+         ============================================================ -->
+    <section class="dashboard-section" id="section-orders">
+      <nav class="tab-rail" role="tablist" aria-label="Order stages">
+        <button class="tab" role="tab" data-tab="new" aria-selected="true">
+          New <span class="count" id="countNew">0</span>
+        </button>
+        <button class="tab" role="tab" data-tab="preparing" aria-selected="false">
+          Preparing <span class="count" id="countPreparing">0</span>
+        </button>
+        <button class="tab" role="tab" data-tab="dispatch" aria-selected="false">
+          Out for delivery <span class="count" id="countDispatch">0</span>
+        </button>
+        <button class="tab" role="tab" data-tab="history" aria-selected="false">
+          History
+        </button>
+      </nav>
 
-    <main class="ticket-rail" id="ticketRail" aria-live="polite">
-      <div class="skeleton-ticket"></div>
-      <div class="skeleton-ticket"></div>
-      <div class="skeleton-ticket"></div>
-    </main>
+      <div class="toolbar-row">
+        <span id="lastUpdated">Loading…</span>
+        <button class="refresh-btn" id="refreshBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 1 1-2.64-6.36M21 4v5h-5"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+
+      <main class="ticket-rail" id="ticketRail" aria-live="polite">
+        <div class="skeleton-ticket"></div>
+        <div class="skeleton-ticket"></div>
+        <div class="skeleton-ticket"></div>
+      </main>
+    </section>
+
+    <!-- ============================================================
+         SECTION: MENU / INVENTORY
+         ============================================================ -->
+    <section class="dashboard-section" id="section-menu" hidden>
+      <div class="toolbar-row">
+        <span id="menuCount">Loading…</span>
+        <button class="refresh-btn" id="menuAddBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Add item
+        </button>
+      </div>
+
+      <main class="menu-grid" id="menuGrid" aria-live="polite">
+        <div class="skeleton-ticket"></div>
+        <div class="skeleton-ticket"></div>
+        <div class="skeleton-ticket"></div>
+      </main>
+    </section>
+
+    <!-- ============================================================
+         SECTION: ANALYTICS (placeholder — wiring only)
+         ============================================================ -->
+    <section class="dashboard-section" id="section-analytics" hidden>
+      <div class="state-panel coming-soon">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 10v8"/><path d="M17 6v12"/></svg>
+        </div>
+        <h3>Analytics is on the way</h3>
+        <p>Once connected, this tab will show real-time performance for your restaurant.</p>
+        <ul class="coming-soon-list">
+          <li>Today's orders</li>
+          <li>Today's revenue</li>
+          <li>Weekly revenue</li>
+          <li>Monthly revenue</li>
+          <li>Total revenue</li>
+          <li>Total orders</li>
+          <li>Average order value</li>
+          <li>Best selling items</li>
+          <li>Low / out of stock</li>
+          <li>Peak ordering hours</li>
+          <li>Customer ratings</li>
+          <li>Order trends</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION: EARNINGS (placeholder — wiring only)
+         ============================================================ -->
+    <section class="dashboard-section" id="section-earnings" hidden>
+      <div class="state-panel coming-soon">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.1 1.3-2 3-2s3 .7 3 1.8c0 2.4-6 1-6 3.4 0 1.1 1.3 1.8 3 1.8s3-.9 3-2"/></svg>
+        </div>
+        <h3>Earnings is on the way</h3>
+        <p>Once connected, this tab will track your payouts and settlement history.</p>
+        <ul class="coming-soon-list">
+          <li>Today's earnings</li>
+          <li>Yesterday's earnings</li>
+          <li>This week</li>
+          <li>This month</li>
+          <li>Lifetime earnings</li>
+          <li>Settlement history</li>
+          <li>Pending payout</li>
+          <li>Completed payouts</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION: REVIEWS (placeholder — wiring only)
+         ============================================================ -->
+    <section class="dashboard-section" id="section-reviews" hidden>
+      <div class="state-panel coming-soon">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.9 6.4 20.1l1.4-6.3-4.8-4.3 6.4-.6L12 3Z"/></svg>
+        </div>
+        <h3>Reviews is on the way</h3>
+        <p>Customer ratings and feedback for your restaurant will show up here.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION: RESTAURANT SETTINGS (placeholder — wiring only)
+         ============================================================ -->
+    <section class="dashboard-section" id="section-settings" hidden>
+      <div class="state-panel coming-soon">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21v-7"/><path d="M3 10V3"/><path d="M12 21v-4"/><path d="M12 13V3"/><path d="M21 21v-9"/><path d="M21 8V3"/><path d="M1 14h4M10 9h4M19 8h4"/></svg>
+        </div>
+        <h3>Restaurant settings is on the way</h3>
+        <p>Manage your profile, hours, delivery radius, and more from here soon.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION: SALES REPORTS (placeholder — wiring only)
+         ============================================================ -->
+    <section class="dashboard-section" id="section-reports" hidden>
+      <div class="state-panel coming-soon">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12a10 10 0 1 1-5.5-8.9"/><path d="M22 3v6h-6"/></svg>
+        </div>
+        <h3>Sales reports is on the way</h3>
+        <p>Downloadable, date-ranged reports for your restaurant will live here.</p>
+      </div>
+    </section>
   </div>
 
   <div class="toast-stack" id="toastStack"></div>
@@ -581,6 +1041,73 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="menuItemModal">
+    <div class="modal modal-wide">
+      <h3 id="menuItemModalTitle">Add menu item</h3>
+      <p>Item details for your restaurant's menu.</p>
+
+      <div class="modal-result" id="menuItemModalResult"></div>
+
+      <form id="menuItemForm">
+        <input type="hidden" id="mi-id" />
+
+        <div class="form-field">
+          <label for="mi-name">Item name</label>
+          <input type="text" id="mi-name" autocomplete="off" />
+          <div class="field-error" data-error-for="mi-name"></div>
+        </div>
+
+        <div class="form-field">
+          <label for="mi-description">Description</label>
+          <textarea id="mi-description"></textarea>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="mi-category">Category</label>
+            <input type="text" id="mi-category" placeholder="e.g. Main Course" />
+          </div>
+          <div class="form-field">
+            <label for="mi-price">Price (₹)</label>
+            <input type="number" id="mi-price" min="0" step="1" />
+            <div class="field-error" data-error-for="mi-price"></div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="mi-originalPrice">Original price (optional)</label>
+            <input type="number" id="mi-originalPrice" min="0" step="1" />
+          </div>
+          <div class="form-field">
+            <label for="mi-image">Image URL</label>
+            <input type="url" id="mi-image" placeholder="https://…" />
+          </div>
+        </div>
+
+        <label class="form-check">
+          <input type="checkbox" id="mi-isVeg" /> Vegetarian
+        </label>
+        <label class="form-check">
+          <input type="checkbox" id="mi-inStock" /> In stock
+        </label>
+        <label class="form-check">
+          <input type="checkbox" id="mi-isBestseller" /> Best seller
+        </label>
+        <label class="form-check">
+          <input type="checkbox" id="mi-isRecommended" /> Recommended
+        </label>
+      </form>
+
+      <div class="modal-actions">
+        <button class="btn ghost" id="menuItemCancelBtn" type="button">Cancel</button>
+        <button class="btn accept" id="menuItemSaveBtn" type="button">
+          <span id="menuItemSaveText">Create item</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
 <script>
 (function () {
   'use strict';
@@ -598,10 +1125,19 @@
   // only defined in one place.
   const RESTAURANT_API_BASE = API_BASE.replace(/\/vendor\/?$/, '') + '/restaurants';
 
+  // Menu/Inventory reuses the same vendor-scoped menu endpoints the backend
+  // already exposes (mirrors /orders and /restaurant, which are relative to
+  // API_BASE and are auto-scoped server-side to the logged-in vendor's own
+  // restaurant — no restaurantId param, no restaurant selector). If your
+  // deployment exposes menu under a different path, only MENU_API_BASE below
+  // needs to change.
+  const MENU_API_BASE = API_BASE;
+
   /* ============================================================
      STATE
      ============================================================ */
   const state = {
+    activeSection: 'orders',
     activeTab: 'new',
     queue: [],          // placed / confirmed / preparing / out_for_delivery
     history: [],        // delivered / cancelled
@@ -609,7 +1145,10 @@
     restaurant: null,
     pollTimer: null,
     pendingRejectOrderId: null,
+    menuItems: [],       // cache of the vendor's menu items, for the edit modal
+    menuLoaded: false,
   };
+
 
   /* ============================================================
      DOM REFS
@@ -635,6 +1174,22 @@
     availAutoHours: document.getElementById('availAutoHours'),
     availOpensAt:   document.getElementById('availOpensAt'),
     availClosesAt:  document.getElementById('availClosesAt'),
+
+    // Section nav
+    sectionTabs:     Array.from(document.querySelectorAll('.section-tab')),
+    sections:        Array.from(document.querySelectorAll('.dashboard-section')),
+
+    // Menu / Inventory
+    menuGrid:     document.getElementById('menuGrid'),
+    menuCount:    document.getElementById('menuCount'),
+    menuAddBtn:   document.getElementById('menuAddBtn'),
+    menuItemModal:       document.getElementById('menuItemModal'),
+    menuItemModalTitle:  document.getElementById('menuItemModalTitle'),
+    menuItemModalResult: document.getElementById('menuItemModalResult'),
+    menuItemForm:        document.getElementById('menuItemForm'),
+    menuItemCancelBtn:   document.getElementById('menuItemCancelBtn'),
+    menuItemSaveBtn:     document.getElementById('menuItemSaveBtn'),
+    menuItemSaveText:    document.getElementById('menuItemSaveText'),
   };
 
   /* ============================================================
@@ -1026,6 +1581,327 @@
   }
 
   /* ============================================================
+     DASHBOARD SECTION SWITCHING
+     ============================================================ */
+  function switchSection(name) {
+    state.activeSection = name;
+
+    el.sectionTabs.forEach(tab => {
+      tab.setAttribute('aria-selected', String(tab.dataset.section === name));
+    });
+    el.sections.forEach(sec => {
+      sec.hidden = sec.id !== 'section-' + name;
+    });
+
+    if (name === 'menu' && !state.menuLoaded) {
+      loadMenu();
+    }
+  }
+
+  /* ============================================================
+     MENU / INVENTORY
+     Reuses the same list → toggle → add/edit modal → save/delete
+     flow as the CEO's menu management screen, scoped to the
+     vendor's own restaurant (no restaurant selector, no restaurantId
+     param — the backend infers the restaurant from the vendor's
+     token, same as /orders and /restaurant above).
+     ============================================================ */
+  async function menuFetch(path, options) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const res = await fetch(MENU_API_BASE + path, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        ...(options && options.headers ? options.headers : {}),
+      },
+    });
+
+    let body = null;
+    try { body = await res.json(); } catch (_) { /* no body */ }
+
+    if (res.status === 401) {
+      showToast('error', 'Your session expired. Please log in again.');
+      throw new Error('unauthorized');
+    }
+    if (!res.ok) {
+      throw new Error((body && body.message) || 'Something went wrong. Please try again.');
+    }
+    return body;
+  }
+
+  function renderMenuEmpty() {
+    const div = document.createElement('div');
+    div.className = 'state-panel';
+    div.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="4" y="4" width="16" height="16" rx="2" stroke-dasharray="3 3"/>
+      </svg>
+      <h3>No menu items yet</h3>
+      <p>Add your first item to start taking orders for it.</p>`;
+    return div;
+  }
+
+  function renderMenuCard(item) {
+    const card = document.createElement('article');
+    card.className = 'menu-card' + (item.inStock ? '' : ' out-of-stock');
+    card.dataset.id = item._id;
+
+    const tags = [item.isBestseller ? 'Best seller' : '', item.isRecommended ? 'Recommended' : '']
+      .filter(Boolean);
+
+    card.innerHTML = `
+      ${item.image
+        ? `<img class="thumb-sm" src="${item.image}" alt="${escapeHtml(item.name)}" />`
+        : `<div class="thumb-sm thumb-empty"></div>`}
+      <div class="menu-card-body">
+        <div class="menu-card-head">
+          <div class="menu-card-name">
+            <span class="veg-dot" style="background:${item.isVeg ? '#1e9e4a' : '#c0392b'};"></span>
+            <span class="name-text">${escapeHtml(item.name)}</span>
+          </div>
+          <div class="row-actions">
+            <button class="icon-btn menu-item-edit-btn" data-id="${item._id}" title="Edit item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </button>
+            <button class="icon-btn danger menu-item-delete-btn" data-id="${item._id}" data-name="${escapeHtml(item.name)}" title="Delete item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="menu-card-meta">${escapeHtml(item.category || 'Uncategorized')}</div>
+        <div class="menu-card-price">${formatMoney(item.price)}${item.originalPrice ? `<s>${formatMoney(item.originalPrice)}</s>` : ''}</div>
+        ${tags.length ? `<div class="menu-card-tags">${tags.map(t => `<span class="badge">${t}</span>`).join('')}</div>` : ''}
+        <div class="menu-card-foot">
+          <label class="switch" title="${item.inStock ? 'Mark out of stock' : 'Mark in stock'}">
+            <input type="checkbox" class="menu-item-toggle" data-id="${item._id}" ${item.inStock ? 'checked' : ''} />
+            <span class="track"></span>
+          </label>
+          <span class="menu-card-meta">${item.inStock ? 'In stock' : 'Out of stock'}</span>
+        </div>
+      </div>
+    `;
+    return card;
+  }
+
+  function renderMenuGrid() {
+    el.menuCount.textContent = state.menuItems.length
+      ? `${state.menuItems.length} item${state.menuItems.length === 1 ? '' : 's'}`
+      : '';
+
+    el.menuGrid.innerHTML = '';
+    if (!state.menuItems.length) {
+      el.menuGrid.appendChild(renderMenuEmpty());
+      return;
+    }
+
+    const sorted = [...state.menuItems].sort((a, b) =>
+      (a.category || '').localeCompare(b.category || '') || a.name.localeCompare(b.name));
+    sorted.forEach(item => el.menuGrid.appendChild(renderMenuCard(item)));
+  }
+
+  function renderMenuSkeleton() {
+    el.menuGrid.innerHTML =
+      '<div class="skeleton-ticket"></div><div class="skeleton-ticket"></div><div class="skeleton-ticket"></div>';
+  }
+
+  async function loadMenu() {
+    renderMenuSkeleton();
+    try {
+      const res = await menuFetch('/menu');
+      state.menuItems = res.data || [];
+      state.menuLoaded = true;
+      renderMenuGrid();
+    } catch (err) {
+      el.menuGrid.innerHTML = '';
+      const div = document.createElement('div');
+      div.className = 'state-panel';
+      div.innerHTML = `<h3>Could not load your menu</h3><p>${escapeHtml(err.message)}</p>`;
+      el.menuGrid.appendChild(div);
+      showToast('error', err.message);
+    }
+  }
+
+  async function toggleMenuItemStock(input) {
+    input.disabled = true;
+    try {
+      await menuFetch('/menu/' + input.dataset.id, {
+        method: 'PUT',
+        body: JSON.stringify({ inStock: input.checked }),
+      });
+      showToast('success', input.checked ? 'Item marked in stock.' : 'Item marked out of stock.');
+      const item = state.menuItems.find(i => i._id === input.dataset.id);
+      if (item) item.inStock = input.checked;
+      const card = input.closest('.menu-card');
+      if (card) {
+        card.classList.toggle('out-of-stock', !input.checked);
+        const label = card.querySelector('.menu-card-foot .menu-card-meta');
+        if (label) label.textContent = input.checked ? 'In stock' : 'Out of stock';
+        const track = card.querySelector('.switch');
+        if (track) track.title = input.checked ? 'Mark out of stock' : 'Mark in stock';
+      }
+    } catch (err) {
+      input.checked = !input.checked;
+      showToast('error', err.message || 'Could not update stock status.');
+    } finally {
+      input.disabled = false;
+    }
+  }
+
+  async function deleteMenuItem(id, name) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    try {
+      await menuFetch('/menu/' + id, { method: 'DELETE' });
+      showToast('success', 'Menu item deleted.');
+      state.menuItems = state.menuItems.filter(i => i._id !== id);
+      renderMenuGrid();
+    } catch (err) {
+      showToast('error', err.message || 'Could not delete menu item.');
+    }
+  }
+
+  el.menuGrid.addEventListener('click', (e) => {
+    const editBtn = e.target.closest('.menu-item-edit-btn');
+    if (editBtn) { openEditMenuItemModal(editBtn.dataset.id); return; }
+    const delBtn = e.target.closest('.menu-item-delete-btn');
+    if (delBtn) { deleteMenuItem(delBtn.dataset.id, delBtn.dataset.name); return; }
+  });
+  el.menuGrid.addEventListener('change', (e) => {
+    if (e.target.classList.contains('menu-item-toggle')) toggleMenuItemStock(e.target);
+  });
+
+  /* ---- Add / Edit modal ---- */
+  const miEl = {
+    id:             document.getElementById('mi-id'),
+    name:           document.getElementById('mi-name'),
+    description:    document.getElementById('mi-description'),
+    category:       document.getElementById('mi-category'),
+    price:          document.getElementById('mi-price'),
+    originalPrice:  document.getElementById('mi-originalPrice'),
+    image:          document.getElementById('mi-image'),
+    isVeg:          document.getElementById('mi-isVeg'),
+    inStock:        document.getElementById('mi-inStock'),
+    isBestseller:   document.getElementById('mi-isBestseller'),
+    isRecommended:  document.getElementById('mi-isRecommended'),
+  };
+  let menuItemSaving = false;
+
+  function setMenuFieldError(id, msg) {
+    const errEl = document.querySelector(`[data-error-for="${id}"]`);
+    const input = document.getElementById(id);
+    if (errEl) errEl.textContent = msg || '';
+    if (input) input.classList.toggle('invalid', !!msg);
+  }
+
+  function clearMenuFormErrors() {
+    el.menuItemForm.querySelectorAll('[data-error-for]').forEach(e => e.textContent = '');
+    el.menuItemForm.querySelectorAll('.invalid').forEach(e => e.classList.remove('invalid'));
+    el.menuItemModalResult.className = 'modal-result';
+  }
+
+  function openAddMenuItemModal() {
+    el.menuItemForm.reset();
+    clearMenuFormErrors();
+    miEl.id.value = '';
+    miEl.inStock.checked = true;
+    miEl.isVeg.checked = true;
+    el.menuItemModalTitle.textContent = 'Add menu item';
+    el.menuItemSaveText.textContent = 'Create item';
+    el.menuItemModal.classList.add('open');
+  }
+
+  function openEditMenuItemModal(id) {
+    const item = state.menuItems.find(i => i._id === id);
+    if (!item) return;
+
+    el.menuItemForm.reset();
+    clearMenuFormErrors();
+    miEl.id.value = item._id;
+    miEl.name.value = item.name || '';
+    miEl.description.value = item.description || '';
+    miEl.category.value = item.category || '';
+    miEl.price.value = item.price ?? '';
+    miEl.originalPrice.value = item.originalPrice ?? '';
+    miEl.image.value = item.image || '';
+    miEl.isVeg.checked = !!item.isVeg;
+    miEl.inStock.checked = !!item.inStock;
+    miEl.isBestseller.checked = !!item.isBestseller;
+    miEl.isRecommended.checked = !!item.isRecommended;
+    el.menuItemModalTitle.textContent = 'Edit menu item';
+    el.menuItemSaveText.textContent = 'Save changes';
+    el.menuItemModal.classList.add('open');
+  }
+
+  function closeMenuItemModal() {
+    el.menuItemModal.classList.remove('open');
+  }
+
+  async function saveMenuItem() {
+    if (menuItemSaving) return;
+
+    let valid = true;
+    setMenuFieldError('mi-name', '');
+    setMenuFieldError('mi-price', '');
+
+    const name = miEl.name.value.trim();
+    if (!name) { setMenuFieldError('mi-name', 'Item name is required.'); valid = false; }
+
+    const price = Number(miEl.price.value);
+    if (!price || price < 0) { setMenuFieldError('mi-price', 'Enter a valid price.'); valid = false; }
+
+    if (!valid) return;
+
+    const id = miEl.id.value;
+    const originalPriceRaw = miEl.originalPrice.value;
+
+    const body = {
+      name,
+      description: miEl.description.value.trim(),
+      category: miEl.category.value.trim() || 'Main Course',
+      price,
+      originalPrice: originalPriceRaw ? Number(originalPriceRaw) : undefined,
+      image: miEl.image.value.trim(),
+      isVeg: miEl.isVeg.checked,
+      inStock: miEl.inStock.checked,
+      isBestseller: miEl.isBestseller.checked,
+      isRecommended: miEl.isRecommended.checked,
+    };
+
+    menuItemSaving = true;
+    el.menuItemSaveBtn.disabled = true;
+    const savingLabel = id ? 'Saving…' : 'Creating…';
+    el.menuItemSaveText.innerHTML = `<span class="btn-spinner"></span> ${savingLabel}`;
+
+    try {
+      if (id) {
+        await menuFetch('/menu/' + id, { method: 'PUT', body: JSON.stringify(body) });
+        el.menuItemModalResult.textContent = 'Menu item updated.';
+      } else {
+        await menuFetch('/menu', { method: 'POST', body: JSON.stringify(body) });
+        el.menuItemModalResult.textContent = 'Menu item created.';
+      }
+      el.menuItemModalResult.className = 'modal-result show success';
+      showToast('success', id ? 'Menu item updated.' : 'Menu item created.');
+      await loadMenu();
+      setTimeout(closeMenuItemModal, 700);
+    } catch (err) {
+      el.menuItemModalResult.textContent = err.message || 'Could not save menu item.';
+      el.menuItemModalResult.className = 'modal-result show error';
+    } finally {
+      menuItemSaving = false;
+      el.menuItemSaveBtn.disabled = false;
+      el.menuItemSaveText.textContent = id ? 'Save changes' : 'Create item';
+    }
+  }
+
+  el.menuAddBtn.addEventListener('click', openAddMenuItemModal);
+  el.menuItemCancelBtn.addEventListener('click', closeMenuItemModal);
+  el.menuItemSaveBtn.addEventListener('click', saveMenuItem);
+  el.menuItemModal.addEventListener('click', (e) => {
+    if (e.target === el.menuItemModal) closeMenuItemModal();
+  });
+
+  /* ============================================================
      EVENT WIRING
      ============================================================ */
   el.ticketRail.addEventListener('click', (e) => {
@@ -1054,6 +1930,10 @@
     });
   });
 
+  el.sectionTabs.forEach(tab => {
+    tab.addEventListener('click', () => switchSection(tab.dataset.section));
+  });
+
   el.statusToggle.addEventListener('click', openAvailabilityModal);
   el.refreshBtn.addEventListener('click', () => loadQueue(false));
   el.rejectCancelBtn.addEventListener('click', closeRejectModal);
@@ -1073,6 +1953,7 @@
     if (e.key !== 'Escape') return;
     if (el.rejectModal.classList.contains('open')) closeRejectModal();
     if (el.availabilityModal.classList.contains('open')) closeAvailabilityModal();
+    if (el.menuItemModal.classList.contains('open')) closeMenuItemModal();
   });
 
   /* ============================================================
