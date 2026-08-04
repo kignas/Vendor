@@ -975,18 +975,20 @@
   /* ============================================================
      STATE
      ============================================================ */
-  const state = {
+    const state = {
     activeSection: 'orders',
     activeTab: 'new',
-    queue: [],          // placed / confirmed / preparing / out_for_delivery
-    history: [],        // delivered / cancelled
+    queue: [],          
+    history: [],        
     historyLoaded: false,
     restaurant: null,
     pollTimer: null,
     pendingRejectOrderId: null,
-    menuItems: [],       // cache of the vendor's menu items, for the edit modal
+    menuItems: [],       
     menuLoaded: false,
+    previousNewOrderCount: 0 // ADD THIS LINE
   };
+
 
 
   /* ============================================================
@@ -1211,11 +1213,31 @@
       '<div class="skeleton-ticket"></div><div class="skeleton-ticket"></div><div class="skeleton-ticket"></div>';
   }
 
-  function updateCounts() {
-    el.countNew.textContent       = state.queue.filter(o => o.status === 'placed').length;
+    function updateCounts() {
+    const newOrdersCount = state.queue.filter(o => o.status === 'placed').length;
+    
+    // Play alert sound if a new order arrives
+    if (newOrdersCount > state.previousNewOrderCount) {
+        playOrderAlert();
+    }
+    state.previousNewOrderCount = newOrdersCount;
+
+    el.countNew.textContent       = newOrdersCount;
     el.countPreparing.textContent = state.queue.filter(o => o.status === 'confirmed' || o.status === 'preparing').length;
     el.countDispatch.textContent  = state.queue.filter(o => o.status === 'out_for_delivery').length;
   }
+
+  // Define the audio function right below updateCounts
+  function playOrderAlert() {
+    try {
+        // A generic pleasant notification chime (you can replace this URL with your own .mp3 later)
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        audio.play().catch(e => console.log('Audio playback blocked by browser:', e));
+    } catch (err) {
+        console.error("Audio failed to play", err);
+    }
+  }
+
 
   /* ============================================================
      DATA LOADING
