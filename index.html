@@ -702,6 +702,13 @@
     padding: 7px 9px;
   }
 
+
+  /* Customer contact shown to the authenticated restaurant vendor */
+  .ticket-customer{margin:12px 0;padding:10px 11px;background:#F7F8FA;border:1px solid var(--line);border-radius:9px;display:flex;flex-direction:column;gap:4px;font-size:12px;line-height:1.4}
+  .ticket-customer-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .ticket-customer-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;color:var(--ink-soft)}
+  .ticket-phone{color:var(--basil);font-weight:600;text-decoration:none;white-space:nowrap}
+  .ticket-customer span:last-child{color:var(--ink-soft)}
 </style>
 </head>
 <body>
@@ -1109,6 +1116,24 @@
   }
 
   /* ============================================================
+     ORDER CONTACT / ADDRESS HELPERS
+     ============================================================ */
+  function formatOrderAddress(addr) {
+    if (!addr) return '';
+    if (typeof addr === 'string') return addr;
+    return [
+      addr.tag,
+      addr.house,
+      addr.line1,
+      addr.street,
+      addr.area,
+      addr.landmark ? 'Near ' + addr.landmark : '',
+      addr.city,
+      addr.pincode,
+    ].filter(Boolean).join(', ');
+  }
+
+  /* ============================================================
      RENDER — TICKET CARD
      ============================================================ */
   function renderTicket(order) {
@@ -1149,6 +1174,14 @@
         <span class="ticket-time">${timeAgo(order.createdAt)}</span>
       </header>
       <ul class="ticket-items">${itemsHtml}</ul>
+      <div class="ticket-customer">
+        <div class="ticket-customer-head">
+          <span class="ticket-customer-label">CUSTOMER</span>
+          ${order.customerPhone ? `<a class="ticket-phone" href="tel:${escapeHtml(order.customerPhone)}">☎ ${escapeHtml(order.customerPhone)}</a>` : ''}
+        </div>
+        <strong>${escapeHtml(order.customerName || order.user?.name || 'Customer')}</strong>
+        ${formatOrderAddress(order.deliveryAddress) ? `<span>${escapeHtml(formatOrderAddress(order.deliveryAddress))}</span>` : ''}
+      </div>
       <footer class="ticket-foot">
         <span class="ticket-total">${formatMoney(order.total)}</span>
         ${footHtml}
