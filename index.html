@@ -1170,7 +1170,10 @@
 
     el.innerHTML = `
       <header class="ticket-head">
-        <span class="ticket-no">#${escapeHtml(order.orderNumber || order._id.slice(-6).toUpperCase())}</span>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <span class="ticket-no">#${escapeHtml(order.publicOrderId || order.orderNumber || order._id.slice(-6).toUpperCase())}</span>
+          ${order.publicShipmentId || order.shipmentId ? `<span style="font-family:var(--font-mono);font-size:10px;color:var(--ink-soft)">Shipment: ${escapeHtml(order.publicShipmentId || order.shipmentId)}</span>` : ''}
+        </div>
         <span class="ticket-time">${timeAgo(order.createdAt)}</span>
       </header>
       <ul class="ticket-items">${itemsHtml}</ul>
