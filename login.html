@@ -255,9 +255,11 @@
   }
   @media (prefers-reduced-motion: reduce){ .toast{ animation: none; } }
 
+.offline-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:100;background:var(--rust);color:#fff;text-align:center;padding:9px 12px;font-size:12px;font-weight:700}.offline-banner.show{display:block}
 </style>
 </head>
 <body>
+  <div class="offline-banner" id="offlineBanner" role="status" aria-live="polite">You're offline. Check your internet connection and try again.</div>
 
   <div class="session-check-overlay" id="sessionCheckOverlay">
     <span class="brand-eyebrow">Nearbite Vendor</span>
@@ -322,6 +324,7 @@
      ============================================================ */
   const el = {
     overlay:      document.getElementById('sessionCheckOverlay'),
+    offlineBanner: document.getElementById('offlineBanner'),
     form:         document.getElementById('loginForm'),
     fieldset:     document.getElementById('formFieldset'),
     emailField:   document.getElementById('emailField'),
@@ -360,6 +363,11 @@
     el.formBanner.textContent = '';
     el.formBanner.classList.remove('show');
   }
+
+  function updateNetworkUi() { el.offlineBanner.classList.toggle('show', !navigator.onLine); }
+  window.addEventListener('online', updateNetworkUi);
+  window.addEventListener('offline', updateNetworkUi);
+  updateNetworkUi();
 
   /* ============================================================
      VALIDATION
@@ -433,20 +441,28 @@
 
     setLoading(true);
 
+    if (!navigator.onLine) {
+      setLoading(false);
+      showBanner('You appear to be offline. Reconnect to the internet and try again.');
+      return;
+    }
+
     let res, body;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
     try {
       res = await fetch(AUTH_BASE + '/vendor/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: el.emailInput.value.trim(),
-          password: el.passwordInput.value,
-        }),
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ email: el.emailInput.value.trim(), password: el.passwordInput.value }),
+        signal: controller.signal,
       });
     } catch (networkErr) {
       setLoading(false);
-      showBanner('Can\u2019t reach the server. Check your connection and try again.');
+      showBanner(networkErr.name === 'AbortError' ? 'The server took too long to respond. Please try again.' : 'Can’t reach the server. Check your connection and try again.');
       return;
+    } finally {
+      clearTimeout(timeout);
     }
 
     try {
@@ -476,23 +492,23 @@
      ============================================================ */
   async function checkExistingSession() {
     const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) {
-      el.overlay.classList.add('hidden');
-      return;
-    }
+    const reason = new URLSearchParams(location.search).get('reason');
+    if (reason === 'session_expired') showBanner('Your session expired. Please sign in again.');
+    if (!token) { el.overlay.classList.add('hidden'); return; }
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
     try {
       const res = await fetch(API_BASE + '/restaurant', {
-        headers: { Authorization: 'Bearer ' + token },
+        headers: { Authorization: 'Bearer ' + token, Accept: 'application/json' },
+        signal: controller.signal,
       });
-      if (res.ok) {
-        window.location.href = 'index.html';
-        return; // leave overlay up during navigation, nothing else to do
-      }
-      localStorage.removeItem(TOKEN_KEY);
-    } catch (err) {
-      // Network hiccup while checking — don't trap the user behind the
-      // overlay indefinitely, just let them sign in manually.
+      if (res.ok) { window.location.replace('index.html'); return; }
+      if (res.status === 401 || res.status === 403) localStorage.removeItem(TOKEN_KEY);
+    } catch (_) {
+      // Never trap the vendor behind the session overlay.
+    } finally {
+      clearTimeout(timeout);
     }
     el.overlay.classList.add('hidden');
   }
