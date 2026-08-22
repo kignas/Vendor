@@ -735,6 +735,8 @@
     .status-toggle{padding:8px 10px}
   }
 
+
+.vendor-review{padding:16px 18px;border-bottom:1px solid var(--line)}.vendor-review:last-child{border-bottom:0}.vendor-review-top{display:flex;justify-content:space-between;gap:10px}.vendor-review-name{font-weight:700}.vendor-review-date{font-size:11px;color:var(--ink-soft)}.vendor-review-stars{color:#e9a400;letter-spacing:2px;margin-top:5px}.vendor-review-comment{margin:7px 0 0;color:var(--ink-soft);font-size:13px;line-height:1.5}.vendor-verified{display:inline-block;margin-top:8px;font-size:10px;color:var(--basil);font-weight:700}
 </style>
 </head>
 <body>
@@ -774,9 +776,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.1 1.3-2 3-2s3 .7 3 1.8c0 2.4-6 1-6 3.4 0 1.1 1.3 1.8 3 1.8s3-.9 3-2"/></svg>
         Earnings <span class="soon">Soon</span>
       </button>
-      <button class="section-tab is-placeholder" role="tab" data-section="reviews" aria-selected="false" disabled>
+      <button class="section-tab" role="tab" data-section="reviews" aria-selected="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.9 6.4 20.1l1.4-6.3-4.8-4.3 6.4-.6L12 3Z"/></svg>
-        Reviews <span class="soon">Soon</span>
+        Reviews
       </button>
       <button class="section-tab is-placeholder" role="tab" data-section="settings" aria-selected="false" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21v-7"/><path d="M3 10V3"/><path d="M12 21v-4"/><path d="M12 13V3"/><path d="M21 21v-9"/><path d="M21 8V3"/><path d="M1 14h4M10 9h4M19 8h4"/></svg>
@@ -894,15 +896,12 @@
          SECTION: REVIEWS (placeholder — wiring only)
          ============================================================ -->
     <section class="dashboard-section" id="section-reviews" hidden>
-      <div class="state-panel coming-soon">
-        <div class="icon-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.9 6.4 20.1l1.4-6.3-4.8-4.3 6.4-.6L12 3Z"/></svg>
-        </div>
-        <h3>Reviews is on the way</h3>
-        <p>Customer ratings and feedback for your restaurant will show up here.</p>
+      <div class="card" style="padding:22px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div><div style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em">Verified customer rating</div><div id="vendor-review-score" style="font:700 32px var(--font-display);margin-top:4px">—</div><div id="vendor-review-count" style="font-size:12px;color:var(--ink-soft)">Loading…</div></div>
+        <button class="refresh-btn" id="vendor-review-refresh">↻ Refresh</button>
       </div>
+      <div class="card" style="overflow:hidden"><div id="vendor-reviews-list"><div class="state-panel">Loading reviews…</div></div></div>
     </section>
-
     <!-- ============================================================
          SECTION: RESTAURANT SETTINGS (placeholder — wiring only)
          ============================================================ -->
@@ -1805,6 +1804,25 @@
   }
 
   init();
+})();
+</script>
+
+<script>
+(function(){
+  const API = (window.API_BASE_URL || 'https://eatswada.onrender.com/api').replace(/\/$/,'');
+  async function loadVendorReviews(){
+    const list=document.getElementById('vendor-reviews-list'); if(!list)return;
+    list.innerHTML='<div class="state-panel">Loading reviews…</div>';
+    try{
+      const token=localStorage.getItem('nearbite_vendor_token')||sessionStorage.getItem('nearbite_vendor_token')||'';
+      const r=await fetch(`${API}/vendor/reviews`,{headers:{Authorization:`Bearer ${token}`}});
+      const j=await r.json(); if(!r.ok)throw new Error(j.message||'Could not load reviews');
+      document.getElementById('vendor-review-score').textContent=j.summary?.rating ? Number(j.summary.rating).toFixed(1)+' ★' : 'NEW';
+      document.getElementById('vendor-review-count').textContent=`${Number(j.summary?.reviewCount||0)} verified reviews`;
+      list.innerHTML=j.data?.length?j.data.map(x=>{const stars='★★★★★'.split('').map((_,i)=>`<span style="opacity:${i<x.score?1:.2}">★</span>`).join('');const d=x.createdAt?new Date(x.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';return `<div class="vendor-review"><div class="vendor-review-top"><span class="vendor-review-name">${String(x.user?.name||'Customer').replace(/[<>]/g,'')}</span><span class="vendor-review-date">${d}</span></div><div class="vendor-review-stars">${stars}</div>${x.comment?`<div class="vendor-review-comment">${String(x.comment).replace(/[<>]/g,'')}</div>`:''}<div class="vendor-verified">✓ Verified order</div></div>`}).join(''):'<div class="state-panel"><h3>No reviews yet</h3><p>Customer feedback will appear after delivered orders are reviewed.</p></div>';
+    }catch(e){list.innerHTML=`<div class="state-panel"><h3>Could not load reviews</h3><p>${String(e.message||e)}</p></div>`;}
+  }
+  document.addEventListener('click',e=>{if(e.target.closest('[data-section="reviews"]'))loadVendorReviews();if(e.target.closest('#vendor-review-refresh'))loadVendorReviews();});
 })();
 </script>
 </body>
