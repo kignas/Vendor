@@ -1259,10 +1259,14 @@
     return el;
   }
 
+  // NOTE: the previous version used textContent -> innerHTML, which escapes
+  // < > and & but NOT quotes. This helper is used inside attributes
+  // (alt="...", href="tel:..."), where an unescaped double quote breaks out
+  // and lets a menu item name inject an event handler. Escape quotes too.
   function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = String(str == null ? '' : str);
-    return div.innerHTML;
+    return String(str ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
   }
 
   /* ============================================================
@@ -1810,6 +1814,11 @@
 <script>
 (function(){
   const API = (window.API_BASE_URL || 'https://eatswada.onrender.com/api').replace(/\/$/,'');
+  // Separate script block — the escapeHtml above lives inside its own IIFE and
+  // is not visible here, so this block needs its own copy.
+  const escapeHtml = str => String(str ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
   async function loadVendorReviews(){
     const list=document.getElementById('vendor-reviews-list'); if(!list)return;
     list.innerHTML='<div class="state-panel">Loading reviews…</div>';
@@ -1819,8 +1828,8 @@
       const j=await r.json(); if(!r.ok)throw new Error(j.message||'Could not load reviews');
       document.getElementById('vendor-review-score').textContent=j.summary?.rating ? Number(j.summary.rating).toFixed(1)+' ★' : 'NEW';
       document.getElementById('vendor-review-count').textContent=`${Number(j.summary?.reviewCount||0)} verified reviews`;
-      list.innerHTML=j.data?.length?j.data.map(x=>{const stars='★★★★★'.split('').map((_,i)=>`<span style="opacity:${i<x.score?1:.2}">★</span>`).join('');const d=x.createdAt?new Date(x.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';return `<div class="vendor-review"><div class="vendor-review-top"><span class="vendor-review-name">${String(x.user?.name||'Customer').replace(/[<>]/g,'')}</span><span class="vendor-review-date">${d}</span></div><div class="vendor-review-stars">${stars}</div>${x.comment?`<div class="vendor-review-comment">${String(x.comment).replace(/[<>]/g,'')}</div>`:''}<div class="vendor-verified">✓ Verified order</div></div>`}).join(''):'<div class="state-panel"><h3>No reviews yet</h3><p>Customer feedback will appear after delivered orders are reviewed.</p></div>';
-    }catch(e){list.innerHTML=`<div class="state-panel"><h3>Could not load reviews</h3><p>${String(e.message||e)}</p></div>`;}
+      list.innerHTML=j.data?.length?j.data.map(x=>{const stars='★★★★★'.split('').map((_,i)=>`<span style="opacity:${i<x.score?1:.2}">★</span>`).join('');const d=x.createdAt?new Date(x.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';return `<div class="vendor-review"><div class="vendor-review-top"><span class="vendor-review-name">${escapeHtml(x.user?.name||'Customer')}</span><span class="vendor-review-date">${d}</span></div><div class="vendor-review-stars">${stars}</div>${x.comment?`<div class="vendor-review-comment">${escapeHtml(x.comment)}</div>`:''}<div class="vendor-verified">✓ Verified order</div></div>`}).join(''):'<div class="state-panel"><h3>No reviews yet</h3><p>Customer feedback will appear after delivered orders are reviewed.</p></div>';
+    }catch(e){list.innerHTML=`<div class="state-panel"><h3>Could not load reviews</h3><p>${escapeHtml(e.message||e)}</p></div>`;}
   }
   document.addEventListener('click',e=>{if(e.target.closest('[data-section="reviews"]'))loadVendorReviews();if(e.target.closest('#vendor-review-refresh'))loadVendorReviews();});
 })();
