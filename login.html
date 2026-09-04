@@ -257,6 +257,7 @@
 
 .offline-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:100;background:var(--rust);color:#fff;text-align:center;padding:9px 12px;font-size:12px;font-weight:700}.offline-banner.show{display:block}
 </style>
+  <link rel="manifest" href="./manifest.json">
 </head>
 <body>
   <div class="offline-banner" id="offlineBanner" role="status" aria-live="polite">You're offline. Check your internet connection and try again.</div>
@@ -516,5 +517,6 @@
   checkExistingSession();
 })();
 </script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {})); }</script>
 </body>
 </html>

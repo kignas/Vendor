@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dashboard · Nearbite Vendor Portal</title>
+<title>Dashboard · Eatswada Vendor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -97,7 +97,7 @@
     border: 1px solid var(--line);
     border-radius: 999px;
     box-shadow: var(--shadow);
-    cursor: pointer;
+    cursor: default;
     font-weight: 600;
     font-size: 13px;
     white-space: nowrap;
@@ -737,7 +737,13 @@
 
 
 .vendor-review{padding:16px 18px;border-bottom:1px solid var(--line)}.vendor-review:last-child{border-bottom:0}.vendor-review-top{display:flex;justify-content:space-between;gap:10px}.vendor-review-name{font-weight:700}.vendor-review-date{font-size:11px;color:var(--ink-soft)}.vendor-review-stars{color:#e9a400;letter-spacing:2px;margin-top:5px}.vendor-review-comment{margin:7px 0 0;color:var(--ink-soft);font-size:13px;line-height:1.5}.vendor-verified{display:inline-block;margin-top:8px;font-size:10px;color:var(--basil);font-weight:700}
+
+  .inventory-policy{font-size:12px;color:var(--ink-soft);font-weight:600;text-align:right;}
+  .customer-note{display:flex;flex-direction:column;gap:4px;margin:10px 0 0;padding:10px 11px;border:1px solid var(--basil);background:var(--basil-soft);border-radius:9px;font-size:12px;line-height:1.4;}
+  .customer-note strong{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--basil);}
+  @media(max-width:640px){.inventory-policy{display:none;}}
 </style>
+  <link rel="manifest" href="./manifest.json">
 </head>
 <body>
 
@@ -746,12 +752,12 @@
   <div class="app-shell">
     <header class="topbar">
       <div class="brand">
-        <span class="brand-eyebrow">Nearbite Vendor</span>
+        <span class="brand-eyebrow">Eatswada Vendor</span>
         <h1 id="restaurantName">Loading restaurant…</h1>
       </div>
       <div class="topbar-actions">
         <span class="connection-pill online" id="connectionPill" aria-live="polite"><span class="connection-dot"></span><span id="connectionLabel">Online</span></span>
-        <button class="status-toggle" id="statusToggle" type="button" disabled>
+        <div class="status-toggle" id="statusToggle" role="status" aria-live="polite">
           <span class="dot"></span>
           <span class="label">—</span>
         </button>
@@ -768,25 +774,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11h18"/><path d="M5 11a7 7 0 0 1 14 0"/><path d="M3 15h18l-1.5 5a1 1 0 0 1-1 .8H5.5a1 1 0 0 1-1-.8L3 15Z"/></svg>
         Menu
       </button>
-      <button class="section-tab is-placeholder" role="tab" data-section="analytics" aria-selected="false" disabled>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 10v8"/><path d="M17 6v12"/></svg>
-        Analytics <span class="soon">Soon</span>
-      </button>
-      <button class="section-tab is-placeholder" role="tab" data-section="earnings" aria-selected="false" disabled>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.1 1.3-2 3-2s3 .7 3 1.8c0 2.4-6 1-6 3.4 0 1.1 1.3 1.8 3 1.8s3-.9 3-2"/></svg>
-        Earnings <span class="soon">Soon</span>
-      </button>
       <button class="section-tab" role="tab" data-section="reviews" aria-selected="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.9 6.4 20.1l1.4-6.3-4.8-4.3 6.4-.6L12 3Z"/></svg>
         Reviews
-      </button>
-      <button class="section-tab is-placeholder" role="tab" data-section="settings" aria-selected="false" disabled>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21v-7"/><path d="M3 10V3"/><path d="M12 21v-4"/><path d="M12 13V3"/><path d="M21 21v-9"/><path d="M21 8V3"/><path d="M1 14h4M10 9h4M19 8h4"/></svg>
-        Settings <span class="soon">Soon</span>
-      </button>
-      <button class="section-tab is-placeholder" role="tab" data-section="reports" aria-selected="false" disabled>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12a10 10 0 1 1-5.5-8.9"/><path d="M22 3v6h-6"/></svg>
-        Reports <span class="soon">Soon</span>
       </button>
     </nav>
 
@@ -942,49 +932,6 @@
       </div>
     </div>
   </div>
-
-  <div class="modal-overlay" id="availabilityModal">
-    <div class="modal">
-      <h3>Restaurant availability</h3>
-      <p>Choose how customers see your restaurant right now.</p>
-
-      <div class="avail-options">
-        <label class="avail-option" data-value="open">
-          <input type="radio" name="availStatus" value="open" /> Open
-        </label>
-        <label class="avail-option" data-value="closed_today">
-          <input type="radio" name="availStatus" value="closed_today" /> Closed Today
-        </label>
-        <label class="avail-option" data-value="temporarily_closed">
-          <input type="radio" name="availStatus" value="temporarily_closed" /> Temporarily Closed
-        </label>
-      </div>
-
-      <fieldset class="avail-fieldset">
-        <legend>Business hours (for the upcoming auto-hours feature)</legend>
-        <div class="avail-autohours">
-          <input type="checkbox" id="availAutoHours" />
-          <label for="availAutoHours">Use automatic business hours</label>
-        </div>
-        <div class="avail-hours">
-          <div>
-            <label for="availOpensAt">Opens at</label>
-            <input type="time" id="availOpensAt" />
-          </div>
-          <div>
-            <label for="availClosesAt">Closes at</label>
-            <input type="time" id="availClosesAt" />
-          </div>
-        </div>
-      </fieldset>
-
-      <div class="modal-actions">
-        <button class="btn ghost" id="availabilityCancelBtn" type="button">Cancel</button>
-        <button class="btn accept" id="availabilityConfirmBtn" type="button">Save</button>
-      </div>
-    </div>
-  </div>
-
 <script>
 (function () {
   'use strict';
@@ -1000,7 +947,6 @@
   // Restaurant Availability lives under /api/restaurants (shared with the
   // CEO panel), not /api/vendor — derived from API_BASE so the domain is
   // only defined in one place.
-  const RESTAURANT_API_BASE = API_BASE.replace(/\/vendor\/?$/, '') + '/restaurants';
 
   // Menu/Inventory reuses the same vendor-scoped menu endpoints the backend
   // already exposes (mirrors /orders and /restaurant, which are relative to
@@ -1025,6 +971,7 @@
     menuItems: [],       
     menuLoaded: false,
     previousNewOrderCount: 0,
+    initialQueueLoaded: false,
     queueRequest: 0,
     historyRequest: 0,
     menuRequest: 0,
@@ -1056,12 +1003,6 @@
     rejectReasonInput: document.getElementById('rejectReasonInput'),
     rejectCancelBtn:   document.getElementById('rejectCancelBtn'),
     rejectConfirmBtn:  document.getElementById('rejectConfirmBtn'),
-    availabilityModal:      document.getElementById('availabilityModal'),
-    availabilityCancelBtn:  document.getElementById('availabilityCancelBtn'),
-    availabilityConfirmBtn: document.getElementById('availabilityConfirmBtn'),
-    availAutoHours: document.getElementById('availAutoHours'),
-    availOpensAt:   document.getElementById('availOpensAt'),
-    availClosesAt:  document.getElementById('availClosesAt'),
 
     // Section nav
     sectionTabs:     Array.from(document.querySelectorAll('.section-tab')),
@@ -1124,15 +1065,6 @@
     }
     return fetchJson(API_BASE + path, { ...options, headers: { ...authHeaders(), ...(options.headers || {}) } });
   }
-
-  async function apiFetchRestaurants(path, options = {}) {
-    if (!localStorage.getItem(TOKEN_KEY)) {
-      handleUnauthorized();
-      throw new Error('Your session has expired.');
-    }
-    return fetchJson(RESTAURANT_API_BASE + path, { ...options, headers: { ...authHeaders(), ...(options.headers || {}) } });
-  }
-
   function setConnectionState(kind) {
     const offline = kind === 'offline';
     el.connectionPill.classList.toggle('offline', offline);
@@ -1222,7 +1154,11 @@
     } else if (order.status === 'confirmed') {
       footHtml = `<button class="btn advance" data-action="advance">Start preparing</button>`;
     } else if (order.status === 'preparing') {
-      footHtml = `<button class="btn advance" data-action="advance">Mark out for delivery</button>`;
+      footHtml = `<button class="btn advance" data-action="advance">Send to rider</button>`;
+    } else if (order.status === 'waiting_for_rider') {
+      footHtml = `<span class="badge dispatch">Finding a rider…</span>`;
+    } else if (order.status === 'assigned') {
+      footHtml = `<span class="badge dispatch">Rider assigned</span>`;
     } else if (order.status === 'out_for_delivery') {
       footHtml = `<span class="badge dispatch">With delivery partner</span>`;
     } else if (order.status === 'delivered') {
@@ -1248,6 +1184,7 @@
         <strong>${escapeHtml(order.customerName || order.user?.name || 'Customer')}</strong>
         ${formatOrderAddress(order.deliveryAddress) ? `<span>${escapeHtml(formatOrderAddress(order.deliveryAddress))}</span>` : ''}
       </div>
+      ${order.restaurantNote ? `<div class="ticket-note customer-note"><strong>Customer note</strong><span>${escapeHtml(order.restaurantNote)}</span></div>` : ''}
       <footer class="ticket-foot">
         <span class="ticket-total">${formatMoney(order.total)}</span>
         ${footHtml}
@@ -1319,15 +1256,16 @@
     function updateCounts() {
     const newOrdersCount = state.queue.filter(o => o.status === 'placed').length;
     
-    // Play alert sound if a new order arrives
-    if (newOrdersCount > state.previousNewOrderCount) {
+    // Do not alert for orders already present on first load.
+    if (state.initialQueueLoaded && newOrdersCount > state.previousNewOrderCount) {
         playOrderAlert();
     }
     state.previousNewOrderCount = newOrdersCount;
+    state.initialQueueLoaded = true;
 
     el.countNew.textContent       = newOrdersCount;
     el.countPreparing.textContent = state.queue.filter(o => o.status === 'confirmed' || o.status === 'preparing').length;
-    el.countDispatch.textContent  = state.queue.filter(o => o.status === 'out_for_delivery').length;
+    el.countDispatch.textContent  = state.queue.filter(o => ['waiting_for_rider','assigned','out_for_delivery'].includes(o.status)).length;
   }
 
   // Define the audio function right below updateCounts
@@ -1350,8 +1288,10 @@
       const res = await apiFetch('/restaurant');
       state.restaurant = res.data;
       el.restaurantName.textContent = state.restaurant.name || 'Your restaurant';
-      setStatusToggle(state.restaurant);
-      el.statusToggle.disabled = false;
+      const isOpen = !!state.restaurant.isOpen;
+      el.statusToggle.classList.toggle('open', isOpen);
+      el.statusToggle.classList.toggle('closed', !isOpen);
+      el.statusToggle.querySelector('.label').textContent = isOpen ? 'Open' : 'Closed';
     } catch (err) {
       el.restaurantName.textContent = 'Restaurant';
       showToast('error', err.message);
@@ -1466,91 +1406,7 @@
   }
 
   /* ============================================================
-     RESTAURANT AVAILABILITY (Open / Closed Today / Temporarily Closed)
-     ============================================================ */
-  const STATUS_LABELS = {
-    open: 'Open',
-    closed_today: 'Closed Today',
-    temporarily_closed: 'Temporarily Closed',
-  };
-  const STATUS_TOAST_COPY = {
-    open: 'Restaurant is now open.',
-    closed_today: 'Restaurant is closed for today.',
-    temporarily_closed: 'Restaurant is temporarily closed.',
-  };
-
-  function deriveStatusKey(restaurant) {
-    if (!restaurant) return 'open';
-    if (restaurant.isOpen) return 'open';
-    const reason = restaurant.availability && restaurant.availability.closedReason;
-    return reason === 'closed_today' ? 'closed_today' : 'temporarily_closed';
-  }
-
-  function setStatusToggle(restaurant) {
-    const key = deriveStatusKey(restaurant);
-    el.statusToggle.classList.remove('open', 'closed-today', 'closed');
-    el.statusToggle.classList.add(key === 'open' ? 'open' : key === 'closed_today' ? 'closed-today' : 'closed');
-    el.statusToggle.querySelector('.label').textContent = STATUS_LABELS[key];
-  }
-
-  function selectAvailOption(value) {
-    el.availabilityModal.querySelectorAll('.avail-option').forEach(opt => {
-      const match = opt.dataset.value === value;
-      opt.classList.toggle('selected', match);
-      opt.querySelector('input').checked = match;
-    });
-  }
-
-  function openAvailabilityModal() {
-    if (!state.restaurant) return;
-    selectAvailOption(deriveStatusKey(state.restaurant));
-    const a = state.restaurant.availability || {};
-    el.availAutoHours.checked = !!a.autoHours;
-    el.availOpensAt.value = a.opensAt || '';
-    el.availClosesAt.value = a.closesAt || '';
-    el.availabilityModal.classList.add('open');
-  }
-
-  function closeAvailabilityModal() {
-    el.availabilityModal.classList.remove('open');
-  }
-
-  async function saveAvailability() {
-    if (!state.restaurant) return;
-
-    // The vendor's own restaurant id — never user-editable, always sourced
-    // from the restaurant we already loaded for this logged-in vendor. The
-    // backend independently re-checks ownership on every request regardless.
-    const restaurantId = state.restaurant._id || state.restaurant.id;
-    if (!restaurantId) {
-      showToast('error', 'Could not determine your restaurant. Please refresh and try again.');
-      return;
-    }
-
-    const selected = el.availabilityModal.querySelector('input[name="availStatus"]:checked');
-    const status = selected ? selected.value : 'open';
-    const autoHours = el.availAutoHours.checked;
-    const opensAt = el.availOpensAt.value;
-    const closesAt = el.availClosesAt.value;
-
-    if (!confirm(`Set your restaurant to "${STATUS_LABELS[status]}"?`)) return;
-
-    el.availabilityConfirmBtn.disabled = true;
-    try {
-      const res = await apiFetchRestaurants(`/${restaurantId}/availability`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status, autoHours, opensAt, closesAt }),
-      });
-      state.restaurant = res.data;
-      setStatusToggle(state.restaurant);
-      showToast('success', STATUS_TOAST_COPY[status]);
-      closeAvailabilityModal();
-    } catch (err) {
-      showToast('error', err.message || 'Could not update availability.');
-    } finally {
-      el.availabilityConfirmBtn.disabled = false;
-    }
-  }
+     DASHBOARD SECTION SWITCHING
 
   /* ============================================================
      DASHBOARD SECTION SWITCHING
@@ -1677,9 +1533,8 @@
   async function toggleMenuItemStock(input) {
     input.disabled = true;
     try {
-      await menuFetch('/menu/' + input.dataset.id, {
+      await menuFetch('/menu/' + input.dataset.id + '/toggle-stock', {
         method: 'PUT',
-        body: JSON.stringify({ inStock: input.checked }),
       });
       showToast('success', input.checked ? 'Item marked in stock.' : 'Item marked out of stock.');
       const item = state.menuItems.find(i => i._id === input.dataset.id);
@@ -1753,25 +1608,15 @@
     tab.addEventListener('click', () => switchSection(tab.dataset.section));
   });
 
-  el.statusToggle.addEventListener('click', openAvailabilityModal);
   el.refreshBtn.addEventListener('click', () => loadQueue(false));
   el.rejectCancelBtn.addEventListener('click', closeRejectModal);
   el.rejectConfirmBtn.addEventListener('click', confirmReject);
   el.rejectModal.addEventListener('click', (e) => {
     if (e.target === el.rejectModal) closeRejectModal();
   });
-  el.availabilityModal.querySelectorAll('.avail-option').forEach(opt => {
-    opt.addEventListener('click', () => selectAvailOption(opt.dataset.value));
-  });
-  el.availabilityCancelBtn.addEventListener('click', closeAvailabilityModal);
-  el.availabilityConfirmBtn.addEventListener('click', saveAvailability);
-  el.availabilityModal.addEventListener('click', (e) => {
-    if (e.target === el.availabilityModal) closeAvailabilityModal();
-  });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (el.rejectModal.classList.contains('open')) closeRejectModal();
-    if (el.availabilityModal.classList.contains('open')) closeAvailabilityModal();
   });
 
   /* ============================================================
@@ -1788,7 +1633,7 @@
     state.pollTimer = setTimeout(tick, POLL_INTERVAL);
   }
   function stopPolling() {
-    if (state.pollTimer) clearInterval(state.pollTimer);
+    if (state.pollTimer) clearTimeout(state.pollTimer);
   }
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) loadQueue(false);
@@ -1834,5 +1679,6 @@
   document.addEventListener('click',e=>{if(e.target.closest('[data-section="reviews"]'))loadVendorReviews();if(e.target.closest('#vendor-review-refresh'))loadVendorReviews();});
 })();
 </script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {})); }</script>
 </body>
 </html>
