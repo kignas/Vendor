@@ -1259,6 +1259,8 @@
     // Do not alert for orders already present on first load.
     if (state.initialQueueLoaded && newOrdersCount > state.previousNewOrderCount) {
         playOrderAlert();
+        const diff = newOrdersCount - state.previousNewOrderCount;
+        notifyVendor('New order received', diff + ' new order' + (diff > 1 ? 's' : '') + ' waiting to be accepted.');
     }
     state.previousNewOrderCount = newOrdersCount;
     state.initialQueueLoaded = true;
@@ -1278,6 +1280,16 @@
         console.error("Audio failed to play", err);
     }
   }
+
+  /* Browser notifications for new orders (#2). Permission is requested on the
+     vendor's first interaction (a user gesture, as browsers require). The
+     existing chime above is the in-app half; this is the OS-level half, shown
+     even when the tab is in the background. (Note: true push while the tab is
+     fully closed would need push subscriptions on the service worker — a
+     later step.) */
+  function ensureNotifyPerm(){ try{ if('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }catch(e){} }
+  function notifyVendor(title, body){ try{ if('Notification' in window && Notification.permission === 'granted') new Notification(title, { body: body || '', tag: 'vendor-order', renotify: true }); }catch(e){} }
+  document.addEventListener('pointerdown', ensureNotifyPerm, { once: true });
 
 
   /* ============================================================
