@@ -159,6 +159,20 @@
     border-radius: 999px;
   }
 
+  .earnings-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+  .earnings-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+  .earnings-label{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em}
+  .earnings-value{font:700 24px var(--font-display);margin-top:6px}
+  .earnings-sub{font-size:11px;color:var(--ink-soft);margin-top:4px}
+  .earnings-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .earnings-select{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 10px;font:600 13px var(--font-body);color:var(--ink)}
+  .earnings-table{width:100%;border-collapse:collapse;font-size:12px}
+  .earnings-table th,.earnings-table td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+  .earnings-table th{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em}
+  .earnings-table .money{font-family:var(--font-mono);text-align:right}
+  .earnings-note{padding:12px 14px;background:var(--paper);border-radius:9px;color:var(--ink-soft);font-size:12px;margin-top:12px}
+  @media(max-width:800px){.earnings-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.earnings-table{min-width:680px}.earnings-table-wrap{overflow:auto}}
+  @media(max-width:430px){.earnings-grid{grid-template-columns:1fr 1fr}.earnings-value{font-size:20px}}
   .dashboard-section{ display: block; }
   .dashboard-section[hidden]{ display: none; }
 
@@ -774,6 +788,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11h18"/><path d="M5 11a7 7 0 0 1 14 0"/><path d="M3 15h18l-1.5 5a1 1 0 0 1-1 .8H5.5a1 1 0 0 1-1-.8L3 15Z"/></svg>
         Menu
       </button>
+      <button class="section-tab" role="tab" data-section="earnings" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.1 1.3-2 3-2s3 .7 3 1.8c0 2.4-6 1-6 3.4 0 1.1 1.3 1.8 3 1.8s3-.9 3-2"/></svg>
+        Earnings
+      </button>
       <button class="section-tab" role="tab" data-section="reviews" aria-selected="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.9 6.4 20.1l1.4-6.3-4.8-4.3 6.4-.6L12 3Z"/></svg>
         Reviews
@@ -860,26 +878,24 @@
     </section>
 
     <!-- ============================================================
-         SECTION: EARNINGS (placeholder — wiring only)
+         SECTION: EARNINGS
          ============================================================ -->
     <section class="dashboard-section" id="section-earnings" hidden>
-      <div class="state-panel coming-soon">
-        <div class="icon-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.1 1.3-2 3-2s3 .7 3 1.8c0 2.4-6 1-6 3.4 0 1.1 1.3 1.8 3 1.8s3-.9 3-2"/></svg>
-        </div>
-        <h3>Earnings is on the way</h3>
-        <p>Once connected, this tab will track your payouts and settlement history.</p>
-        <ul class="coming-soon-list">
-          <li>Today's earnings</li>
-          <li>Yesterday's earnings</li>
-          <li>This week</li>
-          <li>This month</li>
-          <li>Lifetime earnings</li>
-          <li>Settlement history</li>
-          <li>Pending payout</li>
-          <li>Completed payouts</li>
-        </ul>
+      <div class="earnings-toolbar">
+        <div><strong>Restaurant earnings</strong><div class="earnings-sub">Based on delivered orders and the commission snapshot saved on each order.</div></div>
+        <select class="earnings-select" id="earnings-period"><option value="today">Today</option><option value="7d">Last 7 days</option><option value="30d" selected>Last 30 days</option><option value="all">All time</option></select>
       </div>
+      <div class="earnings-grid" id="earnings-cards">
+        <div class="earnings-card"><div class="earnings-label">Delivered food sales</div><div class="earnings-value">₹—</div></div>
+        <div class="earnings-card"><div class="earnings-label">Platform commission</div><div class="earnings-value">₹—</div></div>
+        <div class="earnings-card"><div class="earnings-label">Restaurant earnings</div><div class="earnings-value">₹—</div><div class="earnings-sub">Delivered orders</div></div>
+        <div class="earnings-card"><div class="earnings-label">In progress</div><div class="earnings-value">₹—</div><div class="earnings-sub">Not yet delivered</div></div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:16px 16px 8px;font-weight:700">Recent completed earnings</div>
+        <div class="earnings-table-wrap"><table class="earnings-table"><thead><tr><th>Order</th><th>Date</th><th>Status</th><th class="money">Food sales</th><th class="money">Commission</th><th class="money">Restaurant net</th></tr></thead><tbody id="earnings-orders"><tr><td colspan="6" style="padding:24px;text-align:center;color:var(--ink-soft)">Loading…</td></tr></tbody></table></div>
+      </div>
+      <div class="earnings-note">Delivery fees and rider tips are not included in restaurant earnings. Payout/settlement tracking will be added separately; this screen is the financial earnings view only.</div>
     </section>
 
     <!-- ============================================================
@@ -1011,6 +1027,9 @@
     // Menu / Inventory
     menuGrid:     document.getElementById('menuGrid'),
     menuCount:    document.getElementById('menuCount'),
+    earningsPeriod: document.getElementById('earnings-period'),
+    earningsCards: document.getElementById('earnings-cards'),
+    earningsOrders: document.getElementById('earnings-orders'),
   };
 
   /* ============================================================
@@ -1418,6 +1437,28 @@
   }
 
   /* ============================================================
+     EARNINGS — P0.3
+     ============================================================ */
+  function money(v){ return '₹' + Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function earningsStatusLabel(s){ return String(s||'').replaceAll('_',' ').replace(/\b\w/g,m=>m.toUpperCase()); }
+  async function loadEarnings(){
+    if(!el.earningsCards||!el.earningsOrders)return;
+    const period=el.earningsPeriod?.value||'30d';
+    el.earningsCards.innerHTML='<div class="earnings-card"><div class="earnings-label">Loading</div><div class="earnings-value">…</div></div>'.repeat(4);
+    el.earningsOrders.innerHTML='<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--ink-soft)">Loading…</td></tr>';
+    try{
+      const [summaryRes,ordersRes]=await Promise.all([
+        fetchJson(API_BASE+'/earnings/summary?period='+encodeURIComponent(period),{headers:authHeaders()}),
+        fetchJson(API_BASE+'/earnings/orders?view=completed&page=1&limit=20',{headers:authHeaders()})
+      ]);
+      const c=summaryRes?.data?.current||{};
+      el.earningsCards.innerHTML=`<div class="earnings-card"><div class="earnings-label">Delivered food sales</div><div class="earnings-value">${money(c.deliveredFoodSales)}</div><div class="earnings-sub">${Number(c.deliveredOrders||0)} delivered orders</div></div><div class="earnings-card"><div class="earnings-label">Platform commission</div><div class="earnings-value">${money(c.deliveredCommission)}</div><div class="earnings-sub">From order snapshots</div></div><div class="earnings-card"><div class="earnings-label">Restaurant earnings</div><div class="earnings-value">${money(c.deliveredEarnings)}</div><div class="earnings-sub">After commission</div></div><div class="earnings-card"><div class="earnings-label">In progress</div><div class="earnings-value">${money(c.inProgress)}</div><div class="earnings-sub">Not yet delivered</div></div>`;
+      const rows=Array.isArray(ordersRes?.data)?ordersRes.data:[];
+      el.earningsOrders.innerHTML=rows.length?rows.map(o=>`<tr><td><strong>${escapeHtml(o.orderNumber||String(o.id).slice(-8))}</strong></td><td>${o.createdAt?new Date(o.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—'}</td><td>${escapeHtml(earningsStatusLabel(o.status))}</td><td class="money">${money(o.foodSales)}</td><td class="money">${money(o.commission)}</td><td class="money"><strong>${money(o.restaurantNetAmount)}</strong></td></tr>`).join(''):'<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--ink-soft)">No delivered earnings yet.</td></tr>';
+    }catch(err){ el.earningsCards.innerHTML='<div class="state-panel" style="grid-column:1/-1"><h3>Could not load earnings</h3><p>'+escapeHtml(err.message||'Please try again.')+'</p></div>'; el.earningsOrders.innerHTML='<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--ink-soft)">Could not load earnings.</td></tr>'; }
+  }
+
+  /* ============================================================
      DASHBOARD SECTION SWITCHING
 
   /* ============================================================
@@ -1436,6 +1477,7 @@
     if (name === 'menu' && !state.menuLoaded) {
       loadMenu();
     }
+    if (name === 'earnings') loadEarnings();
   }
 
   /* ============================================================
@@ -1619,6 +1661,7 @@
   el.sectionTabs.forEach(tab => {
     tab.addEventListener('click', () => switchSection(tab.dataset.section));
   });
+  el.earningsPeriod?.addEventListener('change', loadEarnings);
 
   el.refreshBtn.addEventListener('click', () => loadQueue(false));
   el.rejectCancelBtn.addEventListener('click', closeRejectModal);
