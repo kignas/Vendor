@@ -771,7 +771,7 @@
       </div>
       <div class="topbar-actions">
         <span class="connection-pill online" id="connectionPill" aria-live="polite"><span class="connection-dot"></span><span id="connectionLabel">Online</span></span>
-        <div class="status-toggle" id="statusToggle" role="status" aria-live="polite">
+        <button class="status-toggle" id="statusToggle" type="button" aria-label="Change restaurant availability">
           <span class="dot"></span>
           <span class="label">—</span>
         </button>
@@ -1092,6 +1092,25 @@
     el.connectionLabel.textContent = offline ? 'Offline' : kind === 'checking' ? 'Checking…' : 'Online';
     el.offlineBanner.classList.toggle('show', offline);
   }
+
+  async function changeRestaurantAvailability() {
+    const current = el.statusToggle.querySelector('.label')?.textContent || 'Open';
+    const input = window.prompt('Restaurant status: open, busy, closed_today, temporarily_closed', current.toLowerCase().replace(/\s+/g,'_'));
+    if (input === null) return;
+    const status = input.trim().toLowerCase();
+    if (!['open','busy','closed_today','temporarily_closed'].includes(status)) { showToast('error','Use open, busy, closed_today, or temporarily_closed.'); return; }
+    el.statusToggle.disabled = true;
+    try {
+      const result = await apiFetch('/restaurant/availability', { method:'PUT', body: JSON.stringify({status}), headers:{'Content-Type':'application/json'} });
+      const r=result.data || {}; const a=r.availability || {}; const isOpen=a.isOpen !== false;
+      el.statusToggle.classList.toggle('open',isOpen); el.statusToggle.classList.toggle('closed',!isOpen); el.statusToggle.classList.toggle('busy',a.status==='busy');
+      el.statusToggle.querySelector('.label').textContent = a.status || (isOpen?'Open':'Closed');
+      showToast('success','Restaurant availability updated.');
+    } catch(err) { showToast('error',err.message || 'Could not update availability.'); }
+    finally { el.statusToggle.disabled=false; }
+  }
+
+  el.statusToggle?.addEventListener('click', changeRestaurantAvailability);
 
   function renderRetry(container, message, retryFn) {
     container.innerHTML = '';
