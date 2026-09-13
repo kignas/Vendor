@@ -5,39 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Dashboard · Eatswada Vendor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+<!-- Matched to the customer app: Manrope is the single app-wide typeface -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&display=swap" rel="stylesheet">
 <style>
 
   /* ============================================================
      1. DESIGN TOKENS
      ============================================================ */
   :root{
-    --ink:        #1A1D29;
-    --ink-soft:   #5B5F72;
-    --paper:      #F2F3F6;
+    /* Remapped to the customer app's design system. Same token NAMES,
+       new VALUES, so every existing rule inherits the matching look
+       without any structural change. */
+    --ink:        #1C2024;  /* --nb-ink  */
+    --ink-soft:   #697077;  /* --nb-muted */
+    --paper:      #F6F7F8;  /* --nb-soft  */
     --card:       #FFFFFF;
-    --line:       #E3E5EA;
+    --line:       #E7EAED;  /* --nb-line  */
 
-    --flame:      #E4572E;  /* new order / primary action   */
-    --flame-dark: #C43F1B;
-    --flame-soft: #FBE7E0;
+    --flame:      #FC8019;  /* new order / primary action — customer accent */
+    --flame-dark: #E06D0A;
+    --flame-soft: #FFF1E4;
 
-    --basil:      #2F6F4E;  /* accept / confirmed / delivered */
-    --basil-soft: #E3F0E8;
+    --basil:      #159A62;  /* accept / confirmed / delivered — brand green */
+    --basil-soft: #E4F3EC;
 
-    --turmeric:      #C97A11; /* preparing / in progress */
-    --turmeric-soft: #FBEED9;
+    --turmeric:      #D97706; /* preparing / in progress — customer amber */
+    --turmeric-soft: #FEF3C7;
 
-    --rust:       #9C3B3B;  /* reject / cancelled */
-    --rust-soft:  #F5E6E6;
+    --rust:       #C63A2F;  /* reject / cancelled */
+    --rust-soft:  #F9E7E5;
 
-    --font-display: 'Poppins', sans-serif;
-    --font-body:    'IBM Plex Sans', sans-serif;
-    --font-mono:    'IBM Plex Mono', monospace;
+    --font-display: 'Manrope', system-ui, -apple-system, sans-serif;
+    --font-body:    'Manrope', system-ui, -apple-system, sans-serif;
+    --font-mono:    'Manrope', system-ui, -apple-system, sans-serif;
 
-    --radius: 10px;
-    --shadow: 0 1px 2px rgba(26,29,41,0.04), 0 4px 16px rgba(26,29,41,0.06);
+    --radius: 14px;         /* --nb-radius-md */
+    --shadow: 0 2px 12px rgba(28,32,36,.06); /* --nb-shadow-card */
   }
+  /* Keep order codes and money columns aligned now that mono = Manrope */
+  .ticket-code, .earnings-table .money, .earnings-value { font-variant-numeric: tabular-nums; }
 
   *{ box-sizing: border-box; }
 
@@ -756,12 +762,46 @@
   .customer-note{display:flex;flex-direction:column;gap:4px;margin:10px 0 0;padding:10px 11px;border:1px solid var(--basil);background:var(--basil-soft);border-radius:9px;font-size:12px;line-height:1.4;}
   .customer-note strong{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--basil);}
   @media(max-width:640px){.inventory-policy{display:none;}}
+  /* ============================================================
+     NEW-ORDER ALARM BAR  (sound + vibration companion)
+     ============================================================ */
+  .alarm-bar{
+    display:none; position:sticky; top:0; z-index:200;
+    align-items:center; gap:12px;
+    padding:12px 16px;
+    background:var(--flame); color:#fff;
+    font-family:var(--font-body); font-weight:800; font-size:14px;
+    box-shadow:0 6px 20px rgba(252,128,25,.35);
+    animation:alarmPulse 1s ease-in-out infinite;
+  }
+  .alarm-bar.show{ display:flex; }
+  .alarm-bar .alarm-ico{ font-size:18px; line-height:1; animation:alarmShake .9s ease-in-out infinite; }
+  .alarm-bar .alarm-text{ flex:1; letter-spacing:-.2px; }
+  .alarm-bar .alarm-stop{
+    border:0; cursor:pointer;
+    background:#fff; color:var(--flame-dark);
+    font-family:var(--font-body); font-weight:800; font-size:13px;
+    padding:8px 16px; border-radius:999px;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+  }
+  .alarm-bar .alarm-stop:active{ transform:translateY(1px); }
+  @keyframes alarmPulse{ 0%,100%{ filter:brightness(1); } 50%{ filter:brightness(1.12); } }
+  @keyframes alarmShake{ 0%,100%{ transform:rotate(0); } 25%{ transform:rotate(-18deg); } 75%{ transform:rotate(18deg); } }
+  @media (prefers-reduced-motion: reduce){
+    .alarm-bar, .alarm-bar .alarm-ico{ animation:none; }
+  }
 </style>
   <link rel="manifest" href="./manifest.json">
 </head>
 <body>
 
   <div class="offline-banner" id="offlineBanner" role="status" aria-live="polite">You're offline. Order updates are paused until your connection returns.</div>
+
+  <div class="alarm-bar" id="alarmBar" role="alert" aria-live="assertive">
+    <span class="alarm-ico" aria-hidden="true">🔔</span>
+    <span class="alarm-text" id="alarmText">New order waiting — accept or reject</span>
+    <button class="alarm-stop" id="alarmStopBtn" type="button">Stop alarm</button>
+  </div>
 
   <div class="app-shell">
     <header class="topbar">
@@ -1296,10 +1336,15 @@
     
     // Do not alert for orders already present on first load.
     if (state.initialQueueLoaded && newOrdersCount > state.previousNewOrderCount) {
-        playOrderAlert();
+        playOrderAlert(newOrdersCount);
         const diff = newOrdersCount - state.previousNewOrderCount;
         notifyVendor('New order received', diff + ' new order' + (diff > 1 ? 's' : '') + ' waiting to be accepted.');
+    } else if (Alarm.isActive() && newOrdersCount > state.previousNewOrderCount) {
+        // still ringing and even more came in — refresh the count label
+        playOrderAlert(newOrdersCount);
     }
+    // Every new order handled → silence the alarm automatically.
+    if (newOrdersCount === 0) stopOrderAlert();
     state.previousNewOrderCount = newOrdersCount;
     state.initialQueueLoaded = true;
 
@@ -1308,26 +1353,102 @@
     el.countDispatch.textContent  = state.queue.filter(o => ['waiting_for_rider','assigned','out_for_delivery'].includes(o.status)).length;
   }
 
-  // Define the audio function right below updateCounts
-  function playOrderAlert() {
-    try {
-        // A generic pleasant notification chime (you can replace this URL with your own .mp3 later)
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-        audio.play().catch(e => console.log('Audio playback blocked by browser:', e));
-    } catch (err) {
-        console.error("Audio failed to play", err);
-    }
-  }
+  /* ============================================================
+     NEW-ORDER ALARM  —  looping sound + vibration
+     ------------------------------------------------------------
+     Self-contained: the alert tone is SYNTHESISED with the Web Audio
+     API, so there is no external file to load and it works offline.
+     It repeats every ~1.6s (sound + phone vibration) and keeps going
+     until every new order has been handled or the vendor taps
+     "Stop alarm". Browsers block audio until a user gesture, so the
+     audio context is unlocked on the vendor's first tap.
+     ============================================================ */
+  const Alarm = (function () {
+    let ctx = null, ticker = null, active = false;
+    const bar = document.getElementById('alarmBar');
+    const barText = document.getElementById('alarmText');
 
-  /* Browser notifications for new orders (#2). Permission is requested on the
-     vendor's first interaction (a user gesture, as browsers require). The
-     existing chime above is the in-app half; this is the OS-level half, shown
-     even when the tab is in the background. (Note: true push while the tab is
-     fully closed would need push subscriptions on the service worker — a
-     later step.) */
+    function unlock() {
+      try {
+        if (!ctx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) ctx = new AC();
+        }
+        if (ctx && ctx.state === 'suspended') ctx.resume();
+      } catch (e) {}
+    }
+
+    function chime() {
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      // Two rising tones — a clear, urgent "ding-dong".
+      [[880, 0], [1245, 0.18]].forEach(function (pair) {
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = pair[0];
+        osc.connect(gain); gain.connect(ctx.destination);
+        const t = now + pair[1];
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.4, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.17);
+        osc.start(t); osc.stop(t + 0.2);
+      });
+    }
+
+    function pulse() {
+      chime();
+      try { if (navigator.vibrate) navigator.vibrate([350, 130, 350]); } catch (e) {}
+    }
+
+    function start(count) {
+      unlock();
+      if (barText) {
+        barText.textContent = (count > 1)
+          ? (count + ' new orders waiting — accept or reject')
+          : 'New order waiting — accept or reject';
+      }
+      if (bar) bar.classList.add('show');
+      if (active) return;           // already ringing — just refreshed the label
+      active = true;
+      pulse();
+      ticker = setInterval(pulse, 1600);
+    }
+
+    function stop() {
+      active = false;
+      if (ticker) { clearInterval(ticker); ticker = null; }
+      try { if (navigator.vibrate) navigator.vibrate(0); } catch (e) {}
+      if (bar) bar.classList.remove('show');
+    }
+
+    return { start: start, stop: stop, unlock: unlock, isActive: function(){ return active; } };
+  })();
+
+  // Called by updateCounts() when the number of new orders rises.
+  function playOrderAlert(count) { Alarm.start(count || 1); }
+  function stopOrderAlert() { Alarm.stop(); }
+
+  /* Browser (OS-level) notification — shown even when the tab is backgrounded.
+     True push while the tab is fully closed needs a service-worker push
+     subscription (a later step). */
   function ensureNotifyPerm(){ try{ if('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }catch(e){} }
   function notifyVendor(title, body){ try{ if('Notification' in window && Notification.permission === 'granted') new Notification(title, { body: body || '', tag: 'vendor-order', renotify: true }); }catch(e){} }
-  document.addEventListener('pointerdown', ensureNotifyPerm, { once: true });
+
+  // Unlock audio + ask for notification permission on the vendor's first tap.
+  document.addEventListener('pointerdown', function firstGesture(){
+    ensureNotifyPerm();
+    Alarm.unlock();
+  }, { once: true });
+
+  // "Stop alarm" silences the sound/vibration but leaves the orders on screen.
+  (function () {
+    const stopBtn = document.getElementById('alarmStopBtn');
+    if (stopBtn) stopBtn.addEventListener('click', function () {
+      Alarm.unlock();      // a tap here also counts as the unlock gesture
+      stopOrderAlert();
+      switchSection && switchSection('orders');
+    });
+  })();
 
 
   /* ============================================================
