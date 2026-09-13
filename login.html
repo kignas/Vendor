@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sign in · Nearbite Vendor Portal</title>
+<title>Sign in · Eatswada Vendor Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 <style>
 
@@ -258,19 +259,19 @@
 .offline-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:100;background:var(--rust);color:#fff;text-align:center;padding:9px 12px;font-size:12px;font-weight:700}.offline-banner.show{display:block}
 </style>
   <link rel="manifest" href="./manifest.json">
-</head>
+\n<style>\n  :root{--ink:#1C2024;--ink-soft:#697077;--paper:#F5F7F8;--card:#FFFFFF;--line:#E7EAED;--green:#159A62;--green-ink:#0F7A4D;--green-soft:#E6F4EC;--red:#C63A2F;--red-soft:#FBEAE8;--radius:16px}\n  html{background:var(--paper)}\n  body{font-family:'Manrope',system-ui,-apple-system,sans-serif;background:radial-gradient(circle at 50% -12%,rgba(21,154,98,.10),transparent 38%),linear-gradient(180deg,#F8FAF9 0%,var(--paper) 60%);padding:24px 16px 88px}\n  .auth-shell{max-width:430px}\n  .auth-card{border:1px solid rgba(231,234,237,.96);border-radius:22px;box-shadow:0 2px 5px rgba(28,32,36,.035),0 18px 50px rgba(28,32,36,.10);padding:32px 28px 28px;position:relative;overflow:hidden}\n  .auth-card::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--green),#34B77F,var(--green))}\n  .brand{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:24px}\n  .brand-eyebrow{font-family:'Manrope',sans-serif;color:var(--green);font-weight:800;letter-spacing:.13em}\n  .brand h1{font-family:'Manrope',sans-serif;font-size:25px;letter-spacing:-.55px;margin:8px 0 6px}\n  .brand p{font-size:13px;line-height:1.55}\n  .field{margin-bottom:18px}\n  .field label{font-size:12px;font-weight:800;letter-spacing:.01em;margin-bottom:7px}\n  .field input{min-height:48px;padding:12px 13px;border:1px solid #DDE2E5;border-radius:12px;background:#F9FAFA;transition:border-color .16s,box-shadow .16s,background .16s}\n  .field input:hover{border-color:#C9D2CD}\n  .field input:focus{background:#fff;border-color:var(--green);box-shadow:0 0 0 4px rgba(21,154,98,.11);outline:none}\n  .field.has-error input{border-color:var(--red);box-shadow:0 0 0 3px rgba(198,58,47,.08)}\n  .password-wrap input{padding-right:48px}\n  .toggle-pw{right:5px;border-radius:9px}\n  .toggle-pw:hover{background:var(--green-soft);color:var(--green-ink)}\n  .form-banner{border:1px solid #F0C9C5;background:var(--red-soft);border-radius:12px;line-height:1.45}\n  .btn-submit{width:100%;min-height:50px;border:0;border-radius:13px;background:linear-gradient(180deg,#1AA66B,#159A62);box-shadow:0 7px 18px rgba(21,154,98,.22);font-family:'Manrope',sans-serif;font-weight:800;letter-spacing:-.1px;transition:transform .14s,box-shadow .14s,filter .14s}\n  .btn-submit:hover{filter:brightness(1.03);transform:translateY(-1px);box-shadow:0 10px 24px rgba(21,154,98,.27)}\n  .btn-submit:active{transform:translateY(0);box-shadow:0 5px 12px rgba(21,154,98,.2)}\n  .btn-submit:disabled{transform:none;box-shadow:none}\n  .offline-banner{background:var(--red);font-family:'Manrope',sans-serif;font-weight:800}\n  .session-check-overlay{background:rgba(245,247,248,.96);backdrop-filter:blur(12px)}\n  .big-spinner{border-top-color:var(--green)}\n  .toast-stack{z-index:999}\n  :focus-visible{outline:3px solid rgba(21,154,98,.22);outline-offset:2px}\n  body::after{content:"Eatswada Vendor Portal";position:fixed;left:0;right:0;bottom:22px;text-align:center;color:#8A929A;font-size:11px;font-weight:700;letter-spacing:.04em;pointer-events:none}\n  @media (max-width:480px){body{padding:14px 12px 80px}.auth-card{padding:29px 20px 22px;border-radius:20px}.brand h1{font-size:23px}}\n  @media (prefers-reduced-motion:reduce){.btn-submit,.field input{transition:none!important}}\n</style>\n</head>
 <body>
   <div class="offline-banner" id="offlineBanner" role="status" aria-live="polite">You're offline. Check your internet connection and try again.</div>
 
   <div class="session-check-overlay" id="sessionCheckOverlay">
-    <span class="brand-eyebrow">Nearbite Vendor</span>
+    <span class="brand-eyebrow">Eatswada Vendor</span>
     <div class="big-spinner"></div>
   </div>
 
   <div class="auth-shell">
     <div class="auth-card">
       <div class="brand">
-        <span class="brand-eyebrow">Nearbite Vendor</span>
+        <span class="brand-eyebrow">Eatswada Vendor</span>
         <h1>Sign in to your kitchen</h1>
         <p>Manage orders, menu and your restaurant from here.</p>
       </div>
@@ -518,6 +519,6 @@
 })();
 </script>
 <script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {})); }</script>
-<div style="position:fixed;bottom:18px;left:0;right:0;text-align:center;font-size:13px;color:var(--ink-soft,#5B5F72);">New restaurant? <a href="apply.html" style="color:var(--flame,#E4572E);font-weight:600;text-decoration:none;">Apply to become a vendor</a> · <a href="application-status.html" style="color:var(--flame,#E4572E);font-weight:600;text-decoration:none;">Check application</a></div>
+<div style="position:fixed;bottom:18px;left:0;right:0;text-align:center;font-size:13px;color:var(--ink-soft,#5B5F72);">New restaurant? <a href="apply.html" style="color:var(--green,#159A62);font-weight:700;text-decoration:none;">Apply to become a vendor</a> · <a href="application-status.html" style="color:var(--green,#159A62);font-weight:700;text-decoration:none;">Check application</a></div>
 </body>
 </html>
