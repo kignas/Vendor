@@ -412,6 +412,78 @@
   @media (min-width:560px){
     .earnings-grid{ grid-template-columns:repeat(4,1fr); }
   }
+  /* ---------- Prep-time badge + rider block on tickets ---------- */
+  .ticket-prep{
+    display:inline-flex; align-items:center; gap:6px; margin-bottom:12px;
+    font-size:12px; font-weight:800; color:var(--amber);
+    background:var(--amber-soft); padding:6px 11px; border-radius:999px;
+  }
+  .ticket-rider{
+    display:flex; align-items:center; gap:10px; margin-bottom:12px;
+    background:var(--blue-soft); border-radius:var(--r-md); padding:10px 12px;
+  }
+  .ticket-rider .tr-ava{
+    width:34px; height:34px; border-radius:50%; flex:none; background:var(--blue); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px;
+  }
+  .ticket-rider .tr-body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+  .ticket-rider .tr-name{ font-size:13.5px; font-weight:800; color:var(--ink); }
+  .ticket-rider .tr-status{ font-size:11.5px; font-weight:700; color:var(--blue); }
+  .ticket-rider .tr-call{
+    flex:none; text-decoration:none; font-size:12.5px; font-weight:800; color:#fff;
+    background:var(--blue); padding:8px 13px; border-radius:999px;
+  }
+
+  /* ---------- Status sheet options ---------- */
+  .status-options{ display:flex; flex-direction:column; gap:8px; }
+  .status-option{
+    display:flex; align-items:center; gap:12px; text-align:left; cursor:pointer;
+    border:1.5px solid var(--line); background:#fff; border-radius:var(--r-md); padding:12px 13px;
+    font-family:var(--font-body); transition:.12s;
+  }
+  .status-option:active{ transform:scale(.99); }
+  .status-option.current{ border-color:var(--green); background:var(--green-soft); }
+  .status-option .so-dot{ width:12px; height:12px; border-radius:50%; flex:none; }
+  .status-option .so-dot.open{ background:var(--green); }
+  .status-option .so-dot.busy{ background:var(--amber); }
+  .status-option .so-dot.closed{ background:var(--red); }
+  .status-option div{ display:flex; flex-direction:column; gap:1px; }
+  .status-option strong{ font-size:14.5px; font-weight:800; color:var(--ink); }
+  .status-option span{ font-size:12px; color:var(--ink-soft); line-height:1.35; }
+
+  /* ---------- Prep-time chips ---------- */
+  .prep-chips{ display:flex; flex-wrap:wrap; gap:9px; }
+  .prep-chip{
+    cursor:pointer; border:1.5px solid var(--line); background:#fff; color:var(--ink);
+    font-family:var(--font-body); font-weight:800; font-size:14px; padding:11px 16px; border-radius:var(--r-md);
+    flex:1 0 26%; min-width:78px; transition:.12s;
+  }
+  .prep-chip.selected{ border-color:var(--green); background:var(--green-soft); color:var(--green-ink); }
+  .prep-chip:active{ transform:scale(.97); }
+
+  /* ---------- Store / business hours ---------- */
+  .store-block{ background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg); box-shadow:var(--shadow-card); padding:16px; margin-bottom:14px; }
+  .store-block h3{ margin:0 0 3px; font-size:16px; font-weight:800; }
+  .store-block .store-sub{ font-size:12.5px; color:var(--ink-soft); margin-bottom:14px; line-height:1.4; }
+  .hours-row{
+    display:grid; grid-template-columns:84px 1fr auto; align-items:center; gap:10px;
+    padding:10px 0; border-bottom:1px solid var(--line-soft);
+  }
+  .hours-row:last-of-type{ border-bottom:0; }
+  .hours-day{ font-size:13.5px; font-weight:800; text-transform:capitalize; }
+  .hours-times{ display:flex; align-items:center; gap:7px; }
+  .hours-times input[type="time"]{
+    font-family:var(--font-body); font-weight:700; font-size:13px; color:var(--ink);
+    border:1px solid var(--line); border-radius:var(--r-sm); padding:7px 8px; background:var(--paper);
+  }
+  .hours-times input[type="time"]:disabled{ opacity:.4; }
+  .hours-times .dash{ color:var(--ink-faint); font-weight:800; }
+  .hours-closed{ display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:var(--ink-soft); }
+  .store-status-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .store-status-pill{ display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:800; padding:8px 14px; border-radius:999px; background:var(--green-soft); color:var(--green-ink); }
+  .store-status-pill.busy{ background:var(--amber-soft); color:var(--amber); }
+  .store-status-pill.closed{ background:var(--red-soft); color:var(--red); }
+  .store-save{ width:100%; margin-top:14px; }
 </style>
   <link rel="manifest" href="./manifest.json">
 </head>
@@ -457,6 +529,10 @@
       <button class="section-tab" role="tab" data-section="reviews" aria-selected="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.9 6.4 20.1l1.4-6.3-4.8-4.3 6.4-.6L12 3Z"/></svg>
         Reviews
+      </button>
+      <button class="section-tab" role="tab" data-section="store" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l1.5-5h15L21 9M4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9Z"/><path d="M9 20v-6h6v6"/></svg>
+        Store
       </button>
     </nav>
 
@@ -595,9 +671,68 @@
         <p>Downloadable, date-ranged reports for your restaurant will live here.</p>
       </div>
     </section>
+
+    <!-- ============================================================
+         SECTION: STORE  (availability + weekly business hours)
+         ============================================================ -->
+    <section class="dashboard-section" id="section-store" hidden>
+      <div class="store-block">
+        <div class="store-status-row">
+          <div>
+            <h3 style="margin-bottom:2px">Availability</h3>
+            <div class="store-sub" style="margin:0">Whether customers can order right now.</div>
+          </div>
+          <button class="store-status-pill" id="storeStatusPill" type="button">—</button>
+        </div>
+      </div>
+
+      <div class="store-block">
+        <h3>Weekly hours</h3>
+        <div class="store-sub">Customers can only order during these hours when auto-hours is on. Use 24-hour time.</div>
+        <div id="hoursEditor">
+          <div class="state-panel" style="border:0;box-shadow:none;padding:20px">Loading hours…</div>
+        </div>
+        <button class="btn accept store-save" id="saveHoursBtn" type="button">Save hours</button>
+      </div>
+    </section>
   </div>
 
   <div class="toast-stack" id="toastStack"></div>
+
+  <!-- Status bottom-sheet (Open / Busy / Closed) -->
+  <div class="modal-overlay" id="statusSheet">
+    <div class="modal">
+      <h3>Restaurant status</h3>
+      <p>Controls whether customers can place orders right now.</p>
+      <div class="status-options" id="statusOptions">
+        <button class="status-option" data-status="open" type="button"><span class="so-dot open"></span><div><strong>Open</strong><span>Accepting orders normally</span></div></button>
+        <button class="status-option" data-status="busy" type="button"><span class="so-dot busy"></span><div><strong>Busy</strong><span>Still open, but the kitchen is slammed</span></div></button>
+        <button class="status-option" data-status="closed_today" type="button"><span class="so-dot closed"></span><div><strong>Closed for today</strong><span>No more orders for the rest of today</span></div></button>
+        <button class="status-option" data-status="temporarily_closed" type="button"><span class="so-dot closed"></span><div><strong>Temporarily closed</strong><span>Pause new orders until you reopen</span></div></button>
+      </div>
+      <div class="modal-actions"><button class="btn ghost" id="statusSheetCancel" type="button">Cancel</button></div>
+    </div>
+  </div>
+
+  <!-- Prep-time bottom-sheet (shown on Accept) -->
+  <div class="modal-overlay" id="prepSheet">
+    <div class="modal">
+      <h3>Accept order</h3>
+      <p>How many minutes to prepare? The customer and rider see this.</p>
+      <div class="prep-chips" id="prepChips">
+        <button class="prep-chip" data-min="10" type="button">10 min</button>
+        <button class="prep-chip" data-min="15" type="button">15 min</button>
+        <button class="prep-chip selected" data-min="20" type="button">20 min</button>
+        <button class="prep-chip" data-min="25" type="button">25 min</button>
+        <button class="prep-chip" data-min="30" type="button">30 min</button>
+        <button class="prep-chip" data-min="45" type="button">45 min</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="prepCancel" type="button">Cancel</button>
+        <button class="btn accept" id="prepConfirm" type="button">Accept order</button>
+      </div>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="rejectModal">
     <div class="modal">
@@ -610,6 +745,8 @@
       </div>
     </div>
   </div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script>
 (function () {
   'use strict';
@@ -755,21 +892,95 @@
     el.offlineBanner.classList.toggle('show', offline);
   }
 
-  async function changeRestaurantAvailability() {
-    const current = el.statusToggle.querySelector('.label')?.textContent || 'Open';
-    const input = window.prompt('Restaurant status: open, busy, closed_today, temporarily_closed', current.toLowerCase().replace(/\s+/g,'_'));
-    if (input === null) return;
-    const status = input.trim().toLowerCase();
-    if (!['open','busy','closed_today','temporarily_closed'].includes(status)) { showToast('error','Use open, busy, closed_today, or temporarily_closed.'); return; }
+  const STATUS_LABEL = { open:'Open', busy:'Busy', closed_today:'Closed today', temporarily_closed:'Temporarily closed' };
+  const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+
+  function reflectStatus(a) {
+    a = a || {};
+    const status = a.status || (a.isOpen === false ? 'temporarily_closed' : 'open');
+    const isOpen = status === 'open' || status === 'busy';
+    const label = STATUS_LABEL[status] || (isOpen ? 'Open' : 'Closed');
+    el.statusToggle.classList.toggle('open', status === 'open');
+    el.statusToggle.classList.toggle('busy', status === 'busy');
+    el.statusToggle.classList.toggle('closed', !isOpen);
+    el.statusToggle.querySelector('.label').textContent = label;
+    const pill = document.getElementById('storeStatusPill');
+    if (pill) {
+      pill.textContent = label;
+      pill.classList.toggle('busy', status === 'busy');
+      pill.classList.toggle('closed', !isOpen);
+    }
+    state.currentStatus = status;
+  }
+
+  function changeRestaurantAvailability() { openStatusSheet(); }
+
+  function openStatusSheet() {
+    const cur = state.currentStatus || 'open';
+    document.querySelectorAll('#statusOptions .status-option').forEach(b =>
+      b.classList.toggle('current', b.dataset.status === cur));
+    document.getElementById('statusSheet').classList.add('open');
+  }
+  function closeStatusSheet() { document.getElementById('statusSheet').classList.remove('open'); }
+
+  async function applyRestaurantStatus(status) {
+    if (!['open','busy','closed_today','temporarily_closed'].includes(status)) return;
+    closeStatusSheet();
     el.statusToggle.disabled = true;
     try {
-      const result = await apiFetch('/restaurant/availability', { method:'PUT', body: JSON.stringify({status}), headers:{'Content-Type':'application/json'} });
-      const r=result.data || {}; const a=r.availability || {}; const isOpen=a.isOpen !== false;
-      el.statusToggle.classList.toggle('open',isOpen); el.statusToggle.classList.toggle('closed',!isOpen); el.statusToggle.classList.toggle('busy',a.status==='busy');
-      el.statusToggle.querySelector('.label').textContent = a.status || (isOpen?'Open':'Closed');
-      showToast('success','Restaurant availability updated.');
-    } catch(err) { showToast('error',err.message || 'Could not update availability.'); }
-    finally { el.statusToggle.disabled=false; }
+      const result = await apiFetch('/restaurant/availability', { method:'PUT', body: JSON.stringify({ status }), headers:{'Content-Type':'application/json'} });
+      const a = (result.data && result.data.availability) || { status, isOpen: status==='open'||status==='busy' };
+      reflectStatus(a);
+      showToast('success', 'Status: ' + (STATUS_LABEL[status] || status) + '.');
+    } catch (err) { showToast('error', err.message || 'Could not update availability.'); }
+    finally { el.statusToggle.disabled = false; }
+  }
+
+  /* ---- Store: weekly business hours ---- */
+  function renderStore() {
+    reflectStatus((state.restaurant && state.restaurant.availability) || { isOpen: !!(state.restaurant && state.restaurant.isOpen) });
+    const oh = (state.restaurant && state.restaurant.openingHours) || {};
+    const editor = document.getElementById('hoursEditor');
+    if (!editor) return;
+    editor.innerHTML = DAYS.map(d => {
+      const day = oh[d] || {};
+      const closed = !!day.closed;
+      return `<div class="hours-row" data-day="${d}">
+        <span class="hours-day">${d.slice(0,3)}</span>
+        <span class="hours-times">
+          <input type="time" class="h-open" value="${escapeHtml(day.opensAt || '10:00')}" ${closed?'disabled':''}>
+          <span class="dash">–</span>
+          <input type="time" class="h-close" value="${escapeHtml(day.closesAt || '22:00')}" ${closed?'disabled':''}>
+        </span>
+        <label class="hours-closed"><input type="checkbox" class="h-closed" ${closed?'checked':''}> Closed</label>
+      </div>`;
+    }).join('');
+    editor.querySelectorAll('.h-closed').forEach(cb => cb.addEventListener('change', () => {
+      const row = cb.closest('.hours-row');
+      row.querySelector('.h-open').disabled = cb.checked;
+      row.querySelector('.h-close').disabled = cb.checked;
+    }));
+  }
+
+  async function saveBusinessHours() {
+    const editor = document.getElementById('hoursEditor');
+    if (!editor) return;
+    const openingHours = {};
+    editor.querySelectorAll('.hours-row').forEach(row => {
+      const d = row.dataset.day;
+      const closed = row.querySelector('.h-closed').checked;
+      openingHours[d] = closed
+        ? { closed:true }
+        : { closed:false, opensAt: row.querySelector('.h-open').value, closesAt: row.querySelector('.h-close').value };
+    });
+    const btn = document.getElementById('saveHoursBtn');
+    btn.disabled = true;
+    try {
+      const res = await apiFetch('/restaurant/hours', { method:'PUT', body: JSON.stringify({ openingHours }), headers:{'Content-Type':'application/json'} });
+      if (res && res.data) state.restaurant = res.data;
+      showToast('success', 'Business hours saved.');
+    } catch (err) { showToast('error', err.message || 'Could not save hours.'); }
+    finally { btn.disabled = false; }
   }
 
   el.statusToggle?.addEventListener('click', changeRestaurantAvailability);
@@ -845,6 +1056,20 @@
 
     let footHtml = '';
 
+    const RIDER_STATUS = { unassigned:'Finding a rider', assigned:'Rider assigned', accepted:'Rider heading over', reached_restaurant:'Rider at restaurant', picked_up:'Picked up', out_for_delivery:'Out for delivery', delivered:'Delivered' };
+    const showPrep = order.prepMinutes && ['confirmed','preparing'].includes(order.status);
+    const prepHtml = showPrep ? `<div class="ticket-prep">⏱ Prep ${Number(order.prepMinutes)} min</div>` : '';
+    const rider = order.riderInfo;
+    const riderHtml = rider ? `
+      <div class="ticket-rider">
+        <span class="tr-ava">${escapeHtml((String(rider.name||'R').trim().charAt(0) || 'R').toUpperCase())}</span>
+        <div class="tr-body">
+          <span class="tr-name">${escapeHtml(rider.name || 'Rider')}</span>
+          <span class="tr-status">${escapeHtml(RIDER_STATUS[order.riderStatus] || 'Assigned')}</span>
+        </div>
+        ${rider.phone ? `<a class="tr-call" href="tel:${escapeHtml(rider.phone)}">Call</a>` : ''}
+      </div>` : '';
+
     if (order.status === 'placed') {
       footHtml = `
         <div class="ticket-actions">
@@ -885,6 +1110,8 @@
         ${formatOrderAddress(order.deliveryAddress) ? `<span>${escapeHtml(formatOrderAddress(order.deliveryAddress))}</span>` : ''}
       </div>
       ${order.restaurantNote ? `<div class="ticket-note customer-note"><strong>Customer note</strong><span>${escapeHtml(order.restaurantNote)}</span></div>` : ''}
+      ${prepHtml}
+      ${riderHtml}
       <footer class="ticket-foot">
         <span class="ticket-total">${formatMoney(order.total)}</span>
         ${footHtml}
@@ -1081,10 +1308,7 @@
       const res = await apiFetch('/restaurant');
       state.restaurant = res.data;
       el.restaurantName.textContent = state.restaurant.name || 'Your restaurant';
-      const isOpen = !!state.restaurant.isOpen;
-      el.statusToggle.classList.toggle('open', isOpen);
-      el.statusToggle.classList.toggle('closed', !isOpen);
-      el.statusToggle.querySelector('.label').textContent = isOpen ? 'Open' : 'Closed';
+      reflectStatus(state.restaurant.availability || { isOpen: !!state.restaurant.isOpen });
     } catch (err) {
       el.restaurantName.textContent = 'Restaurant';
       showToast('error', err.message);
@@ -1131,20 +1355,37 @@
   /* ============================================================
      ORDER ACTIONS
      ============================================================ */
-  async function acceptOrder(id, btn) {
+  async function acceptOrder(id, prepMinutes) {
     if (state.actionBusy.has(id)) return;
     state.actionBusy.add(id);
-    btn.disabled = true;
+    const confirmBtn = document.getElementById('prepConfirm');
+    if (confirmBtn) confirmBtn.disabled = true;
     try {
-      await apiFetch('/orders/' + id + '/accept', { method: 'PUT' });
-      showToast('success', 'Order accepted');
+      await apiFetch('/orders/' + id + '/accept', {
+        method: 'PUT',
+        body: JSON.stringify({ prepMinutes: prepMinutes || 20 }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      showToast('success', 'Order accepted · ' + (prepMinutes || 20) + ' min');
+      closePrepSheet();
       await loadQueue(false);
     } catch (err) {
       showToast('error', err.message);
-      btn.disabled = false;
     } finally {
       state.actionBusy.delete(id);
+      if (confirmBtn) confirmBtn.disabled = false;
     }
+  }
+
+  function openPrepSheet(id) {
+    state.pendingAcceptId = id;
+    state.prepMinutes = 20;
+    document.querySelectorAll('#prepChips .prep-chip').forEach(c => c.classList.toggle('selected', c.dataset.min === '20'));
+    document.getElementById('prepSheet').classList.add('open');
+  }
+  function closePrepSheet() {
+    state.pendingAcceptId = null;
+    document.getElementById('prepSheet').classList.remove('open');
   }
 
   function openRejectModal(id) {
@@ -1240,6 +1481,7 @@
       loadMenu();
     }
     if (name === 'earnings') loadEarnings();
+    if (name === 'store') renderStore();
   }
 
   /* ============================================================
@@ -1401,7 +1643,7 @@
     const id = ticket.dataset.id;
     const action = btn.dataset.action;
 
-    if (action === 'accept')  acceptOrder(id, btn);
+    if (action === 'accept')  openPrepSheet(id);
     if (action === 'reject')  openRejectModal(id);
     if (action === 'advance') advanceOrder(id, btn);
   });
@@ -1426,6 +1668,30 @@
   el.earningsPeriod?.addEventListener('change', loadEarnings);
 
   el.refreshBtn.addEventListener('click', () => loadQueue(false));
+
+  // Status sheet (Open / Busy / Closed for today / Temporarily closed)
+  document.getElementById('statusOptions').addEventListener('click', (e) => {
+    const opt = e.target.closest('.status-option');
+    if (opt) applyRestaurantStatus(opt.dataset.status);
+  });
+  document.getElementById('statusSheetCancel').addEventListener('click', closeStatusSheet);
+  document.getElementById('statusSheet').addEventListener('click', (e) => { if (e.target.id === 'statusSheet') closeStatusSheet(); });
+  document.getElementById('storeStatusPill').addEventListener('click', openStatusSheet);
+
+  // Prep-time sheet (shown on Accept)
+  document.getElementById('prepChips').addEventListener('click', (e) => {
+    const chip = e.target.closest('.prep-chip');
+    if (!chip) return;
+    document.querySelectorAll('#prepChips .prep-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    state.prepMinutes = Number(chip.dataset.min);
+  });
+  document.getElementById('prepCancel').addEventListener('click', closePrepSheet);
+  document.getElementById('prepConfirm').addEventListener('click', () => { if (state.pendingAcceptId) acceptOrder(state.pendingAcceptId, state.prepMinutes); });
+  document.getElementById('prepSheet').addEventListener('click', (e) => { if (e.target.id === 'prepSheet') closePrepSheet(); });
+
+  // Save weekly hours
+  document.getElementById('saveHoursBtn').addEventListener('click', saveBusinessHours);
   el.rejectCancelBtn.addEventListener('click', closeRejectModal);
   el.rejectConfirmBtn.addEventListener('click', confirmReject);
   el.rejectModal.addEventListener('click', (e) => {
@@ -1459,6 +1725,48 @@
   /* ============================================================
      INIT
      ============================================================ */
+  // ── Push notifications (FCM) ───────────────────────────────
+  const VAPID_KEY = 'BKad9s8WW_Bfl0CZxH4tSRHyYJZOou5kIOcKBZ40xNmtqHPTVvntKB93BF1DGPQt9U_aQuv5iM1Ui_vNz5Ll-NA';
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyA0bqVE3RCmiJORcufx-v6Gew16GMCfFp0",
+    authDomain: "eatswada.firebaseapp.com",
+    projectId: "eatswada",
+    storageBucket: "eatswada.firebasestorage.app",
+    messagingSenderId: "644274579271",
+    appId: "1:644274579271:web:ba72c4cd4f81c568fa0e62"
+  };
+
+  async function initPush() {
+    try {
+      if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
+      if (typeof firebase === 'undefined' || !firebase.messaging) return;
+      if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+
+      // Own scope so it never collides with the PWA cache worker (sw.js at './').
+      const reg = await navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './fcm/' });
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') return;
+
+      const messaging = firebase.messaging();
+      const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+      if (token) {
+        const notifBase = API_BASE.replace(/\/vendor$/, '');
+        fetch(notifBase + '/notifications/register-token', {
+          method: 'POST',
+          headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        }).catch(() => {});
+      }
+
+      // Foreground: tab is open, so also ring the in-app alarm and refresh.
+      messaging.onMessage((payload) => {
+        const d = (payload && payload.data) || {};
+        if (d.type === 'new_order') { Alarm.start(1); loadQueue(false); }
+        showToast('info', d.title || 'New order');
+      });
+    } catch (e) { /* push is best-effort — never block the app */ }
+  }
+
   async function init() {
     if (!localStorage.getItem(TOKEN_KEY)) {
       location.replace('login.html');
@@ -1467,6 +1775,7 @@
     setConnectionState(navigator.onLine ? 'checking' : 'offline');
     await Promise.all([loadRestaurant(), loadQueue(true)]);
     if (localStorage.getItem(TOKEN_KEY)) startPolling();
+    initPush();
   }
 
   init();
