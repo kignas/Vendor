@@ -8,787 +8,409 @@
 <!-- Matched to the customer app: Manrope is the single app-wide typeface -->
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&display=swap" rel="stylesheet">
 <style>
+  /* ══════════════════════════════════════════════════════════════
+     EATSWADA VENDOR — premium phone-first dashboard
+     Same design system as the customer app (Manrope + #159A62).
+     Class names & structure unchanged, so all JS keeps working.
+     ══════════════════════════════════════════════════════════════ */
+  *,*::before,*::after{ box-sizing:border-box; }
 
-  /* ============================================================
-     1. DESIGN TOKENS
-     ============================================================ */
   :root{
-    /* Remapped to the customer app's design system. Same token NAMES,
-       new VALUES, so every existing rule inherits the matching look
-       without any structural change. */
-    --ink:        #1C2024;  /* --nb-ink  */
-    --ink-soft:   #697077;  /* --nb-muted */
-    --paper:      #F6F7F8;  /* --nb-soft  */
-    --card:       #FFFFFF;
-    --line:       #E7EAED;  /* --nb-line  */
+    --ink:#1C2024; --ink-soft:#697077; --ink-faint:#8A929A;
+    --paper:#F5F7F8; --card:#FFFFFF; --line:#E7EAED; --line-soft:#EEF1F3;
 
-    --flame:      #FC8019;  /* new order / primary action — customer accent */
-    --flame-dark: #E06D0A;
-    --flame-soft: #FFF1E4;
+    --green:#159A62; --green-ink:#0F7A4D; --green-soft:#E6F4EC;
+    --amber:#D97706; --amber-soft:#FEF3C7;
+    --red:#C63A2F;   --red-soft:#FBEAE8;
+    --blue:#2563EB;  --blue-soft:#E7EEFE;
 
-    --basil:      #159A62;  /* accept / confirmed / delivered — brand green */
-    --basil-soft: #E4F3EC;
+    /* legacy token names kept so old rules still resolve */
+    --flame:#FC8019; --flame-dark:#E06D0A; --flame-soft:#FFF1E4;
+    --basil:var(--green); --basil-soft:var(--green-soft);
+    --turmeric:var(--amber); --turmeric-soft:var(--amber-soft);
+    --rust:var(--red); --rust-soft:var(--red-soft);
 
-    --turmeric:      #D97706; /* preparing / in progress — customer amber */
-    --turmeric-soft: #FEF3C7;
+    --font-display:'Manrope',system-ui,-apple-system,sans-serif;
+    --font-body:'Manrope',system-ui,-apple-system,sans-serif;
+    --font-mono:'Manrope',system-ui,-apple-system,sans-serif;
 
-    --rust:       #C63A2F;  /* reject / cancelled */
-    --rust-soft:  #F9E7E5;
-
-    --font-display: 'Manrope', system-ui, -apple-system, sans-serif;
-    --font-body:    'Manrope', system-ui, -apple-system, sans-serif;
-    --font-mono:    'Manrope', system-ui, -apple-system, sans-serif;
-
-    --radius: 14px;         /* --nb-radius-md */
-    --shadow: 0 2px 12px rgba(28,32,36,.06); /* --nb-shadow-card */
+    --r-sm:10px; --r-md:14px; --r-lg:18px; --radius:var(--r-md);
+    --shadow-sm:0 1px 2px rgba(28,32,36,.05);
+    --shadow:0 2px 12px rgba(28,32,36,.06);
+    --shadow-card:0 2px 12px rgba(28,32,36,.06);
+    --shadow-float:0 12px 34px rgba(28,32,36,.14);
+    --nav-h:64px;
   }
-  /* Keep order codes and money columns aligned now that mono = Manrope */
-  .ticket-code, .earnings-table .money, .earnings-value { font-variant-numeric: tabular-nums; }
 
-  *{ box-sizing: border-box; }
-
+  html{ background:var(--paper); }
   body{
-    margin: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--font-body);
-    -webkit-font-smoothing: antialiased;
+    margin:0; font-family:var(--font-body); color:var(--ink);
+    background:var(--paper);
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    -webkit-tap-highlight-color:transparent;
+    padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0));
   }
+  .ticket-code,.earnings-table .money,.earnings-value{ font-variant-numeric:tabular-nums; }
+  a{ color:inherit; }
 
-  button{ font-family: inherit; }
-
-  :focus-visible{
-    outline: 2px solid var(--flame);
-    outline-offset: 2px;
-  }
-
-  /* ============================================================
-     2. APP SHELL / TOP BAR
-     ============================================================ */
+  /* ---------- App shell ---------- */
   .app-shell{
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 16px 16px 48px;
+    max-width:520px; margin:0 auto; min-height:100vh;
+    background:var(--paper); position:relative;
   }
 
-  .topbar{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 4px 2px 16px;
+  /* ---------- Offline banner ---------- */
+  .offline-banner{
+    display:none; position:sticky; top:0; z-index:120;
+    background:var(--red); color:#fff; text-align:center;
+    padding:10px 14px; font-size:12.5px; font-weight:700;
+    box-shadow:0 2px 10px rgba(0,0,0,.14);
   }
+  .offline-banner.show{ display:block; }
 
-  .brand{ display: flex; flex-direction: column; }
-  .brand-eyebrow{
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-  }
-  .brand h1{
-    font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 700;
-    margin: 2px 0 0;
-  }
-
-  .status-toggle{
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    box-shadow: var(--shadow);
-    cursor: default;
-    font-weight: 600;
-    font-size: 13px;
-    white-space: nowrap;
-  }
-  .status-toggle .dot{
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--ink-soft);
-    transition: background 0.15s ease;
-  }
-  .status-toggle.open .dot{ background: var(--basil); }
-  .status-toggle.closed-today .dot{ background: var(--turmeric); }
-  .status-toggle.closed .dot{ background: var(--rust); }
-  .status-toggle:disabled, .status-toggle.busy{ opacity: 0.6; cursor: wait; }
-
-  /* ============================================================
-     3. SECTION RAIL (primary dashboard navigation)
-     ============================================================ */
-  .section-rail{
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    margin-bottom: 16px;
-    scrollbar-width: none;
-    border-bottom: 1px solid var(--line);
-  }
-  .section-rail::-webkit-scrollbar{ display: none; }
-
-  .section-tab{
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 10px 14px 12px;
-    border: none;
-    border-bottom: 2px solid transparent;
-    background: none;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-soft);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: color 0.15s ease, border-color 0.15s ease;
-  }
-  .section-tab svg{ width: 16px; height: 16px; flex: 0 0 auto; }
-  .section-tab[aria-selected="true"]{
-    color: var(--ink);
-    border-bottom-color: var(--flame);
-  }
-  .section-tab.is-placeholder{ color: #9AA0AF; }
-  .section-tab .soon{
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    background: var(--paper);
-    color: var(--ink-soft);
-    padding: 1px 5px;
-    border-radius: 999px;
-  }
-
-  .earnings-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
-  .earnings-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
-  .earnings-label{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em}
-  .earnings-value{font:700 24px var(--font-display);margin-top:6px}
-  .earnings-sub{font-size:11px;color:var(--ink-soft);margin-top:4px}
-  .earnings-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-  .earnings-select{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 10px;font:600 13px var(--font-body);color:var(--ink)}
-  .earnings-table{width:100%;border-collapse:collapse;font-size:12px}
-  .earnings-table th,.earnings-table td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
-  .earnings-table th{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em}
-  .earnings-table .money{font-family:var(--font-mono);text-align:right}
-  .earnings-note{padding:12px 14px;background:var(--paper);border-radius:9px;color:var(--ink-soft);font-size:12px;margin-top:12px}
-  @media(max-width:800px){.earnings-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.earnings-table{min-width:680px}.earnings-table-wrap{overflow:auto}}
-  @media(max-width:430px){.earnings-grid{grid-template-columns:1fr 1fr}.earnings-value{font-size:20px}}
-  .dashboard-section{ display: block; }
-  .dashboard-section[hidden]{ display: none; }
-
-  /* ============================================================
-     3B. TAB RAIL (order-status sub-nav, inside Orders section)
-     ============================================================ */
-  .tab-rail{
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    margin-bottom: 18px;
-    scrollbar-width: none;
-  }
-  .tab-rail::-webkit-scrollbar{ display: none; }
-
-  .tab{
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 16px;
-    border: 1px solid var(--line);
-    background: var(--card);
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-soft);
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  }
-  .tab[aria-selected="true"]{
-    background: var(--ink);
-    border-color: var(--ink);
-    color: #fff;
-  }
-  .tab .count{
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 1px 6px;
-    border-radius: 999px;
-    background: var(--flame-soft);
-    color: var(--flame-dark);
-  }
-  .tab[aria-selected="true"] .count{
-    background: rgba(255,255,255,0.18);
-    color: #fff;
-  }
-
-  .toolbar-row{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-    font-size: 12px;
-    color: var(--ink-soft);
-  }
-  .refresh-btn{
-    display: flex; align-items: center; gap: 6px;
-    background: none; border: none;
-    color: var(--ink-soft);
-    font-size: 12px;
-    cursor: pointer;
-    padding: 4px;
-  }
-  .refresh-btn svg{ width: 13px; height: 13px; }
-  .refresh-btn:hover{ color: var(--ink); }
-
-  /* ============================================================
-     4. TICKET RAIL + TICKET CARD (signature element)
-     ============================================================ */
-  .ticket-rail{
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
-    gap: 14px;
-  }
-
-  .ticket{
-    position: relative;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-left: 4px solid var(--ink-soft);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 14px 14px 12px;
-    animation: ticket-in 0.25s ease;
-  }
-  @keyframes ticket-in{
-    from{ opacity: 0; transform: translateY(4px); }
-    to{ opacity: 1; transform: translateY(0); }
-  }
-  @media (prefers-reduced-motion: reduce){
-    .ticket{ animation: none; }
-  }
-
-  .ticket.status-placed{ border-left-color: var(--flame); }
-  .ticket.status-confirmed,
-  .ticket.status-preparing{ border-left-color: var(--turmeric); }
-  .ticket.status-out_for_delivery{ border-left-color: var(--ink-soft); }
-  .ticket.status-delivered{ border-left-color: var(--basil); }
-  .ticket.status-cancelled{ border-left-color: var(--rust); }
-
-  .ticket-head{
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    padding-bottom: 9px;
-    margin-bottom: 9px;
-    border-bottom: 1px dashed var(--line);
-  }
-  .ticket-no{
-    font-family: var(--font-mono);
-    font-weight: 600;
-    font-size: 13px;
-    letter-spacing: 0.02em;
-  }
-  .ticket-time{
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--ink-soft);
-  }
-
-  .ticket-items{
-    list-style: none;
-    margin: 0 0 10px;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .ticket-items li{
-    display: flex;
-    gap: 6px;
-    font-size: 13px;
-    line-height: 1.4;
-  }
-  .ticket-items .qty{
-    font-family: var(--font-mono);
-    font-weight: 600;
-    color: var(--ink-soft);
-    flex: 0 0 auto;
-  }
-  .ticket-items .more{
-    font-size: 12px;
-    color: var(--ink-soft);
-    font-style: italic;
-  }
-
-  .ticket-foot{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding-top: 9px;
-    border-top: 1px dashed var(--line);
-  }
-  .ticket-total{
-    font-family: var(--font-mono);
-    font-weight: 600;
-    font-size: 14px;
-  }
-
-  .ticket-actions{ display: flex; gap: 8px; }
-
-  .btn{
-    border: none;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.08s ease, opacity 0.15s ease;
-  }
-  .btn:active{ transform: scale(0.97); }
-  .btn:disabled{ opacity: 0.55; cursor: wait; transform: none; }
-
-  .btn.accept{ background: var(--basil); color: #fff; }
-  .btn.reject{ background: var(--rust-soft); color: var(--rust); }
-  .btn.advance{ background: var(--turmeric); color: #fff; }
-  .btn.ghost{ background: var(--paper); color: var(--ink); }
-  .btn.danger{ background: var(--rust); color: #fff; }
-
-  .badge{
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 999px;
-  }
-  .badge.dispatch{ background: var(--paper); color: var(--ink-soft); }
-  .badge.delivered{ background: var(--basil-soft); color: var(--basil); }
-  .badge.cancelled{ background: var(--rust-soft); color: var(--rust); }
-
-  .ticket-note{
-    font-size: 12px;
-    color: var(--ink-soft);
-    margin-top: 6px;
-  }
-
-  /* ============================================================
-     5. SKELETON LOADER
-     ============================================================ */
-  .skeleton-ticket{
-    height: 168px;
-    border-radius: var(--radius);
-    background: linear-gradient(100deg, #EDEEF1 30%, #F6F7F9 50%, #EDEEF1 70%);
-    background-size: 200% 100%;
-    animation: shimmer 1.3s ease-in-out infinite;
-  }
-  @keyframes shimmer{
-    from{ background-position: 200% 0; }
-    to{ background-position: -200% 0; }
-  }
-  @media (prefers-reduced-motion: reduce){
-    .skeleton-ticket{ animation: none; background: #EDEEF1; }
-  }
-
-  /* ============================================================
-     6. EMPTY / ERROR STATES
-     ============================================================ */
-  .state-panel{
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 56px 20px;
-    color: var(--ink-soft);
-  }
-  .state-panel svg{ width: 34px; height: 34px; margin-bottom: 10px; opacity: 0.5; }
-  .state-panel h3{
-    font-family: var(--font-display);
-    color: var(--ink);
-    font-size: 15px;
-    margin: 0 0 4px;
-  }
-  .state-panel p{ font-size: 13px; margin: 0; max-width: 320px; margin-inline: auto; }
-
-  /* ============================================================
-     7. TOASTS
-     ============================================================ */
-  .toast-stack{
-    position: fixed;
-    left: 50%;
-    bottom: 20px;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 8px;
-    z-index: 100;
-    width: min(92vw, 380px);
-  }
-  .toast{
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--ink);
-    color: #fff;
-    padding: 12px 14px;
-    border-radius: 9px;
-    font-size: 13px;
-    box-shadow: var(--shadow);
-    border-left: 4px solid var(--basil);
-    animation: toast-in 0.2s ease;
-  }
-  .toast.error{ border-left-color: var(--rust); }
-  .toast.info{ border-left-color: var(--turmeric); }
-  @keyframes toast-in{
-    from{ opacity: 0; transform: translateY(6px); }
-    to{ opacity: 1; transform: translateY(0); }
-  }
-  @media (prefers-reduced-motion: reduce){ .toast{ animation: none; } }
-
-  /* ============================================================
-     8. REJECT MODAL
-     ============================================================ */
-  .modal-overlay{
-    position: fixed; inset: 0;
-    background: rgba(26,29,41,0.45);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 200;
-  }
-  .modal-overlay.open{ display: flex; }
-  .modal{
-    background: var(--card);
-    border-radius: 14px;
-    padding: 20px;
-    width: min(100%, 380px);
-    box-shadow: var(--shadow);
-  }
-  .modal h3{
-    font-family: var(--font-display);
-    margin: 0 0 4px;
-    font-size: 16px;
-  }
-  .modal p{ font-size: 13px; color: var(--ink-soft); margin: 0 0 12px; }
-  .modal textarea{
-    width: 100%;
-    min-height: 74px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 10px;
-    font-family: inherit;
-    font-size: 13px;
-    resize: vertical;
-    margin-bottom: 14px;
-  }
-  .modal-actions{ display: flex; justify-content: flex-end; gap: 8px; }
-
-  /* ============================================================
-     9. AVAILABILITY MODAL
-     ============================================================ */
-  .avail-options{
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 14px;
-  }
-  .avail-option{
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-  }
-  .avail-option input{ margin: 0; }
-  .avail-option.selected{
-    border-color: var(--ink);
-    background: var(--paper);
-    font-weight: 600;
-  }
-  .avail-fieldset{ border: none; padding: 0; margin: 0 0 4px; }
-  .avail-fieldset legend{
-    font-size: 11px;
-    color: var(--ink-soft);
-    margin-bottom: 6px;
-    padding: 0;
-  }
-  .avail-autohours{
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-    font-size: 13px;
-  }
-  .avail-hours{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .avail-hours label{
-    display: block;
-    font-size: 11px;
-    color: var(--ink-soft);
-    margin-bottom: 4px;
-  }
-  .avail-hours input[type="time"]{
-    width: 100%;
-    padding: 7px 8px;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    font-size: 13px;
-    font-family: inherit;
-  }
-
-  /* ============================================================
-     10. MENU / INVENTORY
-     ============================================================ */
-  .menu-grid{
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
-    gap: 14px;
-  }
-
-  .menu-card{
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 12px;
-    display: flex;
-    gap: 12px;
-    animation: ticket-in 0.25s ease;
-  }
-  @media (prefers-reduced-motion: reduce){ .menu-card{ animation: none; } }
-  .menu-card.out-of-stock{ opacity: 0.6; }
-
-  .thumb-sm{
-    width: 56px; height: 56px;
-    border-radius: 8px;
-    object-fit: cover;
-    flex: 0 0 auto;
-    background: var(--paper);
-  }
-  .thumb-empty{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px dashed var(--line);
-  }
-
-  .menu-card-body{ flex: 1; min-width: 0; }
-  .menu-card-head{
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .menu-card-name{
-    font-family: var(--font-display);
-    font-size: 14px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 0;
-  }
-  .menu-card-name .veg-dot{
-    width: 9px; height: 9px;
-    border-radius: 2px;
-    flex: 0 0 auto;
-  }
-  .menu-card-name span.name-text{
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .menu-card-meta{
-    font-size: 12px;
-    color: var(--ink-soft);
-    margin-top: 2px;
-  }
-  .menu-card-price{
-    font-family: var(--font-mono);
-    font-weight: 600;
-    font-size: 13px;
-    margin-top: 6px;
-  }
-  .menu-card-price s{
-    font-weight: 400;
-    color: var(--ink-soft);
-    margin-left: 5px;
-  }
-  .menu-card-tags{
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-    margin-top: 6px;
-  }
-  .menu-card-tags .badge{
-    background: var(--flame-soft);
-    color: var(--flame-dark);
-  }
-  .menu-card-foot{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 10px;
-    padding-top: 9px;
-    border-top: 1px dashed var(--line);
-  }
-
-  .switch{
-    position: relative;
-    display: inline-block;
-    width: 38px; height: 22px;
-    flex: 0 0 auto;
-  }
-  .switch input{
-    opacity: 0; width: 0; height: 0;
-    position: absolute;
-  }
-  .switch .track{
-    position: absolute; inset: 0;
-    background: var(--line);
-    border-radius: 999px;
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-  .switch .track::before{
-    content: "";
-    position: absolute;
-    width: 18px; height: 18px;
-    left: 2px; top: 2px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 1px 2px rgba(26,29,41,0.25);
-    transition: transform 0.15s ease;
-  }
-  .switch input:checked + .track{ background: var(--basil); }
-  .switch input:checked + .track::before{ transform: translateX(16px); }
-  .switch input:disabled + .track{ opacity: 0.6; cursor: wait; }
-
-  /* ============================================================
-     11. COMING SOON / PLACEHOLDER SECTIONS
-     ============================================================ */
-  .coming-soon{
-    text-align: center;
-    padding: 48px 20px 56px;
-  }
-  .coming-soon .icon-wrap{
-    width: 48px; height: 48px;
-    margin: 0 auto 14px;
-    border-radius: 12px;
-    background: var(--flame-soft);
-    color: var(--flame-dark);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .coming-soon .icon-wrap svg{ width: 22px; height: 22px; }
-  .coming-soon h3{
-    font-family: var(--font-display);
-    font-size: 16px;
-    margin: 0 0 6px;
-  }
-  .coming-soon p{
-    font-size: 13px;
-    color: var(--ink-soft);
-    max-width: 340px;
-    margin: 0 auto;
-  }
-  .coming-soon-list{
-    list-style: none;
-    padding: 0;
-    margin: 18px auto 0;
-    max-width: 320px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 7px;
-    text-align: left;
-  }
-  .coming-soon-list li{
-    font-size: 12px;
-    color: var(--ink-soft);
-    background: var(--paper);
-    border-radius: 7px;
-    padding: 7px 9px;
-  }
-
-
-  /* Customer contact shown to the authenticated restaurant vendor */
-  .ticket-customer{margin:12px 0;padding:10px 11px;background:#F7F8FA;border:1px solid var(--line);border-radius:9px;display:flex;flex-direction:column;gap:4px;font-size:12px;line-height:1.4}
-  .ticket-customer-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
-  .ticket-customer-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;color:var(--ink-soft)}
-  .ticket-phone{color:var(--basil);font-weight:600;text-decoration:none;white-space:nowrap}
-  .ticket-customer span:last-child{color:var(--ink-soft)}
-
-  .topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-  .connection-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:11px;font-weight:700;color:var(--ink-soft)}
-  .connection-dot{width:7px;height:7px;border-radius:50%;background:var(--basil)}
-  .connection-pill.offline .connection-dot{background:var(--rust)}
-  .connection-pill.checking .connection-dot{background:var(--turmeric)}
-  .logout-btn{border:1px solid var(--line);background:var(--card);color:var(--ink-soft);border-radius:9px;padding:8px 11px;font-size:12px;font-weight:700;cursor:pointer}
-  .logout-btn:hover{color:var(--ink);border-color:#cfd2d9}
-  .offline-banner{display:none;position:sticky;top:0;z-index:90;background:var(--rust);color:#fff;text-align:center;padding:9px 12px;font-size:12px;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,.12)}
-  .offline-banner.show{display:block}
-  .retry-panel{grid-column:1/-1;text-align:center;padding:32px 18px;border:1px dashed var(--line);border-radius:12px;background:var(--card)}
-  .retry-panel h3{margin:0 0 6px;font-family:var(--font-display);font-size:16px}
-  .retry-panel p{margin:0 0 14px;color:var(--ink-soft);font-size:13px}
-  .retry-panel button{border:0;background:var(--ink);color:#fff;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer}
-  .section-tab[disabled]{cursor:not-allowed;opacity:.55}
-  .ticket button:disabled{cursor:wait;opacity:.65}
-  @media(max-width:640px){
-    .app-shell{padding:12px 10px 36px}
-    .topbar{align-items:flex-start}
-    .brand h1{font-size:18px;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .topbar-actions{gap:5px}
-    .connection-pill{display:none}
-    .logout-btn{padding:8px 9px}
-    .status-toggle{padding:8px 10px}
-  }
-
-
-.vendor-review{padding:16px 18px;border-bottom:1px solid var(--line)}.vendor-review:last-child{border-bottom:0}.vendor-review-top{display:flex;justify-content:space-between;gap:10px}.vendor-review-name{font-weight:700}.vendor-review-date{font-size:11px;color:var(--ink-soft)}.vendor-review-stars{color:#e9a400;letter-spacing:2px;margin-top:5px}.vendor-review-comment{margin:7px 0 0;color:var(--ink-soft);font-size:13px;line-height:1.5}.vendor-verified{display:inline-block;margin-top:8px;font-size:10px;color:var(--basil);font-weight:700}
-
-  .inventory-policy{font-size:12px;color:var(--ink-soft);font-weight:600;text-align:right;}
-  .customer-note{display:flex;flex-direction:column;gap:4px;margin:10px 0 0;padding:10px 11px;border:1px solid var(--basil);background:var(--basil-soft);border-radius:9px;font-size:12px;line-height:1.4;}
-  .customer-note strong{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--basil);}
-  @media(max-width:640px){.inventory-policy{display:none;}}
-  /* ============================================================
-     NEW-ORDER ALARM BAR  (sound + vibration companion)
-     ============================================================ */
+  /* ---------- New-order alarm bar ---------- */
   .alarm-bar{
     display:none; position:sticky; top:0; z-index:200;
-    align-items:center; gap:12px;
-    padding:12px 16px;
-    background:var(--flame); color:#fff;
-    font-family:var(--font-body); font-weight:800; font-size:14px;
-    box-shadow:0 6px 20px rgba(252,128,25,.35);
+    align-items:center; gap:12px; padding:13px 16px;
+    background:linear-gradient(135deg,#FC8019,#F26212); color:#fff;
+    font-weight:800; font-size:14px;
+    box-shadow:0 8px 22px rgba(242,98,18,.4);
     animation:alarmPulse 1s ease-in-out infinite;
   }
   .alarm-bar.show{ display:flex; }
-  .alarm-bar .alarm-ico{ font-size:18px; line-height:1; animation:alarmShake .9s ease-in-out infinite; }
+  .alarm-bar .alarm-ico{ font-size:19px; line-height:1; animation:alarmShake .9s ease-in-out infinite; }
   .alarm-bar .alarm-text{ flex:1; letter-spacing:-.2px; }
   .alarm-bar .alarm-stop{
-    border:0; cursor:pointer;
-    background:#fff; color:var(--flame-dark);
-    font-family:var(--font-body); font-weight:800; font-size:13px;
-    padding:8px 16px; border-radius:999px;
-    box-shadow:0 2px 6px rgba(0,0,0,.15);
+    border:0; cursor:pointer; background:#fff; color:var(--flame-dark);
+    font-weight:800; font-size:13px; padding:9px 16px; border-radius:999px;
+    box-shadow:0 2px 6px rgba(0,0,0,.18);
   }
   .alarm-bar .alarm-stop:active{ transform:translateY(1px); }
-  @keyframes alarmPulse{ 0%,100%{ filter:brightness(1); } 50%{ filter:brightness(1.12); } }
-  @keyframes alarmShake{ 0%,100%{ transform:rotate(0); } 25%{ transform:rotate(-18deg); } 75%{ transform:rotate(18deg); } }
-  @media (prefers-reduced-motion: reduce){
-    .alarm-bar, .alarm-bar .alarm-ico{ animation:none; }
+  @keyframes alarmPulse{ 0%,100%{ filter:brightness(1);} 50%{ filter:brightness(1.1);} }
+  @keyframes alarmShake{ 0%,100%{ transform:rotate(0);} 25%{ transform:rotate(-18deg);} 75%{ transform:rotate(18deg);} }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:100;
+    background:rgba(255,255,255,.94); backdrop-filter:saturate(1.4) blur(10px);
+    border-bottom:1px solid var(--line);
+    padding:12px 16px calc(12px + env(safe-area-inset-top,0));
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  }
+  .brand{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .brand-eyebrow{
+    font-size:10.5px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--green);
+  }
+  #restaurantName{
+    margin:0; font-size:19px; font-weight:800; letter-spacing:-.3px; line-height:1.15;
+    color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:56vw;
+  }
+  .topbar-actions{ display:flex; align-items:center; gap:8px; }
+  .connection-pill{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:11px; font-weight:700; color:var(--green-ink);
+    background:var(--green-soft); padding:5px 9px; border-radius:999px;
+  }
+  .connection-pill.offline{ color:var(--red); background:var(--red-soft); }
+  .connection-pill.checking{ color:var(--amber); background:var(--amber-soft); }
+  .connection-dot{ width:7px; height:7px; border-radius:50%; background:currentColor; }
+  .connection-pill.online .connection-dot{ animation:livePulse 1.6s ease-in-out infinite; }
+  @keyframes livePulse{ 0%,100%{ opacity:1;} 50%{ opacity:.35;} }
+
+  .status-toggle{
+    display:inline-flex; align-items:center; gap:7px; cursor:pointer;
+    border:1.5px solid var(--line); background:#fff; color:var(--ink-soft);
+    font-family:var(--font-body); font-weight:800; font-size:13px;
+    padding:8px 14px; border-radius:999px; transition:.15s;
+  }
+  .status-toggle .dot{ width:8px; height:8px; border-radius:50%; background:currentColor; }
+  .status-toggle.open{ color:var(--green-ink); background:var(--green-soft); border-color:transparent; }
+  .status-toggle.closed{ color:var(--red); background:var(--red-soft); border-color:transparent; }
+  .status-toggle:active{ transform:scale(.97); }
+  .logout-btn{
+    border:1px solid var(--line); background:#fff; color:var(--ink-soft);
+    font-family:var(--font-body); font-weight:700; font-size:12.5px;
+    padding:8px 12px; border-radius:999px; cursor:pointer;
+  }
+  .logout-btn:active{ transform:scale(.97); }
+
+  /* ---------- Bottom section nav (phone pattern) ---------- */
+  .section-rail{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:520px; z-index:130;
+    display:flex; background:#fff; border-top:1px solid var(--line);
+    box-shadow:0 -4px 20px rgba(28,32,36,.06);
+    padding-bottom:env(safe-area-inset-bottom,0);
+  }
+  .section-tab{
+    flex:1; border:0; background:none; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:9px 4px 8px; color:var(--ink-faint);
+    font-family:var(--font-body); font-weight:700; font-size:11px; letter-spacing:.01em;
+    position:relative;
+  }
+  .section-tab svg{ width:22px; height:22px; }
+  .section-tab[aria-selected="true"]{ color:var(--green); }
+  .section-tab[aria-selected="true"]::before{
+    content:""; position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:26px; height:3px; border-radius:0 0 3px 3px; background:var(--green);
+  }
+
+  /* ---------- Section container ---------- */
+  .dashboard-section{ padding:14px 16px 20px; }
+  .dashboard-section[hidden]{ display:none; }
+
+  /* ---------- Order-stage segmented control ---------- */
+  .tab-rail{
+    display:flex; gap:4px; background:#fff; border:1px solid var(--line);
+    border-radius:999px; padding:4px; margin-bottom:12px; overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .tab-rail::-webkit-scrollbar{ display:none; }
+  .tab{
+    flex:1 0 auto; border:0; background:none; cursor:pointer; white-space:nowrap;
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    padding:9px 14px; border-radius:999px;
+    font-family:var(--font-body); font-weight:700; font-size:13px; color:var(--ink-soft);
+    transition:.15s;
+  }
+  .tab[aria-selected="true"]{ background:var(--green); color:#fff; box-shadow:0 4px 12px rgba(21,154,98,.28); }
+  .tab .count{
+    min-width:19px; height:19px; padding:0 5px; border-radius:999px;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:800; background:var(--line); color:var(--ink-soft);
+  }
+  .tab[aria-selected="true"] .count{ background:rgba(255,255,255,.28); color:#fff; }
+
+  /* ---------- Toolbar row ---------- */
+  .toolbar-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    font-size:12px; color:var(--ink-soft); margin-bottom:12px; flex-wrap:wrap;
+  }
+  .refresh-btn{
+    display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+    border:1px solid var(--line); background:#fff; color:var(--ink-soft);
+    font-family:var(--font-body); font-weight:700; font-size:12.5px;
+    padding:7px 12px; border-radius:999px;
+  }
+  .refresh-btn svg{ width:15px; height:15px; }
+  .refresh-btn:active{ transform:scale(.97); }
+
+  /* ---------- Ticket rail + cards ---------- */
+  .ticket-rail,.menu-grid{ display:flex; flex-direction:column; gap:12px; }
+  .ticket{
+    position:relative; background:var(--card); border:1px solid var(--line);
+    border-radius:var(--r-lg); box-shadow:var(--shadow-card);
+    padding:15px 16px 14px 18px; overflow:hidden;
+  }
+  .ticket::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--ink-faint); }
+  .ticket.status-placed::before{ background:var(--flame); }
+  .ticket.status-confirmed::before,
+  .ticket.status-preparing::before{ background:var(--green); }
+  .ticket.status-waiting_for_rider::before,
+  .ticket.status-assigned::before,
+  .ticket.status-out_for_delivery::before{ background:var(--blue); }
+  .ticket.status-delivered::before{ background:var(--green); }
+  .ticket.status-cancelled::before{ background:var(--red); }
+
+  .ticket-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  .ticket-no{ font-size:16px; font-weight:800; letter-spacing:-.2px; font-variant-numeric:tabular-nums; }
+  .ticket-time{ font-size:12px; font-weight:700; color:var(--ink-soft); white-space:nowrap; }
+  .ticket.status-placed .ticket-time{ color:var(--flame-dark); }
+
+  .ticket-items{ list-style:none; margin:0 0 12px; padding:0; display:flex; flex-direction:column; gap:6px; }
+  .ticket-items li{ display:flex; gap:8px; font-size:14px; color:var(--ink); align-items:baseline; }
+  .ticket-items .qty{ font-weight:800; color:var(--green); min-width:26px; }
+  .ticket-items li.more{ font-size:12.5px; color:var(--ink-soft); font-weight:600; }
+
+  .ticket-customer{
+    background:var(--paper); border:1px solid var(--line-soft); border-radius:var(--r-md);
+    padding:11px 12px; display:flex; flex-direction:column; gap:4px; margin-bottom:12px;
+  }
+  .ticket-customer-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .ticket-customer-label{ font-size:10px; font-weight:800; letter-spacing:.1em; color:var(--ink-faint); }
+  .ticket-customer strong{ font-size:14px; font-weight:700; }
+  .ticket-customer span{ font-size:12.5px; color:var(--ink-soft); line-height:1.45; }
+  .ticket-phone{
+    display:inline-flex; align-items:center; gap:4px; text-decoration:none;
+    font-size:12.5px; font-weight:800; color:var(--green-ink);
+    background:var(--green-soft); padding:4px 10px; border-radius:999px;
+  }
+  .ticket-note{
+    background:var(--amber-soft); border-radius:var(--r-md); padding:9px 12px; margin-bottom:12px;
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .ticket-note strong{ font-size:11px; font-weight:800; color:var(--amber); text-transform:uppercase; letter-spacing:.05em; }
+  .ticket-note span{ font-size:13px; color:var(--ink); }
+
+  .ticket-foot{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .ticket-total{ font-size:19px; font-weight:800; letter-spacing:-.3px; }
+
+  /* ---------- Buttons ---------- */
+  .ticket-actions{ display:flex; gap:9px; }
+  .btn{
+    border:1.5px solid transparent; cursor:pointer; font-family:var(--font-body);
+    font-weight:800; font-size:14px; padding:11px 18px; border-radius:var(--r-sm);
+    transition:.15s; line-height:1;
+  }
+  .btn:active{ transform:scale(.97); }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+  .btn.accept,.btn.advance{ background:var(--green); color:#fff; box-shadow:0 4px 12px rgba(21,154,98,.28); }
+  .btn.accept:active,.btn.advance:active{ background:var(--green-ink); }
+  .btn.reject{ background:#fff; color:var(--red); border-color:var(--red); }
+  .btn.danger{ background:var(--red); color:#fff; }
+  .btn.ghost{ background:#fff; color:var(--ink-soft); border-color:var(--line); }
+
+  /* ---------- Badges ---------- */
+  .badge{
+    display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:800;
+    padding:6px 11px; border-radius:999px; background:var(--line); color:var(--ink-soft); white-space:nowrap;
+  }
+  .badge.dispatch{ background:var(--blue-soft); color:var(--blue); }
+  .badge.delivered{ background:var(--green-soft); color:var(--green-ink); }
+  .badge.cancelled{ background:var(--red-soft); color:var(--red); }
+
+  /* ---------- Skeletons ---------- */
+  .skeleton-ticket{
+    height:150px; border-radius:var(--r-lg);
+    background:linear-gradient(100deg,#EEF1F3 30%,#F7F9FA 50%,#EEF1F3 70%);
+    background-size:200% 100%; animation:shimmer 1.3s infinite;
+  }
+  @keyframes shimmer{ 0%{ background-position:200% 0;} 100%{ background-position:-200% 0;} }
+
+  /* ---------- Menu cards ---------- */
+  .menu-card{
+    display:flex; gap:12px; background:var(--card); border:1px solid var(--line);
+    border-radius:var(--r-lg); box-shadow:var(--shadow-card); padding:12px;
+  }
+  .menu-card.out-of-stock{ opacity:.62; }
+  .thumb-sm{ width:66px; height:66px; border-radius:var(--r-md); object-fit:cover; flex:none; }
+  .thumb-empty{ background:var(--paper); border:1px dashed var(--line); }
+  .menu-card-body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
+  .menu-card-name{ display:flex; align-items:center; gap:8px; }
+  .veg-dot{ width:12px; height:12px; border-radius:3px; flex:none; box-shadow:0 0 0 1.5px rgba(0,0,0,.18); }
+  .name-text{ font-size:15px; font-weight:700; letter-spacing:-.2px; }
+  .menu-card-meta{ font-size:12px; color:var(--ink-soft); }
+  .menu-card-price{ font-size:15px; font-weight:800; color:var(--green-ink); }
+  .menu-card-price s{ color:var(--ink-faint); font-weight:600; margin-left:6px; }
+  .menu-card-tags{ display:flex; gap:6px; flex-wrap:wrap; margin-top:2px; }
+  .menu-card-tags .badge{ background:var(--green-soft); color:var(--green-ink); font-size:11px; padding:4px 9px; }
+  .menu-card-foot{ display:flex; align-items:center; gap:10px; margin-top:6px; }
+
+  /* iOS-style stock switch */
+  .switch{ position:relative; display:inline-flex; cursor:pointer; }
+  .switch input{ position:absolute; opacity:0; width:0; height:0; }
+  .switch .track{
+    width:44px; height:26px; border-radius:999px; background:var(--line);
+    transition:.2s; position:relative; display:inline-block;
+  }
+  .switch .track::after{
+    content:""; position:absolute; top:3px; left:3px; width:20px; height:20px;
+    border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:.2s;
+  }
+  .switch input:checked + .track{ background:var(--green); }
+  .switch input:checked + .track::after{ transform:translateX(18px); }
+
+  /* ---------- Empty / coming-soon / retry ---------- */
+  .state-panel,.retry-panel{
+    text-align:center; padding:40px 22px; color:var(--ink-soft);
+    background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg);
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  .state-panel .icon-wrap{
+    width:64px; height:64px; border-radius:50%; background:var(--green-soft); color:var(--green);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .state-panel .icon-wrap svg{ width:30px; height:30px; }
+  .state-panel h3{ margin:0; font-size:17px; font-weight:800; color:var(--ink); }
+  .state-panel p{ margin:0; font-size:13.5px; max-width:32ch; line-height:1.5; }
+  .coming-soon-list{
+    list-style:none; padding:0; margin:8px 0 0; display:flex; flex-wrap:wrap; gap:7px; justify-content:center;
+  }
+  .coming-soon-list li{
+    font-size:11.5px; font-weight:600; color:var(--ink-soft);
+    background:var(--paper); border:1px solid var(--line); padding:5px 10px; border-radius:999px;
+  }
+  .retry-panel button{
+    border:0; background:var(--green); color:#fff; border-radius:var(--r-sm);
+    padding:10px 16px; font-family:var(--font-body); font-weight:800; cursor:pointer;
+  }
+
+  /* ---------- Cards / earnings ---------- */
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg); box-shadow:var(--shadow-card); }
+  .earnings-toolbar{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+  .earnings-toolbar strong{ font-size:16px; font-weight:800; }
+  .earnings-sub{ font-size:12px; color:var(--ink-soft); margin-top:2px; line-height:1.4; }
+  .earnings-select{
+    border:1px solid var(--line); background:#fff; color:var(--ink); font-family:var(--font-body);
+    font-weight:700; font-size:13px; padding:9px 12px; border-radius:var(--r-sm); cursor:pointer;
+  }
+  .earnings-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .earnings-card{ background:var(--card); border:1px solid var(--line); border-radius:var(--r-md); box-shadow:var(--shadow-sm); padding:14px; }
+  .earnings-label{ font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); }
+  .earnings-value{ font-size:23px; font-weight:800; letter-spacing:-.5px; margin-top:5px; }
+  .earnings-table-wrap{ overflow-x:auto; }
+  .earnings-table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .earnings-table th,.earnings-table td{ padding:11px 12px; text-align:left; border-bottom:1px solid var(--line-soft); white-space:nowrap; }
+  .earnings-table th{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); font-weight:700; }
+  .earnings-table .money{ text-align:right; font-variant-numeric:tabular-nums; }
+  .earnings-table tbody tr:last-child td{ border-bottom:0; }
+  .earnings-note{ font-size:11.5px; color:var(--ink-faint); margin-top:12px; line-height:1.5; }
+
+  /* ---------- Reviews ---------- */
+  .vendor-review{ padding:14px 16px; border-bottom:1px solid var(--line-soft); }
+  .vendor-review:last-child{ border-bottom:0; }
+  .vendor-review-top{ display:flex; justify-content:space-between; gap:10px; }
+  .vendor-review-name{ font-weight:700; }
+  .vendor-review-date{ font-size:11px; color:var(--ink-soft); }
+  .vendor-review-stars{ color:#F4B400; letter-spacing:2px; margin-top:5px; }
+  .vendor-review-comment{ margin:7px 0 0; color:var(--ink-soft); font-size:13px; line-height:1.5; }
+  .vendor-verified{ display:inline-block; margin-top:8px; font-size:10px; font-weight:800; color:var(--green-ink); background:var(--green-soft); padding:3px 8px; border-radius:999px; }
+
+  /* ---------- Toasts ---------- */
+  .toast-stack{
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom,0)); z-index:300;
+    display:flex; flex-direction:column; gap:8px; width:calc(100% - 32px); max-width:460px;
+  }
+  .toast{
+    background:#1C2024; color:#fff; font-size:13.5px; font-weight:700;
+    padding:12px 15px; border-radius:var(--r-md); box-shadow:var(--shadow-float);
+    border-left:4px solid var(--green); animation:toastIn .25s ease;
+  }
+  .toast.error{ border-left-color:var(--red); }
+  .toast.info{ border-left-color:var(--blue); }
+  .toast.warning{ border-left-color:var(--amber); }
+  @keyframes toastIn{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:none;} }
+
+  /* ---------- Reject modal ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:400; display:none; align-items:flex-end; justify-content:center;
+    background:rgba(15,23,20,.5); backdrop-filter:blur(3px); padding:0;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal{
+    background:#fff; width:100%; max-width:520px;
+    border-radius:var(--r-lg) var(--r-lg) 0 0; padding:22px 20px calc(22px + env(safe-area-inset-bottom,0));
+    box-shadow:var(--shadow-float); animation:sheetUp .28s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes sheetUp{ from{ transform:translateY(100%);} to{ transform:none;} }
+  .modal h3{ margin:0 0 6px; font-size:18px; font-weight:800; }
+  .modal p{ margin:0 0 14px; font-size:13.5px; color:var(--ink-soft); }
+  .modal textarea{
+    width:100%; min-height:88px; resize:vertical; font-family:var(--font-body); font-size:14px;
+    color:var(--ink); border:1px solid var(--line); border-radius:var(--r-md); padding:12px; background:var(--paper);
+  }
+  .modal textarea:focus{ outline:none; border-color:var(--green); background:#fff; }
+  .modal-actions{ display:flex; gap:10px; margin-top:16px; }
+  .modal-actions .btn{ flex:1; }
+
+  @media (prefers-reduced-motion:reduce){
+    *{ animation:none !important; }
+  }
+  @media (min-width:560px){
+    .earnings-grid{ grid-template-columns:repeat(4,1fr); }
   }
 </style>
   <link rel="manifest" href="./manifest.json">
