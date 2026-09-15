@@ -23,9 +23,7 @@ messaging.onBackgroundMessage(function (payload) {
   const title = d.title || 'New order';
   self.registration.showNotification(title, {
     body: d.body || '',
-    icon: './icon-192.png',
-    badge: './icon-192.png',
-    tag: d.orderId ? 'order-' + d.orderId : 'order',
+        tag: d.orderId ? 'order-' + d.orderId : 'order',
     renotify: true,             // re-alert on each repeat push (ring-until-accept)
     requireInteraction: true,   // stays on screen until tapped
     vibrate: [400, 200, 400, 200, 400],

@@ -577,6 +577,15 @@
 (function () {
   'use strict';
   const API_BASE = 'https://eatswada.onrender.com/api/vendor';              
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyA0bqVE3RCmiJORcufx-v6Gew16GMCfFp0",
+    authDomain: "eatswada.firebaseapp.com",
+    projectId: "eatswada",
+    storageBucket: "eatswada.firebasestorage.app",
+    messagingSenderId: "644274579271",
+    appId: "1:644274579271:web:ba72c4cd4f81c568fa0e62"
+  };
+  const VAPID_KEY = 'BKad9s8WW_Bfl0CZxH4tSRHyYJZOou5kIOcKBZ40xNmtqHPTVvntKB93BF1DGPQt9U_aQuv5iM1Ui_vNz5Ll-NA';
   const TOKEN_KEY = 'nearbite_vendor_token';       
   const POLL_INTERVAL = 15000;                          
   const MENU_API_BASE = API_BASE;
@@ -842,7 +851,71 @@
   })();
 
   document.addEventListener('pointerdown', function firstGesture(){ Alarm.unlock(); }, { once: true });
+  document.addEventListener('pointerdown', function enableVendorPush(){ initPush(); }, { once: true });
   document.getElementById('alarmStopBtn')?.addEventListener('click', function () { Alarm.unlock(); Alarm.stop(); switchSection('orders'); });
+
+
+  /* ── Firebase push notifications ─────────────────────────────── */
+  let pushReady = false;
+  async function initPush() {
+    try {
+      if (pushReady || !('serviceWorker' in navigator) || !('Notification' in window) || typeof firebase === 'undefined') return;
+      if (!localStorage.getItem(TOKEN_KEY)) return;
+      if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+
+      // Use the SAME root service worker that the Vendor PWA already registers.
+      // This avoids the invalid ./fcm/ scope that prevented FCM registration.
+      const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+
+      if (Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+      }
+      if (Notification.permission !== 'granted') return;
+
+      const messaging = firebase.messaging();
+      const token = await messaging.getToken({
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: reg
+      });
+
+      if (!token) return;
+
+      const res = await fetch('https://eatswada.onrender.com/api/notifications/register-token', {
+        method: 'POST',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      if (!res.ok) throw new Error('Vendor notification token registration failed.');
+
+      pushReady = true;
+
+      messaging.onMessage((payload) => {
+        const d = payload?.data || {};
+        if (d.type !== 'new_order') return;
+
+        // Refresh immediately so the new order appears without waiting for polling.
+        loadQueue(false).catch(() => {});
+
+        const count = Math.max(1, state.queue.filter(o => o.status === 'placed').length);
+        Alarm.start(count);
+        showToast('success', d.title || 'New order received');
+
+        try {
+          if (Notification.permission === 'granted') {
+            new Notification(d.title || 'New order!', {
+              body: d.body || 'A new order is waiting for acceptance.',
+              tag: d.orderId ? 'eatswada-vendor-order-' + d.orderId : 'eatswada-vendor-order',
+              renotify: true,
+              requireInteraction: true
+            });
+          }
+        } catch (_) {}
+      });
+    } catch (err) {
+      console.warn('[VENDOR PUSH]', err?.message || err);
+    }
+  }
 
   async function loadRestaurant() {
     try {
@@ -1031,6 +1104,7 @@
     if (!localStorage.getItem(TOKEN_KEY)) { location.replace('login.html'); return; }
     setConnectionState(navigator.onLine ? 'checking' : 'offline');
     await Promise.all([loadRestaurant(), loadQueue(true)]);
+    initPush();
     if (localStorage.getItem(TOKEN_KEY)) startPolling();
   }
   init();
