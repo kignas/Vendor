@@ -1000,12 +1000,52 @@
     }catch(err){ el.earningsCards.innerHTML='<div class="state-panel" style="grid-column:1/-1"><h3>Error loading</h3><p>'+escapeHtml(err.message||'Try again.')+'</p></div>'; el.earningsOrders.innerHTML='<tr><td colspan="6" style="padding:24px;text-align:center;">Could not load earnings.</td></tr>'; }
   }
 
+  /* ── Vendor reviews ───────────────────────────────────────────── */
+  async function loadReviews() {
+    const scoreEl = document.getElementById('vendor-review-score');
+    const countEl = document.getElementById('vendor-review-count');
+    const listEl = document.getElementById('vendor-reviews-list');
+    if (!scoreEl || !countEl || !listEl) return;
+    listEl.innerHTML = '<div class="state-panel">Loading reviews…</div>';
+    try {
+      const res = await apiFetch('/reviews?page=1&limit=50');
+      const summary = res?.summary || {};
+      const reviews = Array.isArray(res?.data) ? res.data : [];
+      const rating = Number(summary.rating);
+      scoreEl.textContent = Number.isFinite(rating) && rating > 0 ? rating.toFixed(1) + ' ★' : '—';
+      countEl.textContent = `${Number(summary.ratingCount || 0)} ratings · ${Number(summary.reviewCount ?? res?.total ?? reviews.length)} reviews`;
+      if (!reviews.length) {
+        listEl.innerHTML = '<div class="state-panel"><h3>No customer reviews yet</h3><p>Reviews from completed orders will appear here.</p></div>';
+        return;
+      }
+      listEl.innerHTML = reviews.map(r => {
+        const name = r.user?.name || 'Customer';
+        const score = Math.max(1, Math.min(5, Number(r.score || 0)));
+        const stars = '★'.repeat(score) + '☆'.repeat(5-score);
+        const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '';
+        const comment = r.comment ? escapeHtml(r.comment) : '<span style="color:var(--ink-faint)">No written comment.</span>';
+        return `<article style="padding:18px 20px;border-bottom:1px solid var(--border-soft);">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+            <div><strong>${escapeHtml(name)}</strong><div style="color:#f59e0b;letter-spacing:1px;margin-top:4px;">${stars}</div></div>
+            <time style="font-size:12px;color:var(--ink-faint);white-space:nowrap;">${escapeHtml(date)}</time>
+          </div>
+          <p style="margin-top:10px;line-height:1.55;color:var(--ink-soft);">${comment}</p>
+        </article>`;
+      }).join('');
+    } catch (err) {
+      scoreEl.textContent = '—';
+      countEl.textContent = 'Could not load reviews';
+      renderRetry(listEl, err.message || 'Could not load reviews.', loadReviews);
+    }
+  }
+
   function switchSection(name) {
     state.activeSection = name;
     el.sectionTabs.forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.section === name)));
     el.sections.forEach(sec => sec.hidden = sec.id !== 'section-' + name);
     if (name === 'menu' && !state.menuLoaded) loadMenu();
     if (name === 'earnings') loadEarnings();
+    if (name === 'reviews') loadReviews();
     if (name === 'store') renderStore();
   }
 
@@ -1079,6 +1119,7 @@
   });
   el.sectionTabs.forEach(tab => tab.addEventListener('click', () => switchSection(tab.dataset.section)));
   el.earningsPeriod?.addEventListener('change', loadEarnings); el.refreshBtn.addEventListener('click', () => loadQueue(false));
+  document.getElementById('vendor-review-refresh')?.addEventListener('click', loadReviews);
   document.getElementById('statusOptions').addEventListener('click', (e) => { const opt = e.target.closest('.status-option'); if (opt) applyRestaurantStatus(opt.dataset.status); });
   document.getElementById('statusSheetCancel').addEventListener('click', closeStatusSheet); document.getElementById('statusSheet').addEventListener('click', (e) => { if (e.target.id === 'statusSheet') closeStatusSheet(); });
   document.getElementById('storeStatusPill').addEventListener('click', openStatusSheet);
@@ -1092,9 +1133,26 @@
   el.rejectCancelBtn.addEventListener('click', closeRejectModal); el.rejectConfirmBtn.addEventListener('click', confirmReject);
   el.rejectModal.addEventListener('click', (e) => { if (e.target === el.rejectModal) closeRejectModal(); });
 
+  async function checkVendorNotifications() {
+    try {
+      const res = await fetchJson('https://eatswada.onrender.com/api/notifications', { headers: authHeaders() });
+      const rows = Array.isArray(res?.data) ? res.data : [];
+      const key = 'eatswada_vendor_seen_notifications';
+      const seen = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
+      const fresh = rows.filter(n => !seen.has(String(n._id)) && (n.data?.kind === 'new_order' || n.title === 'New order!'));
+      rows.slice(0,100).forEach(n => seen.add(String(n._id)));
+      localStorage.setItem(key, JSON.stringify([...seen].slice(-200)));
+      if (fresh.length) {
+        await loadQueue(false);
+        Alarm.start(Math.max(1, state.queue.filter(o => o.status === 'placed').length));
+        showToast('success', fresh.length === 1 ? 'New order received' : `${fresh.length} new orders received`);
+      }
+    } catch (_) {}
+  }
+
   function startPolling() {
     stopPolling();
-    const tick = async () => { if (!document.hidden && navigator.onLine) await loadQueue(false); const delay = Math.min(POLL_INTERVAL * Math.pow(2, Math.min(state.consecutivePollErrors, 4)), 120000); state.pollTimer = setTimeout(tick, delay); };
+    const tick = async () => { if (!document.hidden && navigator.onLine) { await loadQueue(false); await checkVendorNotifications(); } const delay = Math.min(POLL_INTERVAL * Math.pow(2, Math.min(state.consecutivePollErrors, 4)), 120000); state.pollTimer = setTimeout(tick, delay); };
     state.pollTimer = setTimeout(tick, POLL_INTERVAL);
   }
   function stopPolling() { if (state.pollTimer) clearTimeout(state.pollTimer); }
@@ -1105,6 +1163,7 @@
     setConnectionState(navigator.onLine ? 'checking' : 'offline');
     await Promise.all([loadRestaurant(), loadQueue(true)]);
     initPush();
+    await checkVendorNotifications();
     if (localStorage.getItem(TOKEN_KEY)) startPolling();
   }
   init();
