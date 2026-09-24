@@ -1145,7 +1145,7 @@
       if (fresh.length) {
         await loadQueue(false);
         Alarm.start(Math.max(1, state.queue.filter(o => o.status === 'placed').length));
-        showToast('success', fresh.length === 1 ? 'New order received' : `${fresh.length} new orders received`);
+        showToast('success', d.title || 'New order received');
       }
     } catch (_) {}
   }
