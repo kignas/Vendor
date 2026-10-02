@@ -12,16 +12,13 @@
   'use strict';
 
   // ---- Host slots --------------------------------------------------------
-  // Render (active for this testing stage).
+  // Render is the only API host used by this upgrade. AWS is not touched by frontend code.
   var RENDER_API_ORIGIN = window.EATSWADA_RENDER_ORIGIN || 'https://eatswada.onrender.com';
 
-  // AWS (kept as a switchable alternative; not used by default).
-  var AWS_API_ORIGIN = 'https://api.eatswada.com';
-
   // ---- Active-host switch (ONE line) ------------------------------------
-  // 'render' | 'aws'
+  // 'render' | 'aws'  (only 'render' is supported in this upgrade)
   var ACTIVE_API = 'render';
-  var SELECTED_API_ORIGIN = (ACTIVE_API === 'render') ? RENDER_API_ORIGIN : AWS_API_ORIGIN;
+  var SELECTED_API_ORIGIN = (ACTIVE_API === 'render') ? RENDER_API_ORIGIN : '';
 
   // ---- No silent fallback ------------------------------------------------
   var CONFIG_ERROR = null;
@@ -36,25 +33,29 @@
   var API = API_ORIGIN ? API_ORIGIN + '/api' : '';
 
   window.EATSWADA_CONFIG = {
-    API_ORIGIN: API_ORIGIN,
     ACTIVE_API: ACTIVE_API,
     CONFIG_ERROR: CONFIG_ERROR,
 
-    // Resource routes consumed by the dashboard (orders, menu, restaurant…)
-    API_BASE: API ? API + '/vendor' : '',
-    // Vendor authentication (login) lives under the auth mount
-    AUTH_BASE: API ? API + '/auth' : '',
-    // Public vendor-application submission + status lookup
-    APPLICATIONS_BASE: API ? API + '/vendor-applications' : '',
-    // Notification feed + device-token registration
-    NOTIFICATIONS_BASE: API ? API + '/notifications' : '',
+    API_ORIGIN: API_ORIGIN,
+    API: API,
+    API_BASE: API_BASE || '',
+    AUTH_BASE: AUTH_BASE || '',
+    APPLICATIONS_BASE: APPLICATIONS_BASE || '',
+    NOTIFICATIONS_BASE: NOTIFICATIONS_BASE || '',
 
-    // Session storage keys (kept identical to the existing portal)
-    TOKEN_KEY: 'nearbite_vendor_token',
-    USER_KEY: 'nearbite_vendor_user',
-    RESTAURANT_KEY: 'nearbite_vendor_restaurant',
-
-    // Order queue polling interval (ms)
-    POLL_INTERVAL: 15000
+    TOKEN_KEY: CONFIG.TOKEN_KEY,
+    USER_KEY: CONFIG.USER_KEY,
+    RESTAURANT_KEY: CONFIG.RESTAURANT_KEY,
+    POLL_INTERVAL: CONFIG.POLL_INTERVAL,
+    RENDER_ORIGIN: API_ORIGIN
   };
+
+  function setupApplicationRouting() {
+    const APPS = window.EATSWADA_CONFIG.APPLICATIONS_BASE;
+    if (!APPS) return;
+    const ROUTES = { SUBMIT: APPS + '/applications', STATUS: APPS + '/:id/status', EDIT: APPS + '/:id/edit' };
+    return ROUTES;
+  }
+  window.EATSWADA_CONFIG = Object.assign(window.EATSWADA_CONFIG, { setupApplicationRouting });
+  delete window.EATSWADA_CONFIG.setupApplicationRouting;
 })();
