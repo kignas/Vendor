@@ -310,16 +310,18 @@
 
   <div class="toast-stack" id="toastStack"></div>
 
+<script src="./config.js"></script>
 <script>
 (function () {
   'use strict';
 
   /* ============================================================
-     CONFIG
+     CONFIG — centralized in ./config.js (single Render↔AWS switch)
      ============================================================ */
-  const API_BASE  = 'https://api.eatswada.com/api/vendor'; // resource routes — used here only to verify an existing token
-  const AUTH_BASE = 'https://api.eatswada.com/api/auth';   // login lives here, per your authRoutes.js mount (/api/auth + /vendor/login)
-  const TOKEN_KEY = 'nearbite_vendor_token';
+  const CFG       = window.EATSWADA_CONFIG;
+  const API_BASE  = CFG.API_BASE;  // resource routes — used here only to verify an existing token
+  const AUTH_BASE = CFG.AUTH_BASE; // vendor login
+  const TOKEN_KEY = CFG.TOKEN_KEY;
 
   /* ============================================================
      DOM REFS

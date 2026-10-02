@@ -38,8 +38,8 @@ self.addEventListener('notificationclick', function(event) {
   );
 });
 
-const CACHE = 'eatswada-vendor-shell-v1';
-const SHELL = ['./', './index.html', './login.html', './manifest.json'];
+const CACHE = 'eatswada-vendor-shell-v2';
+const SHELL = ['./', './index.html', './login.html', './config.js', './manifest.json'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });

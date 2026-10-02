@@ -388,7 +388,10 @@
           <span class="brand-eyebrow">Eatswada Vendor</span>
           <h1 id="restaurantName">Loading restaurant…</h1>
         </div>
-        <button class="logout-btn" id="logoutBtn" type="button" aria-label="Sign out">Sign out</button>
+        <div style="display:flex;align-items:center;gap:8px;flex:none;">
+          <button class="logout-btn" id="bellBtn" type="button" aria-label="Notifications" style="position:relative;">🔔<span id="bellCount" style="display:none;position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border-radius:999px;padding:1px 6px;font-size:10px;font-weight:800;">0</span></button>
+          <button class="logout-btn" id="logoutBtn" type="button" aria-label="Sign out">Sign out</button>
+        </div>
       </div>
       <div class="topbar-actions">
         <div class="topbar-actions-left">
@@ -401,7 +404,11 @@
     </header>
 
     <nav class="section-rail" role="tablist" aria-label="Dashboard sections">
-      <button class="section-tab" role="tab" data-section="orders" aria-selected="true">
+      <button class="section-tab" role="tab" data-section="home" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21v-6h6v6"/></svg>
+        Home
+      </button>
+      <button class="section-tab" role="tab" data-section="orders" aria-selected="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
         Orders
       </button>
@@ -423,8 +430,42 @@
       </button>
     </nav>
 
+    <!-- SECTION: OVERVIEW (HOME) -->
+    <section class="dashboard-section" id="section-home">
+      <div class="card" style="padding:18px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div class="earnings-label">Restaurant status</div>
+            <div id="ov-status" style="font-size:20px;font-weight:800;margin-top:4px;">—</div>
+            <div id="ov-status-sub" class="earnings-sub">Loading…</div>
+          </div>
+          <button class="btn ghost" id="ov-open-store" type="button" style="padding:10px 14px;border-radius:12px;">Manage availability</button>
+        </div>
+      </div>
+      <div class="earnings-grid" id="ov-cards">
+        <div class="earnings-card"><div class="earnings-label">Loading</div><div class="earnings-value">…</div></div>
+        <div class="earnings-card"><div class="earnings-label">Loading</div><div class="earnings-value">…</div></div>
+      </div>
+      <div class="card" style="padding:16px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div style="font-weight:800;">Quick actions</div>
+          <button class="refresh-btn" id="ov-refresh" type="button">↻ Refresh</button>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+          <button class="btn accept" type="button" data-goto="orders">View live orders</button>
+          <button class="btn ghost" type="button" data-goto="menu">Manage stock</button>
+          <button class="btn ghost" type="button" data-goto="earnings">Earnings</button>
+          <button class="btn ghost" type="button" data-goto="reviews">Reviews</button>
+        </div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div style="font-weight:800;margin-bottom:4px;">Document &amp; account status</div>
+        <div id="ov-docs" class="earnings-sub">Loading…</div>
+      </div>
+    </section>
+
     <!-- SECTION: ORDERS -->
-    <section class="dashboard-section" id="section-orders">
+    <section class="dashboard-section" id="section-orders" hidden>
       <nav class="tab-rail" role="tablist">
         <button class="tab" role="tab" data-tab="new" aria-selected="true">New <span class="count" id="countNew">0</span></button>
         <button class="tab" role="tab" data-tab="preparing" aria-selected="false">Preparing <span class="count" id="countPreparing">0</span></button>
@@ -571,12 +612,24 @@
     </div>
   </div>
 
+  <!-- Notifications Sheet -->
+  <div class="modal-overlay" id="notifSheet">
+    <div class="modal">
+      <h3>Notifications</h3>
+      <p>Orders, menu approvals, documents and settlement updates from Eatswada.</p>
+      <div id="notifList" style="max-height:56vh;overflow-y:auto;margin:-4px 0 4px;"></div>
+      <div class="modal-actions"><button class="btn ghost" id="notifClose" type="button">Close</button></div>
+    </div>
+  </div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<script src="./config.js"></script>
 <script>
 (function () {
   'use strict';
-  const API_BASE = 'https://api.eatswada.com/api/vendor';              
+  const CFG = window.EATSWADA_CONFIG;
+  const API_BASE = CFG.API_BASE;              
   const FIREBASE_CONFIG = {
     apiKey: "AIzaSyA0bqVE3RCmiJORcufx-v6Gew16GMCfFp0",
     authDomain: "eatswada.firebaseapp.com",
@@ -586,12 +639,12 @@
     appId: "1:644274579271:web:ba72c4cd4f81c568fa0e62"
   };
   const VAPID_KEY = 'BKad9s8WW_Bfl0CZxH4tSRHyYJZOou5kIOcKBZ40xNmtqHPTVvntKB93BF1DGPQt9U_aQuv5iM1Ui_vNz5Ll-NA';
-  const TOKEN_KEY = 'nearbite_vendor_token';       
-  const POLL_INTERVAL = 15000;                          
+  const TOKEN_KEY = CFG.TOKEN_KEY;       
+  const POLL_INTERVAL = CFG.POLL_INTERVAL;                          
   const MENU_API_BASE = API_BASE;
 
   const state = {
-    activeSection: 'orders', activeTab: 'new', queue: [], history: [],        
+    activeSection: 'home', activeTab: 'new', queue: [], history: [],        
     historyLoaded: false, restaurant: null, pollTimer: null, pendingRejectOrderId: null,
     menuItems: [], menuLoaded: false, previousNewOrderCount: 0, initialQueueLoaded: false,
     queueRequest: 0, historyRequest: 0, menuRequest: 0, actionBusy: new Set(), consecutivePollErrors: 0
@@ -826,6 +879,7 @@
     el.countNew.textContent = newOrdersCount;
     el.countPreparing.textContent = state.queue.filter(o => o.status === 'confirmed' || o.status === 'preparing').length;
     el.countDispatch.textContent = state.queue.filter(o => ['waiting_for_rider','assigned','out_for_delivery'].includes(o.status)).length;
+    refreshOverviewCounts();
   }
 
   const Alarm = (function () {
@@ -881,7 +935,7 @@
 
       if (!token) return;
 
-      const res = await fetch('https://api.eatswada.com/api/notifications/register-token', {
+      const res = await fetch(CFG.NOTIFICATIONS_BASE + '/register-token', {
         method: 'POST',
         headers: { ...authHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ token })
@@ -1039,10 +1093,121 @@
     }
   }
 
+  /* ── Overview (home) ──────────────────────────────────────── */
+  function overviewCard(label, value) {
+    return '<div class="earnings-card"><div class="earnings-label">' + label + '</div><div class="earnings-value">' + value + '</div></div>';
+  }
+  function refreshOverviewCounts() {
+    const p = document.getElementById('ovPending');
+    const a = document.getElementById('ovActive');
+    if (p) p.textContent = String(state.queue.filter(o => o.status === 'placed').length);
+    if (a) a.textContent = String(state.queue.filter(o => ['confirmed','preparing','waiting_for_rider','assigned','out_for_delivery'].includes(o.status)).length);
+  }
+  function renderOverviewStatus() {
+    const s = document.getElementById('ov-status');
+    const sub = document.getElementById('ov-status-sub');
+    if (!s) return;
+    const r = state.restaurant || {};
+    const status = state.currentStatus || (r.availability && r.availability.status) || (r.isOpen === false ? 'temporarily_closed' : 'open');
+    const isOpen = status === 'open' || status === 'busy';
+    s.textContent = STATUS_LABEL[status] || (isOpen ? 'Open' : 'Closed');
+    s.style.color = isOpen ? (status === 'busy' ? 'var(--warning)' : 'var(--green-dark)') : 'var(--danger)';
+    if (sub) sub.textContent = r.name || '';
+  }
+  function renderOverviewDocs() {
+    const box = document.getElementById('ov-docs');
+    if (!box) return;
+    const r = state.restaurant || {};
+    const bits = [];
+    if (r.fssaiLicenseNumber || r.fssai) bits.push('FSSAI on file');
+    if (typeof r.isVerified === 'boolean') bits.push(r.isVerified ? 'Verified' : 'Verification pending');
+    if (r.applicationStatus) bits.push('Application: ' + String(r.applicationStatus).replace(/_/g, ' '));
+    box.innerHTML = (bits.length ? escapeHtml(bits.join(' · ')) : 'Verification details are managed by Eatswada admin.') +
+      ' <a href="application-status.html" style="color:var(--green-dark);font-weight:800;">Check application status →</a>';
+  }
+  async function loadOverview() {
+    const cards = document.getElementById('ov-cards');
+    if (!cards) return;
+    renderOverviewStatus();
+    renderOverviewDocs();
+    cards.innerHTML = overviewCard('Loading', '…').repeat(4);
+    try {
+      const [today, month] = await Promise.all([
+        fetchJson(API_BASE + '/earnings/summary?period=today', { headers: authHeaders() }),
+        fetchJson(API_BASE + '/earnings/summary?period=30d', { headers: authHeaders() })
+      ]);
+      const t = (today && today.data && today.data.current) || {};
+      const m = (month && month.data && month.data.current) || {};
+      const pending = state.queue.filter(o => o.status === 'placed').length;
+      const active = state.queue.filter(o => ['confirmed','preparing','waiting_for_rider','assigned','out_for_delivery'].includes(o.status)).length;
+      cards.innerHTML =
+        '<div class="earnings-card"><div class="earnings-label">Pending orders</div><div class="earnings-value" id="ovPending">' + pending + '</div></div>' +
+        '<div class="earnings-card"><div class="earnings-label">Active orders</div><div class="earnings-value" id="ovActive">' + active + '</div></div>' +
+        overviewCard('Today\u2019s sales', money(t.deliveredFoodSales)) +
+        overviewCard('Today\u2019s earnings', money(t.deliveredEarnings)) +
+        overviewCard('30-day sales', money(m.deliveredFoodSales)) +
+        overviewCard('30-day earnings', money(m.deliveredEarnings)) +
+        overviewCard('Commission (30d)', money(m.deliveredCommission)) +
+        overviewCard('In progress', money(t.inProgress));
+    } catch (err) {
+      if (err.message === 'Your session has expired.') return;
+      cards.innerHTML = '<div class="state-panel" style="grid-column:1/-1"><h3>Couldn\u2019t load overview</h3><p>' + escapeHtml(err.message || 'Please try again.') + '</p></div>';
+    }
+  }
+
+  /* ── Notifications ────────────────────────────────────────── */
+  const NOTIF_READ_KEY = 'eatswada_vendor_read_notifications';
+  function notifReadSet() { try { return new Set(JSON.parse(localStorage.getItem(NOTIF_READ_KEY) || '[]')); } catch (_) { return new Set(); } }
+  function renderNotificationBadge() {
+    const badge = document.getElementById('bellCount');
+    if (!badge) return;
+    const read = notifReadSet();
+    const unread = (state.notifications || []).filter(n => !read.has(String(n._id))).length;
+    badge.textContent = String(unread);
+    badge.style.display = unread > 0 ? 'inline-block' : 'none';
+  }
+  function renderNotificationSheet() {
+    const list = document.getElementById('notifList');
+    if (!list) return;
+    const rows = state.notifications || [];
+    if (!rows.length) { list.innerHTML = '<div class="state-panel" style="border:0;box-shadow:none;"><h3>No notifications</h3><p>Updates will appear here.</p></div>'; return; }
+    list.innerHTML = rows.map(n => {
+      const title = n.title || (n.data && n.data.title) || 'Notification';
+      const bodyText = n.body || n.message || (n.data && n.data.body) || '';
+      const when = n.createdAt ? new Date(n.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+      return '<div style="padding:12px 4px;border-bottom:1px solid var(--border-soft);">' +
+        '<div style="display:flex;justify-content:space-between;gap:10px;"><strong style="font-size:14px;">' + escapeHtml(title) + '</strong>' + (when ? '<span style="font-size:11px;color:var(--ink-faint);white-space:nowrap;">' + escapeHtml(when) + '</span>' : '') + '</div>' +
+        (bodyText ? '<div style="font-size:13px;color:var(--ink-soft);margin-top:4px;line-height:1.5;">' + escapeHtml(bodyText) + '</div>' : '') +
+        '</div>';
+    }).join('');
+  }
+  async function loadNotifications(openSheet) {
+    try {
+      const res = await fetchJson(CFG.NOTIFICATIONS_BASE, { headers: authHeaders() });
+      state.notifications = Array.isArray(res && res.data) ? res.data : [];
+      renderNotificationBadge();
+      if (openSheet) { renderNotificationSheet(); markNotificationsRead(); }
+    } catch (err) {
+      if (err.message === 'Your session has expired.') return;
+      if (openSheet) { const list = document.getElementById('notifList'); if (list) list.innerHTML = '<div class="state-panel" style="border:0;box-shadow:none;"><h3>Couldn\u2019t load notifications</h3><p>' + escapeHtml(err.message || 'Please try again.') + '</p></div>'; }
+    }
+  }
+  function markNotificationsRead() {
+    try {
+      const read = notifReadSet();
+      (state.notifications || []).forEach(n => { if (n && n._id) read.add(String(n._id)); });
+      localStorage.setItem(NOTIF_READ_KEY, JSON.stringify([...read].slice(-300)));
+    } catch (_) {}
+    renderNotificationBadge();
+  }
+  function openNotifSheet() { const s = document.getElementById('notifSheet'); if (s) s.classList.add('open'); loadNotifications(true); }
+  function closeNotifSheet() { const s = document.getElementById('notifSheet'); if (s) s.classList.remove('open'); }
+
   function switchSection(name) {
     state.activeSection = name;
     el.sectionTabs.forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.section === name)));
     el.sections.forEach(sec => sec.hidden = sec.id !== 'section-' + name);
+    if (name === 'home') loadOverview();
     if (name === 'menu' && !state.menuLoaded) loadMenu();
     if (name === 'earnings') loadEarnings();
     if (name === 'reviews') loadReviews();
@@ -1120,6 +1285,12 @@
   el.sectionTabs.forEach(tab => tab.addEventListener('click', () => switchSection(tab.dataset.section)));
   el.earningsPeriod?.addEventListener('change', loadEarnings); el.refreshBtn.addEventListener('click', () => loadQueue(false));
   document.getElementById('vendor-review-refresh')?.addEventListener('click', loadReviews);
+  document.getElementById('bellBtn')?.addEventListener('click', openNotifSheet);
+  document.getElementById('notifClose')?.addEventListener('click', closeNotifSheet);
+  document.getElementById('notifSheet')?.addEventListener('click', (e) => { if (e.target.id === 'notifSheet') closeNotifSheet(); });
+  document.getElementById('ov-refresh')?.addEventListener('click', loadOverview);
+  document.getElementById('ov-open-store')?.addEventListener('click', openStatusSheet);
+  document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => switchSection(b.dataset.goto)));
   document.getElementById('statusOptions').addEventListener('click', (e) => { const opt = e.target.closest('.status-option'); if (opt) applyRestaurantStatus(opt.dataset.status); });
   document.getElementById('statusSheetCancel').addEventListener('click', closeStatusSheet); document.getElementById('statusSheet').addEventListener('click', (e) => { if (e.target.id === 'statusSheet') closeStatusSheet(); });
   document.getElementById('storeStatusPill').addEventListener('click', openStatusSheet);
@@ -1135,7 +1306,7 @@
 
   async function checkVendorNotifications() {
     try {
-      const res = await fetchJson('https://api.eatswada.com/api/notifications', { headers: authHeaders() });
+      const res = await fetchJson(CFG.NOTIFICATIONS_BASE, { headers: authHeaders() });
       const rows = Array.isArray(res?.data) ? res.data : [];
       const key = 'eatswada_vendor_seen_notifications';
       const seen = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
@@ -1145,7 +1316,7 @@
       if (fresh.length) {
         await loadQueue(false);
         Alarm.start(Math.max(1, state.queue.filter(o => o.status === 'placed').length));
-        showToast('success', d.title || 'New order received');
+        showToast('success', (fresh[0] && fresh[0].title) || 'New order received');
       }
     } catch (_) {}
   }
@@ -1162,6 +1333,8 @@
     if (!localStorage.getItem(TOKEN_KEY)) { location.replace('login.html'); return; }
     setConnectionState(navigator.onLine ? 'checking' : 'offline');
     await Promise.all([loadRestaurant(), loadQueue(true)]);
+    loadOverview();
+    loadNotifications(false);
     initPush();
     await checkVendorNotifications();
     if (localStorage.getItem(TOKEN_KEY)) startPolling();
