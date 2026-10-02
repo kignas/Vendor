@@ -409,7 +409,7 @@
   var locationBtn = document.getElementById('locationBtn');
   var v = function (id) { var n = document.getElementById(id); return n ? n.value.trim() : ''; };
 
-  var state = { step: 0, restaurantType: '', deliveryMode: '', submitted: false, inFlight: false };
+  var state = { step: 0, restaurantType: '', deliveryMode: '', submitted: false, inFlight: false, editingMode: false, editingApplication: null, editingLoaded: false, editingError: '' };
 
   for (var d = 0; d < TOTAL_STEPS; d++) dots.appendChild(document.createElement('i'));
 
@@ -590,7 +590,42 @@
   });
   backBtn.addEventListener('click', function () { if (state.step > 0) { state.step--; clearMessage(); renderStep(); } });
 
-  /* ---------- Submit ----------
+  /* ---------- Load existing application for editing ---------- */
+  function loadEditing(app) {
+    if (!app) return;
+    state.editingMode = true;
+    state.editingApplication = app;
+    state.editingLoaded = false;
+    state.editingError = '';
+
+    var d = app.data;
+    if (d) {
+      var fields = ['ownerName','phone','email','password','restaurantName','cuisine','description','address','fssai','alternatePhone','landmark','pan','gst','longitude','latitude'];
+      for (var i = 0; i < fields.length; i++) {
+        var id = fields[i];
+        var el = document.getElementById(id);
+        if (el && d[id] !== undefined && d[id] !== null) {
+          if (id === 'longitude' || id === 'latitude') {
+            el.value = Number(d[id]) ? String(Number(d[id]).toFixed(6)) : '';
+          } else if (id === 'password') {
+            el.value = d.password || '';
+          } else {
+            el.value = String(d[id]);
+          }
+        }
+      }
+      var rtEl = document.getElementById('restaurantTypeChoices').querySelector('[data-value="' + app.data.restaurantType + '"]');
+      if (rtEl) { rtEl.classList.add('selected'); rtEl.setAttribute('aria-checked','true'); state.restaurantType = rtEl.dataset.value; }
+      var dmEl = document.getElementById('deliveryChoices').querySelector('[data-value="' + app.data.deliveryMode + '"]');
+      if (dmEl) { dmEl.classList.add('selected'); dmEl.setAttribute('aria-checked','true'); state.deliveryMode = dmEl.dataset.value; }
+    }
+
+    state.editingLoaded = true;
+  }
+
+  function showEditingError(text) { state.editingError = text || ''; }
+
+  /* ---------- Validate ---------- */
      Payload contains ONLY fields the backend accepts today.
      Deliberately NOT sent: restaurant type, landmark, alternate phone, delivery method,
      PAN, GST, and any image/document file. Those inputs are never persisted or stored. */
@@ -616,6 +651,11 @@
       };
     } catch (err) { showMessage(err.message, 'error'); return; }
 
+    // Prefill the form from the application loaded via initialLoad(), then submit.
+    if (state.editingLoaded) {
+      state.editingLoaded = false;
+    }
+
     state.inFlight = true;
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting…';
@@ -637,13 +677,18 @@
       if (a.id) sessionStorage.setItem('eatswada_vendor_application_id', a.id);
       if (a.statusToken) sessionStorage.setItem('eatswada_vendor_application_status_token', a.statusToken);
 
-      // Drop sensitive + unsupported values from memory as soon as we are done.
-      ['pan','gst','password','idDocument','logo','cover'].forEach(function (id) {
-        var n = document.getElementById(id); if (n) n.value = '';
-      });
-      form.reset();
+      }
 
-      var statusKey = String(a.status || 'submitted').toLowerCase();
+    state.inFlight = true;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+    showMessage('Submitting application…', 'success');
+
+    var controller = new AbortController();
+    var timeout = setTimeout(function () { controller.abort(); }, 20000);
+    try {
+      var res = await fetch(API, {
+
       var STATUS_LABEL = {
         draft:'DRAFT', submitted:'SUBMITTED', pending:'PENDING REVIEW',
         under_review:'UNDER REVIEW', more_information_required:'MORE INFORMATION REQUIRED',
