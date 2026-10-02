@@ -576,7 +576,7 @@
 <script>
 (function () {
   'use strict';
-  const API_BASE = 'https://eatswada.onrender.com/api/vendor';              
+  const API_BASE = 'https://api.eatswada.com/api/vendor';              
   const FIREBASE_CONFIG = {
     apiKey: "AIzaSyA0bqVE3RCmiJORcufx-v6Gew16GMCfFp0",
     authDomain: "eatswada.firebaseapp.com",
@@ -881,7 +881,7 @@
 
       if (!token) return;
 
-      const res = await fetch('https://eatswada.onrender.com/api/notifications/register-token', {
+      const res = await fetch('https://api.eatswada.com/api/notifications/register-token', {
         method: 'POST',
         headers: { ...authHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ token })
@@ -1135,7 +1135,7 @@
 
   async function checkVendorNotifications() {
     try {
-      const res = await fetchJson('https://eatswada.onrender.com/api/notifications', { headers: authHeaders() });
+      const res = await fetchJson('https://api.eatswada.com/api/notifications', { headers: authHeaders() });
       const rows = Array.isArray(res?.data) ? res.data : [];
       const key = 'eatswada_vendor_seen_notifications';
       const seen = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
