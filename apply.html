@@ -65,13 +65,6 @@
   .field.invalid input,.field.invalid textarea,.field.invalid select{ border-color:var(--red); box-shadow:0 0 0 3px rgba(198,58,47,.08); }
   .field.invalid .field-error{ display:block; }
 
-  /* Pending-backend fields: collected for admin review, not yet persisted */
-  .pending-note{
-    display:flex; align-items:flex-start; gap:8px; margin-top:6px;
-    font-size:11px; line-height:1.5; color:var(--amber);
-  }
-  .pending-note::before{ content:"\26A0"; flex:none; }
-
   /* Choice cards */
   .choices{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .choice{
@@ -156,6 +149,8 @@
     </div>
     <div class="dots" id="dots" aria-hidden="true"></div>
 
+    <div class="notice" id="existingNotice" style="display:none"></div>
+
     <form id="form" novalidate>
       <!-- STEP 1: OWNER DETAILS -->
       <section class="panel" data-panel="0">
@@ -178,16 +173,10 @@
             <div class="field-error">Enter a valid email address.</div>
           </div>
           <div class="field full" id="f-password">
-            <label for="password">Password *</label>
+            <label for="password" id="passwordLabel">Password *</label>
             <input id="password" type="password" minlength="10" autocomplete="new-password" required>
-            <div class="hint">At least 10 characters. You'll use this to sign in after approval.</div>
+            <div class="hint" id="passwordHint">At least 10 characters. You'll use this to sign in after approval.</div>
             <div class="field-error">Password must be at least 10 characters.</div>
-          </div>
-          <div class="field full" id="f-alternatePhone">
-            <label for="alternatePhone">Alternate contact number <span style="font-weight:600;color:var(--ink-soft)">(optional)</span></label>
-            <input id="alternatePhone" inputmode="tel" placeholder="Alternate number for order issues">
-            <div class="pending-note">Recorded for admin review only — the current backend does not yet store this field.</div>
-            <div class="field-error">Enter a valid alternate number.</div>
           </div>
         </div>
       </section>
@@ -211,17 +200,8 @@
               <button type="button" class="choice" data-value="cloud_kitchen" role="radio" aria-checked="false">
                 <strong>Cloud kitchen</strong><span>Delivery-only kitchen with no customer seating.</span>
               </button>
-              <button type="button" class="choice" data-value="cafe" role="radio" aria-checked="false">
-                <strong>Café</strong><span>Coffee, tea and light snacks.</span>
-              </button>
-              <button type="button" class="choice" data-value="bakery" role="radio" aria-checked="false">
-                <strong>Bakery</strong><span>Baked goods, cakes and desserts.</span>
-              </button>
-              <button type="button" class="choice" data-value="other" role="radio" aria-checked="false">
-                <strong>Other</strong><span>Tell us more in the description.</span>
-              </button>
             </div>
-            <div class="pending-note">Recorded for admin review only — the current backend does not yet store the restaurant type.</div>
+            <div class="hint">Eatswada currently onboards restaurants and cloud kitchens.</div>
             <div class="field-error" id="restaurantTypeError">Choose a restaurant type.</div>
           </div>
           <div class="field full" id="f-cuisine">
@@ -234,25 +214,10 @@
             <label for="description">Short description <span style="font-weight:600;color:var(--ink-soft)">(optional)</span></label>
             <textarea id="description" maxlength="1000" placeholder="A short description customers will see."></textarea>
           </div>
-          <div class="field full" id="f-logo">
-            <label for="logo">Restaurant logo</label>
-            <input id="logo" type="file" accept="image/png,image/jpeg,image/webp">
-            <div class="pending-note">Image upload is not available yet — the backend has no vendor upload endpoint. Add your logo from the vendor dashboard after approval.</div>
-          </div>
-          <div class="field full" id="f-cover">
-            <label for="cover">Restaurant cover image</label>
-            <input id="cover" type="file" accept="image/png,image/jpeg,image/webp">
-            <div class="pending-note">Image upload is not available yet — the backend has no vendor upload endpoint. Add your cover image from the vendor dashboard after approval.</div>
-          </div>
           <div class="field full" id="f-address">
             <label for="address">Full restaurant address *</label>
             <textarea id="address" maxlength="500" placeholder="Shop/floor number, building, street, area, city, state, PIN" required></textarea>
             <div class="field-error">Enter the full restaurant address.</div>
-          </div>
-          <div class="field full" id="f-landmark">
-            <label for="landmark">Landmark <span style="font-weight:600;color:var(--ink-soft)">(optional)</span></label>
-            <input id="landmark" maxlength="160" placeholder="Near City Mall, opposite SBI Bank">
-            <div class="pending-note">Recorded for admin review only — the current backend does not yet store the landmark.</div>
           </div>
           <div class="field full">
             <label>Map location pin *</label>
@@ -296,23 +261,11 @@
             <div class="hint">Provide the number issued for this restaurant.</div>
             <div class="field-error">Enter your FSSAI registration number.</div>
           </div>
-          <div class="field" id="f-pan">
-            <label for="pan">Business PAN <span style="font-weight:600;color:var(--ink-soft)">(optional)</span></label>
-            <input id="pan" autocapitalize="characters" maxlength="10" placeholder="AAAAA0000A">
-            <div class="pending-note">Not submitted — the current backend does not accept a PAN field. Kept only in this page's memory and cleared on submit.</div>
-            <div class="field-error">Enter a valid PAN (5 letters, 4 digits, 1 letter).</div>
-          </div>
-          <div class="field" id="f-gst">
-            <label for="gst">GST number <span style="font-weight:600;color:var(--ink-soft)">(optional)</span></label>
-            <input id="gst" autocapitalize="characters" maxlength="15" placeholder="22AAAAA0000A1Z5">
-            <div class="pending-note">Not submitted — the current backend does not accept a GSTIN field. Kept only in this page's memory and cleared on submit.</div>
-            <div class="field-error">Enter a valid GSTIN.</div>
-          </div>
-          <div class="field full" id="f-idDocument">
-            <label>Owner identity document</label>
-            <input id="idDocument" type="file" accept="image/png,image/jpeg,application/pdf" disabled>
-            <div class="pending-note">Disabled — secure document upload is not supported by the backend yet, so no file is sent anywhere. Your onboarding team will request identity proof securely after submission.</div>
-          </div>
+        </div>
+        <div class="notice" style="margin-top:14px">
+          <strong>Tax and bank details are never collected here.</strong> Eatswada does not ask for
+          business PAN, GST, or bank/settlement information during application. If anyone contacts you
+          asking for these, report it to the Eatswada team.
         </div>
       </section>
 
@@ -321,10 +274,10 @@
         <h2 class="step-title">Delivery setup</h2>
         <p class="step-sub">Choose who delivers your orders.</p>
         <div class="choices" id="deliveryChoices" role="radiogroup" aria-label="Delivery method">
-          <button type="button" class="choice" data-value="self" role="radio" aria-checked="false">
+          <button type="button" class="choice" data-value="self_delivery" role="radio" aria-checked="false">
             <strong>Self delivery</strong><span>Your own staff delivers the order to the customer. You manage riders and delivery times.</span>
           </button>
-          <button type="button" class="choice" data-value="eatswada" role="radio" aria-checked="false">
+          <button type="button" class="choice" data-value="eatswada_rider" role="radio" aria-checked="false">
             <strong>Eatswada delivery</strong><span>An Eatswada rider picks up and delivers the order. Eatswada manages the delivery.</span>
           </button>
         </div>
@@ -333,7 +286,6 @@
           commission are configured by the Eatswada Admin team after your restaurant is approved, so they are
           not part of this application.
         </div>
-        <div class="pending-note" style="margin-top:12px">Your delivery preference is recorded for admin review only — the current backend does not yet persist the delivery method.</div>
         <div class="field-error" id="deliveryTypeError" style="margin-top:10px">Choose a delivery method to continue.</div>
       </section>
 
@@ -341,17 +293,18 @@
       <section class="panel" data-panel="4" hidden>
         <h2 class="step-title">Agreements &amp; submit</h2>
         <p class="step-sub">Review your details and accept the terms to submit.</p>
+        <div id="editBanner" class="notice" style="display:none;border-left:4px solid var(--amber);background:var(--amber-soft)"></div>
         <div id="review" class="notice" style="font-size:13px"></div>
         <div class="checkline" id="f-agreements" style="margin-top:6px">
           <label style="display:flex;gap:11px;align-items:flex-start;font-weight:600">
             <input type="checkbox" id="agreeTerms">
-            <span>I accept the <a href="#" data-doc="Vendor Agreement">Vendor Agreement</a>.</span>
+            <span>I accept the Vendor Agreement (Eatswada shares the full document during onboarding).</span>
           </label>
         </div>
         <div class="checkline">
           <label style="display:flex;gap:11px;align-items:flex-start;font-weight:600">
             <input type="checkbox" id="agreePrivacy">
-            <span>I have read and accept the <a href="#" data-doc="Privacy Policy">Privacy Policy</a>.</span>
+            <span>I have read and accept the Privacy Policy (shared during onboarding).</span>
           </label>
         </div>
         <div class="checkline">
@@ -385,14 +338,41 @@
 (function () {
   'use strict';
 
+  if (window.EATSWADA_CONFIG.CONFIG_ERROR) {
+    document.querySelector('.card').innerHTML =
+      '<h2 class="step-title">Configuration error</h2><p class="step-sub">' +
+      String(window.EATSWADA_CONFIG.CONFIG_ERROR) + '</p>';
+    return;
+  }
+
   var CFG = window.EATSWADA_CONFIG;
   var API = CFG.APPLICATIONS_BASE;
   var TOTAL_STEPS = 5;
   var DAYS = [['monday','Monday'],['tuesday','Tuesday'],['wednesday','Wednesday'],['thursday','Thursday'],['friday','Friday'],['saturday','Saturday'],['sunday','Sunday']];
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   var PHONE_RE = /^\+?[0-9][0-9\s-]{7,15}$/;
-  var PAN_RE = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
-  var GST_RE = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][0-9A-Z]{3}$/;
+
+  /* Local identity storage — lets the same browser edit/resubmit the same
+     application instead of creating a duplicate. No password is ever stored.
+     All access is guarded: some browsers/private modes throw on storage use,
+     and a throw here must never take the whole form down. */
+  var LS_ID = 'eatswada_vendor_application_id';
+  var LS_TOKEN = 'eatswada_vendor_application_status_token';
+  var LS_DRAFT = 'eatswada_vendor_application_draft';
+
+  function readStore(key) {
+    try { var a = sessionStorage.getItem(key); if (a) return a; } catch (e) {}
+    try { var b = localStorage.getItem(key); if (b) return b; } catch (e) {}
+    return '';
+  }
+  function writeStore(key, value) {
+    var ok = false;
+    try { sessionStorage.setItem(key, value); ok = true; } catch (e) {}
+    try { localStorage.setItem(key, value); ok = true; } catch (e) {}
+    return ok;
+  }
+  function readJson(key) { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; } }
+  function writeJson(key, obj) { try { localStorage.setItem(key, JSON.stringify(obj)); } catch (e) {} }
 
   var form = document.getElementById('form');
   var panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
@@ -407,9 +387,20 @@
   var reviewEl = document.getElementById('review');
   var agreementError = document.getElementById('agreementError');
   var locationBtn = document.getElementById('locationBtn');
+  var editBanner = document.getElementById('editBanner');
+  var existingNotice = document.getElementById('existingNotice');
   var v = function (id) { var n = document.getElementById(id); return n ? n.value.trim() : ''; };
 
-  var state = { step: 0, restaurantType: '', deliveryMode: '', submitted: false, inFlight: false, editingMode: false, editingApplication: null, editingLoaded: false, editingError: '' };
+  var state = {
+    step: 0,
+    businessType: '',
+    deliveryMode: '',
+    submitted: false,
+    inFlight: false,
+    editing: false,        // true → POST carries the existing application id
+    editingId: null,
+    editingToken: null
+  };
 
   for (var d = 0; d < TOTAL_STEPS; d++) dots.appendChild(document.createElement('i'));
 
@@ -442,6 +433,20 @@
       hoursEl.querySelectorAll('[data-day="' + day + '"][data-opens],[data-day="' + day + '"][data-closes]').forEach(function (x) { x.disabled = cb.checked; });
     });
   });
+  function setHours(oh) {
+    oh = oh || {};
+    DAYS.forEach(function (pair) {
+      var key = pair[0];
+      var day = oh[key] || {};
+      var closedCb = hoursEl.querySelector('[data-closed][data-day="' + key + '"]');
+      var opensEl = hoursEl.querySelector('[data-opens][data-day="' + key + '"]');
+      var closesEl = hoursEl.querySelector('[data-closes][data-day="' + key + '"]');
+      closedCb.checked = !!day.closed;
+      opensEl.disabled = closesEl.disabled = !!day.closed;
+      if (day.opensAt) opensEl.value = day.opensAt;
+      if (day.closesAt) closesEl.value = day.closesAt;
+    });
+  }
   function getHours() {
     var out = {};
     for (var i = 0; i < DAYS.length; i++) {
@@ -467,7 +472,13 @@
       });
     });
   }
-  wireChoices('restaurantTypeChoices', 'restaurantType', 'restaurantTypeError');
+  function selectChoice(containerId, key, value) {
+    if (!value) return;
+    var btn = document.getElementById(containerId).querySelector('[data-value="' + value + '"]');
+    if (btn) btn.click();
+    else state[key] = '';
+  }
+  wireChoices('restaurantTypeChoices', 'businessType', 'restaurantTypeError');
   wireChoices('deliveryChoices', 'deliveryMode', 'deliveryTypeError');
 
   /* ---------- Geolocation ---------- */
@@ -498,13 +509,9 @@
       if (!PHONE_RE.test(v('phone'))) { ok = false; setInvalid('phone', true); } else setInvalid('phone', false);
       if (!EMAIL_RE.test(v('email'))) { ok = false; setInvalid('email', true); } else setInvalid('email', false);
       if (v('password').length < 10) { ok = false; setInvalid('password', true); } else setInvalid('password', false);
-      var alt = v('alternatePhone');
-      var altInvalid = !!alt && !PHONE_RE.test(alt);
-      if (altInvalid) ok = false;
-      setInvalid('alternatePhone', altInvalid);
     } else if (step === 1) {
       if (!v('restaurantName')) { ok = false; setInvalid('restaurantName', true); } else setInvalid('restaurantName', false);
-      if (!state.restaurantType) {
+      if (!state.businessType) {
         ok = false;
         document.getElementById('restaurantTypeError').style.display = 'block';
       } else document.getElementById('restaurantTypeError').style.display = 'none';
@@ -516,14 +523,6 @@
       } else { setInvalid('longitude', false); setInvalid('latitude', false); }
     } else if (step === 2) {
       if (!v('fssai')) { ok = false; setInvalid('fssai', true); } else setInvalid('fssai', false);
-      var pan = v('pan').toUpperCase();
-      var panInvalid = !!pan && !PAN_RE.test(pan);
-      if (panInvalid) ok = false;
-      setInvalid('pan', panInvalid);
-      var gst = v('gst').toUpperCase();
-      var gstInvalid = !!gst && !GST_RE.test(gst);
-      if (gstInvalid) ok = false;
-      setInvalid('gst', gstInvalid);
     } else if (step === 3) {
       if (!state.deliveryMode) {
         ok = false;
@@ -543,7 +542,8 @@
   }
 
   /* ---------- Review ---------- */
-  var TYPE_LABEL = { restaurant:'Restaurant', cloud_kitchen:'Cloud kitchen', cafe:'Café', bakery:'Bakery', other:'Other' };
+  var TYPE_LABEL = { restaurant:'Restaurant', cloud_kitchen:'Cloud kitchen' };
+  var DELIVERY_LABEL = { self_delivery:'Self delivery', eatswada_rider:'Eatswada delivery' };
   function buildReview() {
     var hours = getHours();
     var openDays = DAYS.filter(function (d) { return !hours[d[0]].closed; }).map(function (d) { return d[1].slice(0, 3); }).join(', ') || 'None';
@@ -551,16 +551,14 @@
       ['Owner', v('ownerName')],
       ['Mobile', v('phone')],
       ['Email', v('email')],
-      ['Alternate contact', v('alternatePhone') || '—'],
       ['Restaurant', v('restaurantName')],
-      ['Restaurant type', TYPE_LABEL[state.restaurantType] || '—'],
+      ['Restaurant type', TYPE_LABEL[state.businessType] || '—'],
       ['Cuisine', v('cuisine')],
       ['Description', v('description') || '—'],
       ['Address', v('address')],
-      ['Landmark', v('landmark') || '—'],
       ['Location', v('latitude') && v('longitude') ? (v('latitude') + ', ' + v('longitude')) : '—'],
       ['FSSAI', v('fssai')],
-      ['Delivery', state.deliveryMode === 'self' ? 'Self delivery' : state.deliveryMode === 'eatswada' ? 'Eatswada delivery' : '—'],
+      ['Delivery', DELIVERY_LABEL[state.deliveryMode] || '—'],
       ['Open days', openDays]
     ];
     reviewEl.innerHTML = rows.map(function (r) {
@@ -590,45 +588,124 @@
   });
   backBtn.addEventListener('click', function () { if (state.step > 0) { state.step--; clearMessage(); renderStep(); } });
 
-  /* ---------- Load existing application for editing ---------- */
-  function loadEditing(app) {
-    if (!app) return;
-    state.editingMode = true;
-    state.editingApplication = app;
-    state.editingLoaded = false;
-    state.editingError = '';
-
-    var d = app.data;
-    if (d) {
-      var fields = ['ownerName','phone','email','password','restaurantName','cuisine','description','address','fssai','alternatePhone','landmark','pan','gst','longitude','latitude'];
-      for (var i = 0; i < fields.length; i++) {
-        var id = fields[i];
-        var el = document.getElementById(id);
-        if (el && d[id] !== undefined && d[id] !== null) {
-          if (id === 'longitude' || id === 'latitude') {
-            el.value = Number(d[id]) ? String(Number(d[id]).toFixed(6)) : '';
-          } else if (id === 'password') {
-            el.value = d.password || '';
-          } else {
-            el.value = String(d[id]);
-          }
-        }
-      }
-      var rtEl = document.getElementById('restaurantTypeChoices').querySelector('[data-value="' + app.data.restaurantType + '"]');
-      if (rtEl) { rtEl.classList.add('selected'); rtEl.setAttribute('aria-checked','true'); state.restaurantType = rtEl.dataset.value; }
-      var dmEl = document.getElementById('deliveryChoices').querySelector('[data-value="' + app.data.deliveryMode + '"]');
-      if (dmEl) { dmEl.classList.add('selected'); dmEl.setAttribute('aria-checked','true'); state.deliveryMode = dmEl.dataset.value; }
-    }
-
-    state.editingLoaded = true;
+  /* ---------- Existing-application detection (edit / resubmit) ----------
+     The backend updates an existing application when the POST body carries
+     its id — verified against the Render testing API. It never edits by itself,
+     so an edit here always resubmits the SAME application id. */
+  function readIdentity() {
+    var params = new URLSearchParams(location.search);
+    var id = (params.get('id') || readStore(LS_ID)).trim();
+    var token = (params.get('token') || readStore(LS_TOKEN)).trim();
+    if (id && token) persistIdentity(id, token);
+    return id && token ? { id: id, token: token } : null;
   }
 
-  function showEditingError(text) { state.editingError = text || ''; }
+  function persistIdentity(id, token) {
+    writeStore(LS_ID, id);
+    writeStore(LS_TOKEN, token);
+  }
 
-  /* ---------- Validate ---------- */
-     Payload contains ONLY fields the backend accepts today.
-     Deliberately NOT sent: restaurant type, landmark, alternate phone, delivery method,
-     PAN, GST, and any image/document file. Those inputs are never persisted or stored. */
+  function cacheDraft() {
+    writeJson(LS_DRAFT, {
+      ownerName: v('ownerName'), phone: v('phone'), email: v('email'),
+      restaurantName: v('restaurantName'), businessType: state.businessType,
+      cuisine: v('cuisine'), description: v('description'), address: v('address'),
+      fssai: v('fssai'), deliveryMode: state.deliveryMode,
+      openingHours: getHours(),
+      longitude: v('longitude'), latitude: v('latitude')
+    });
+  }
+
+  function prefill(draft, server) {
+    draft = draft || {}; server = server || {};
+    var set = function (id, value) { var n = document.getElementById(id); if (n && value !== undefined && value !== null && String(value) !== '') n.value = String(value); };
+    // Server-confirmed fields win over the locally cached draft.
+    set('ownerName', server.ownerName || draft.ownerName);
+    set('restaurantName', server.restaurantName || draft.restaurantName);
+    selectChoice('restaurantTypeChoices', 'businessType', server.businessType || draft.businessType);
+    selectChoice('deliveryChoices', 'deliveryMode', server.deliveryMode || draft.deliveryMode);
+    set('phone', draft.phone);
+    set('email', draft.email);
+    set('cuisine', draft.cuisine);
+    set('description', draft.description);
+    set('address', draft.address);
+    set('fssai', draft.fssai);
+    if (draft.longitude && draft.latitude) {
+      set('longitude', Number(draft.longitude).toFixed(6));
+      set('latitude', Number(draft.latitude).toFixed(6));
+    }
+    if (draft.openingHours) setHours(draft.openingHours);
+    // Password is never stored or prefilled — it must be re-entered.
+    if (state.editing) {
+      document.getElementById('passwordLabel').textContent = 'Confirm your password *';
+      document.getElementById('passwordHint').textContent = 'Re-enter your account password to resubmit this application.';
+    }
+  }
+
+  async function checkExistingApplication() {
+    var wantsEdit = new URLSearchParams(location.search).get('edit') === '1';
+    var identity = readIdentity();
+    if (!identity) {
+      if (wantsEdit) {
+        existingNotice.innerHTML = '<strong>We could not find your application details on this device.</strong> ' +
+          'Open the <a href="application-status.html" style="color:var(--green-ink);font-weight:800">application status page</a> and check your status first — ' +
+          'that restores your application here so you can edit it instead of creating a duplicate.';
+        existingNotice.style.display = 'block';
+      }
+      return;
+    }
+
+    var status = '';
+    var server = {};
+    try {
+      var r = await fetch(API + '/' + encodeURIComponent(identity.id) + '/status?statusToken=' + encodeURIComponent(identity.token), { headers: { Accept: 'application/json' } });
+      var j = await r.json().catch(function () { return null; });
+      if (!r.ok || !j || !j.success) throw new Error((j && j.message) || 'Could not check status.');
+      status = String((j.data && j.data.status) || '').toLowerCase();
+      server = j.data || {};
+    } catch (e) {
+      // Identity exists but status is unknown (network down, token rotated on
+      // another device). Fall through: a fresh submission is still allowed.
+      return;
+    }
+
+    if (status === 'more_information_required' || status === 'rejected') {
+      state.editing = true;
+      state.editingId = identity.id;
+      state.editingToken = identity.token;
+      prefill(readJson(LS_DRAFT), server);
+      var adminMsg = server.changeRequest || server.rejectionReason || '';
+      editBanner.innerHTML =
+        '<strong>The Eatswada team requested changes to your application.</strong>' +
+        (adminMsg ? '<div style="margin-top:8px;font-weight:700;color:var(--ink)">“' + escapeHtml(adminMsg) + '”</div>' : '') +
+        '<div style="margin-top:8px">Update your details below and resubmit — your application ID stays the same.</div>';
+      editBanner.style.display = 'block';
+      document.querySelector('.brand h1').textContent = 'Update your application';
+    } else if (status === 'approved') {
+      existingNotice.innerHTML =
+        '<strong>Good news — your application is approved!</strong> ' +
+        'Sign in to your vendor dashboard to start taking orders. ' +
+        '<a href="login.html" style="color:var(--green-ink);font-weight:800">Go to login →</a>';
+      existingNotice.style.display = 'block';
+      nextBtn.disabled = true; nextBtn.style.display = 'none';
+      backBtn.disabled = true; backBtn.style.display = 'none';
+    } else if (status === 'pending' || status === 'under_review' || status === 'draft' || status === 'submitted') {
+      // An application of this browser is already being reviewed. Offer edit
+      // or status check, but never a silent second submission (duplicate).
+      existingNotice.innerHTML =
+        '<strong>You already have an application being reviewed.</strong> ' +
+        'You can check its status, or edit it before the review completes.' +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">' +
+        '<a class="btn ghost" style="text-decoration:none" href="application-status.html">Check status</a>' +
+        '<a class="btn primary" style="text-decoration:none" href="apply.html?edit=1">Edit application</a>' +
+        '</div>';
+      existingNotice.style.display = 'block';
+      nextBtn.disabled = true; nextBtn.style.display = 'none';
+      backBtn.disabled = true; backBtn.style.display = 'none';
+    }
+  }
+
+  /* ---------- Submit (create OR resubmit the same application) ---------- */
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
     if (state.submitted || state.inFlight) return;
@@ -642,24 +719,25 @@
         phone: v('phone'),
         password: v('password'),
         restaurantName: v('restaurantName'),
+        businessType: state.businessType,
         cuisine: v('cuisine'),
         description: v('description'),
         address: v('address'),
         fssaiLicenseNumber: v('fssai'),
+        deliveryMode: state.deliveryMode,
         openingHours: getHours(),
         location: { type: 'Point', coordinates: [Number(v('longitude')), Number(v('latitude'))] }
       };
     } catch (err) { showMessage(err.message, 'error'); return; }
 
-    // Prefill the form from the application loaded via initialLoad(), then submit.
-    if (state.editingLoaded) {
-      state.editingLoaded = false;
+    if (state.editing && state.editingId) {
+      payload.id = state.editingId;   // same application identity → backend updates it
     }
 
     state.inFlight = true;
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting…';
-    showMessage('Submitting application…', 'success');
+    submitBtn.textContent = state.editing ? 'Resubmitting…' : 'Submitting…';
+    showMessage(state.editing ? 'Resubmitting your application…' : 'Submitting application…', 'success');
 
     var controller = new AbortController();
     var timeout = setTimeout(function () { controller.abort(); }, 20000);
@@ -673,21 +751,12 @@
       var body = await res.json().catch(function () { return null; });
       if (!res.ok || !body || !body.success) throw new Error((body && body.message) || 'Could not submit the application.');
       var a = body.data || {};
-      state.submitted = true;
-      if (a.id) sessionStorage.setItem('eatswada_vendor_application_id', a.id);
-      if (a.statusToken) sessionStorage.setItem('eatswada_vendor_application_status_token', a.statusToken);
+      var statusKey = String(a.status || 'pending').toLowerCase();
 
-      }
-
-    state.inFlight = true;
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting…';
-    showMessage('Submitting application…', 'success');
-
-    var controller = new AbortController();
-    var timeout = setTimeout(function () { controller.abort(); }, 20000);
-    try {
-      var res = await fetch(API, {
+      // The backend rotates the status token on every update — keep the
+      // newest pair so the status page keeps working.
+      if (a.id) persistIdentity(a.id, a.statusToken || state.editingToken || '');
+      cacheDraft();
 
       var STATUS_LABEL = {
         draft:'DRAFT', submitted:'SUBMITTED', pending:'PENDING REVIEW',
@@ -695,32 +764,31 @@
         approved:'APPROVED', rejected:'REJECTED'
       };
       resultEl.innerHTML =
-        '<strong>Application submitted.</strong>' +
+        (state.editing
+          ? '<strong>Application updated and resubmitted for review.</strong>'
+          : '<strong>Application submitted.</strong>') +
         '<div style="margin-top:7px">Reference ID: <span class="mono">' + escapeHtml(String(a.id || '—')) + '</span></div>' +
         '<div style="margin-top:10px"><span class="badge">' + escapeHtml(STATUS_LABEL[statusKey] || statusKey.toUpperCase()) + '</span></div>' +
-        (a.statusToken ? '<div style="margin-top:10px;font-size:12px;color:var(--ink-soft)">Keep your status token to track this application without logging in.</div>' : '') +
+        '<div style="margin-top:10px"><a href="application-status.html" style="color:var(--green-ink);font-weight:800">Track your application status →</a></div>' +
         '<div style="margin-top:10px;color:var(--ink-soft)">Save your reference ID — you can check progress anytime on the status page.</div>';
       resultEl.className = 'result show';
-      showMessage('Your application has been received and is pending admin review.', 'success');
+      showMessage(state.editing ? 'Your corrections have been sent to the Eatswada team.' : 'Your application has been received and is pending admin review.', 'success');
+      state.submitted = true;
       nextBtn.hidden = true;
       submitBtn.hidden = true;
       backBtn.hidden = true;
     } catch (err) {
       showMessage(err.name === 'AbortError' ? 'The server took too long to respond. Your details are still here — please try again.' : (err.message || 'Could not submit the application. Your details are still here — please try again.'), 'error');
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit application';
+      submitBtn.textContent = state.editing ? 'Resubmit application' : 'Submit application';
     } finally {
       clearTimeout(timeout);
       state.inFlight = false;
     }
   });
 
-  // Keep the legal doc links informational without navigating away.
-  document.querySelectorAll('[data-doc]').forEach(function (a) {
-    a.addEventListener('click', function (e) { e.preventDefault(); showMessage(a.dataset.doc + ' is provided by Eatswada at onboarding.', 'success'); });
-  });
-
   renderStep();
+  checkExistingApplication();
 })();
 </script>
 </body>
