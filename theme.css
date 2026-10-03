@@ -153,3 +153,61 @@
 .store-status-pill.busy{background:var(--warning-soft);color:var(--warning)}
 .store-status-pill.closed{background:var(--danger-soft);color:var(--danger)}
 .money-pos{color:var(--ok-dark)}
+
+
+/* ---- Vendor mobile polish v1: visual-only overrides ---- */
+.topbar{
+  gap:14px;
+  padding-left:18px;
+  padding-right:18px;
+  box-shadow:0 2px 14px rgba(20,20,30,.035);
+}
+.topbar-main{align-items:center}
+.brand{gap:4px}
+.brand-eyebrow{font-weight:800}
+#restaurantName{font-size:21px;line-height:1.18}
+.topbar-main > div:last-child{gap:8px!important}
+.top-more-btn{
+  width:40px;height:40px;flex:none;display:grid;place-items:center;
+  border:1px solid var(--border);border-radius:12px;background:#fff;
+  color:var(--ink);font:700 27px/1 var(--font-body);cursor:pointer;
+  box-shadow:0 1px 2px rgba(20,20,30,.035);
+  -webkit-tap-highlight-color:transparent;
+}
+.top-more-btn:active{background:var(--page);transform:scale(.97)}
+.top-more-btn:focus-visible{outline:3px solid rgba(215,25,69,.24);outline-offset:2px}
+#bellBtn{height:40px;width:40px;min-width:40px;border-radius:12px;font-size:16px}
+#logoutBtn{height:40px;border-radius:12px;padding:0 13px}
+.topbar-actions{padding-top:1px}
+.connection-pill{font-size:12px}
+.status-toggle{min-height:38px;padding-left:13px;padding-right:13px}
+.dashboard-section{padding-left:16px;padding-right:16px}
+.home-intro{padding-top:8px}
+.home-intro h2{letter-spacing:-.65px}
+.home-status-card,.card,.list-card,.store-block,.state-panel,.menu-card,
+.earnings-card,.stat-card,.ticket{border-radius:18px}
+.home-status-card,.card,.store-block,.earnings-card,.stat-card{
+  box-shadow:0 2px 5px rgba(20,20,30,.025),0 10px 28px rgba(20,20,30,.045);
+}
+.home-section-heading{margin-bottom:12px}
+.section-rail{
+  border-top:1px solid rgba(226,227,232,.9);
+  box-shadow:0 -8px 24px rgba(20,20,30,.045);
+}
+.section-tab{transition:color .16s ease,background .16s ease}
+.section-tab[aria-selected="true"]{font-weight:800}
+.modal-overlay .modal{
+  border-radius:22px 22px 0 0;
+  padding:22px 18px calc(18px + env(safe-area-inset-bottom,0px));
+}
+.more-groups{max-height:min(62vh,560px)}
+.more-group{border-radius:15px}
+.more-row{min-height:62px}
+.more-row .mi-ico{border-radius:12px}
+@media(min-width:561px){
+  .topbar{border-radius:0 0 18px 18px}
+  .modal-overlay .modal{border-radius:22px}
+}
+@media(prefers-reduced-motion:reduce){
+  .top-more-btn,.section-tab{transition:none}
+}

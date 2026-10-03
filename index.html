@@ -521,6 +521,7 @@
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex:none;">
           <button class="logout-btn" id="bellBtn" type="button" aria-label="Notifications" style="position:relative;">🔔<span id="bellCount" style="display:none;position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border-radius:999px;padding:1px 6px;font-size:10px;font-weight:800;">0</span></button>
+          <button class="top-more-btn" id="topMoreBtn" type="button" aria-label="More information and options" title="More information"><span aria-hidden="true">⋮</span></button>
           <button class="logout-btn" id="logoutBtn" type="button" aria-label="Sign out">Sign out</button>
         </div>
       </div>
@@ -2180,6 +2181,7 @@
   }
 
   /* ---- V2 event wiring ---- */
+  document.getElementById('topMoreBtn')?.addEventListener('click', openMoreSheet);
   document.getElementById('moreClose')?.addEventListener('click', closeMoreSheet);
   document.getElementById('moreSheet')?.addEventListener('click', (e) => { if (e.target.id === 'moreSheet') closeMoreSheet(); });
   document.querySelectorAll('[data-more]').forEach(b => b.addEventListener('click', () => { closeMoreSheet(); switchSection(b.dataset.more); }));
