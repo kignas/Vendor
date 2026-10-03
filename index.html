@@ -804,7 +804,8 @@
 
   function renderTicket(order) {
     const el = document.createElement('article'); el.className = 'ticket status-' + order.status; el.dataset.id = order._id;
-    const itemsToShow = order.items.slice(0, 4); const extra = order.items.length - itemsToShow.length;
+    const items = Array.isArray(order.items) ? order.items : [];
+    const itemsToShow = items.slice(0, 4); const extra = items.length - itemsToShow.length;
     const itemsHtml = itemsToShow.map(i => `<li><span class="qty">${i.quantity}×</span><span>${escapeHtml(i.name)}</span></li>`).join('') + (extra > 0 ? `<li style="font-size:13px; color:var(--ink-soft);">+${extra} more item${extra > 1 ? 's' : ''}</li>` : '');
     let footHtml = '';
     
@@ -858,7 +859,9 @@
   function ordersForTab(tab) {
     if (tab === 'new') return state.queue.filter(o => o.status === 'placed');
     if (tab === 'preparing') return state.queue.filter(o => o.status === 'confirmed' || o.status === 'preparing');
-    if (tab === 'dispatch') return state.queue.filter(o => o.status === 'out_for_delivery');
+    // Dispatch covers every state after the kitchen finishes: an order handed to a
+    // rider (waiting_for_rider / assigned) must not vanish from the queue view.
+    if (tab === 'dispatch') return state.queue.filter(o => ['waiting_for_rider','assigned','out_for_delivery'].includes(o.status));
     if (tab === 'history') return state.history;
     return [];
   }

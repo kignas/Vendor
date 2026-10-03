@@ -4,7 +4,7 @@
    The ONLY place a backend host is defined. No page hardcodes a URL.
 
    Active host: RENDER (testing stage).
-   To switch Render/AWS later, change ACTIVE_API in ONE line.
+   To switch hosts later, change ACTIVE_API in ONE line.
    No silent fallback: if the selected host is empty the portal fails loudly
    via EATSWADA_CONFIG.CONFIG_ERROR instead of quietly calling another host.
    ============================================================================ */
@@ -12,11 +12,11 @@
   'use strict';
 
   // ---- Host slots --------------------------------------------------------
-  // Render is the only API host used by this upgrade. AWS is not touched by frontend code.
+  // Render is the only API host used by the vendor frontend.
   var RENDER_API_ORIGIN = window.EATSWADA_RENDER_ORIGIN || 'https://eatswada.onrender.com';
 
   // ---- Active-host switch (ONE line) ------------------------------------
-  // 'render' | 'aws'  (only 'render' is supported in this upgrade)
+  // 'render' is the only supported value in this build.
   var ACTIVE_API = 'render';
   var SELECTED_API_ORIGIN = (ACTIVE_API === 'render') ? RENDER_API_ORIGIN : '';
 
@@ -38,24 +38,15 @@
 
     API_ORIGIN: API_ORIGIN,
     API: API,
-    API_BASE: API_BASE || '',
-    AUTH_BASE: AUTH_BASE || '',
-    APPLICATIONS_BASE: APPLICATIONS_BASE || '',
-    NOTIFICATIONS_BASE: NOTIFICATIONS_BASE || '',
+    API_BASE: API ? API + '/vendor' : '',
+    AUTH_BASE: API ? API + '/auth' : '',
+    APPLICATIONS_BASE: API ? API + '/vendor-applications' : '',
+    NOTIFICATIONS_BASE: API ? API + '/notifications' : '',
 
-    TOKEN_KEY: CONFIG.TOKEN_KEY,
-    USER_KEY: CONFIG.USER_KEY,
-    RESTAURANT_KEY: CONFIG.RESTAURANT_KEY,
-    POLL_INTERVAL: CONFIG.POLL_INTERVAL,
+    TOKEN_KEY: 'nearbite_vendor_token',
+    USER_KEY: 'nearbite_vendor_user',
+    RESTAURANT_KEY: 'nearbite_vendor_restaurant',
+    POLL_INTERVAL: 15000,
     RENDER_ORIGIN: API_ORIGIN
   };
-
-  function setupApplicationRouting() {
-    const APPS = window.EATSWADA_CONFIG.APPLICATIONS_BASE;
-    if (!APPS) return;
-    const ROUTES = { SUBMIT: APPS + '/applications', STATUS: APPS + '/:id/status', EDIT: APPS + '/:id/edit' };
-    return ROUTES;
-  }
-  window.EATSWADA_CONFIG = Object.assign(window.EATSWADA_CONFIG, { setupApplicationRouting });
-  delete window.EATSWADA_CONFIG.setupApplicationRouting;
 })();
