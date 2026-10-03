@@ -435,6 +435,69 @@
   .stack-actions { display: flex; flex-direction: column; gap: 10px; }
   .money-pos { color: var(--green-dark); }
   .money-neg { color: var(--danger); }
+
+  /* Vendor 2.0 information architecture */
+  .section-rail { justify-content:space-between; padding-left:10px; padding-right:10px; }
+  .section-tab { min-width:0; gap:5px; padding:9px 3px; font-size:11px; }
+  .section-tab svg { width:21px; height:21px; }
+  .section-tab span { white-space:nowrap; }
+  .more-groups { display:flex; flex-direction:column; gap:14px; max-height:62vh; overflow-y:auto; padding:2px 1px 8px; }
+  .more-group { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:10px 12px; }
+  .more-group h4 { color:var(--ink-faint); font-size:10px; letter-spacing:.09em; text-transform:uppercase; margin:2px 2px 8px; }
+  .more-row { width:100%; display:flex; align-items:center; gap:12px; padding:12px 2px; border:0; border-top:1px solid var(--border-soft); background:transparent; text-align:left; font:inherit; cursor:pointer; }
+  .more-row:first-of-type { border-top:0; }
+  .more-row .mi-ico { width:36px; height:36px; flex:none; display:grid; place-items:center; border-radius:11px; background:var(--page); font-size:18px; }
+  .more-row > span:nth-child(2) { display:flex; flex:1; min-width:0; flex-direction:column; gap:3px; }
+  .more-row strong { color:var(--ink); font-size:13px; }
+  .more-row small { color:var(--ink-soft); font-size:11px; line-height:1.35; }
+  .more-row > b { color:var(--ink-faint); font-size:22px; font-weight:500; }
+  .more-row:active { background:var(--page); }
+  @media (max-width:360px) { .section-tab { font-size:10px; } .section-tab svg { width:19px;height:19px; } }
+
+
+  /* Vendor Home — clear command-centre hierarchy */
+  .vendor-home { display:flex; flex-direction:column; gap:16px; padding-bottom:18px; }
+  .home-intro { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:5px 2px 2px; }
+  .home-eyebrow,.home-kicker { display:block; color:var(--ink-faint); font-size:10px; font-weight:800; letter-spacing:.12em; }
+  .home-intro h2 { margin:5px 0 3px; color:var(--ink); font-size:22px; line-height:1.2; letter-spacing:-.035em; }
+  .home-intro p { margin:0; color:var(--ink-soft); font-size:12px; line-height:1.45; }
+  .home-refresh { width:42px; height:42px; flex:none; border:1px solid var(--border); border-radius:13px; background:var(--surface); color:var(--ink); font-size:22px; }
+  .home-status-card { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:17px; border:1px solid var(--border); border-radius:18px; background:var(--surface); box-shadow:0 3px 12px rgba(15,23,42,.035); }
+  .home-status-main { display:flex; align-items:center; gap:11px; min-width:0; }
+  .home-status-icon { display:grid; place-items:center; width:38px; height:38px; flex:none; border-radius:12px; color:#16845b; background:#e8f6ef; font-size:16px; }
+  .home-status-copy { display:flex; flex-direction:column; align-items:flex-start; gap:3px; min-width:0; }
+  .home-label { color:var(--ink-faint); font-size:9px; font-weight:800; letter-spacing:.1em; }
+  .home-status-copy strong { color:var(--ink); font-size:19px; line-height:1.2; }
+  .home-status-copy > span:last-child { color:var(--ink-soft); font-size:11px; }
+  .home-status-action { flex:none; padding:9px 10px!important; font-size:11px!important; white-space:nowrap; }
+  .home-section-heading { display:flex; align-items:center; justify-content:space-between; margin:0 1px 9px; }
+  .home-section-heading h3 { margin:3px 0 0; color:var(--ink); font-size:16px; letter-spacing:-.02em; }
+  .home-attention,.home-performance { min-width:0; }
+  .home-alerts-slot { position:relative; }
+  .home-attention-empty { display:flex; align-items:center; gap:11px; padding:13px 14px; border:1px solid #d9eee3; border-radius:14px; background:#f2faf5; }
+  .home-attention-empty > span { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; color:#16845b; background:#dff3e8; font-weight:900; }
+  .home-attention-empty div { display:flex; flex-direction:column; gap:2px; }
+  .home-attention-empty strong { color:#176b4b; font-size:12px; }
+  .home-attention-empty small { color:#54806a; font-size:10px; line-height:1.4; }
+  .home-metrics { margin:0!important; gap:10px!important; }
+  .home-metrics .earnings-card { min-height:91px; padding:14px!important; border-radius:15px!important; box-shadow:none!important; }
+  .home-metrics .earnings-label { font-size:10px!important; }
+  .home-metrics .earnings-value { margin-top:7px!important; font-size:23px!important; }
+  .home-actions,.home-account { padding:15px!important; border-radius:17px!important; }
+  .home-actions .home-section-heading,.home-account .home-section-heading { margin-bottom:8px; }
+  .home-action-list { display:flex; flex-direction:column; }
+  .home-action { display:flex; align-items:center; gap:11px; width:100%; padding:12px 2px; border:0; border-top:1px solid var(--border-soft); background:transparent; color:var(--ink); text-align:left; font:inherit; cursor:pointer; }
+  .home-action:first-child { border-top:0; }
+  .home-action-icon { display:grid; place-items:center; width:37px; height:37px; flex:none; border-radius:12px; background:var(--page); color:var(--ink-soft); font-size:17px; font-weight:800; }
+  .home-action > span:nth-child(2) { display:flex; flex:1; min-width:0; flex-direction:column; gap:3px; }
+  .home-action strong { font-size:12px; }
+  .home-action small { color:var(--ink-soft); font-size:10px; line-height:1.35; }
+  .home-action > b { color:var(--ink-faint); font-size:22px; font-weight:500; }
+  .home-action.primary .home-action-icon { background:#e6f5ed; color:#16845b; }
+  .home-action:active { background:var(--page); }
+  .home-account #ov-docs { padding:10px 11px; border-radius:11px; background:var(--page); line-height:1.55; }
+  @media(max-width:390px) { .home-status-card { align-items:flex-start; flex-direction:column; } .home-status-action { align-self:stretch; } .home-intro h2 { font-size:20px; } }
+
 </style>
 </head>
 <body>
@@ -470,65 +533,76 @@
     </header>
 
     <nav class="section-rail" role="tablist" aria-label="Dashboard sections">
-      <button class="section-tab" role="tab" data-section="home" aria-selected="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21v-6h6v6"/></svg>
-        Home
-      </button>
-      <button class="section-tab" role="tab" data-section="orders" aria-selected="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
-        Orders
-      </button>
-      <button class="section-tab" role="tab" data-section="menu" aria-selected="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11h18"/><path d="M5 11a7 7 0 0 1 14 0"/><path d="M3 15h18l-1.5 5a1 1 0 0 1-1 .8H5.5a1 1 0 0 1-1-.8L3 15Z"/></svg>
-        Menu
-      </button>
-      <button class="section-tab" role="tab" data-section="earnings" aria-selected="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.1 1.3-2 3-2s3 .7 3 1.8c0 2.4-6 1-6 3.4 0 1.1 1.3 1.8 3 1.8s3-.9 3-2"/></svg>
-        Earnings
-      </button>
-      <button class="section-tab" role="tab" data-section="reviews" aria-selected="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.9 6.4 20.1l1.4-6.3-4.8-4.3 6.4-.6L12 3Z"/></svg>
-        Reviews
-      </button>
-      <button class="section-tab" role="tab" data-section="more" aria-selected="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
-        More
-      </button>
+      <button class="section-tab" role="tab" data-section="home" aria-selected="true" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21v-6h6v6"/></svg><span>Home</span></button>
+      <button class="section-tab" role="tab" data-section="orders" aria-selected="false" aria-label="Orders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span>Orders</span></button>
+      <button class="section-tab" role="tab" data-section="menu" aria-selected="false" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v7M8 4v7M6 4v16M16 4c-2 3-2 7 0 9h4V4M18 13v7"/></svg><span>Menu</span></button>
+      <button class="section-tab" role="tab" data-section="earnings" aria-selected="false" aria-label="Finance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.1 1.3-2 3-2s3 .7 3 1.8c0 2.4-6 1-6 3.4 0 1.1 1.3 1.8 3 1.8s3-.9 3-2"/></svg><span>Finance</span></button>
+      <button class="section-tab" role="tab" data-section="more" aria-selected="false" aria-label="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>More</span></button>
     </nav>
 
-    <!-- SECTION: OVERVIEW (HOME) -->
-    <section class="dashboard-section" id="section-home">
-      <div class="card" style="padding:18px;margin-bottom:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-          <div>
-            <div class="earnings-label">Restaurant status</div>
-            <div id="ov-status" style="font-size:20px;font-weight:800;margin-top:4px;">—</div>
-            <div id="ov-status-sub" class="earnings-sub">Loading…</div>
+    <!-- SECTION: OVERVIEW -->
+    <section class="dashboard-section vendor-home" id="section-home">
+      <header class="home-intro">
+        <div>
+          <div class="home-eyebrow">YOUR RESTAURANT</div>
+          <h2>Today at a glance</h2>
+          <p>Keep track of orders and your restaurant activity.</p>
+        </div>
+        <button class="home-refresh" id="ov-refresh" type="button" aria-label="Refresh dashboard">↻</button>
+      </header>
+
+      <section class="home-status-card" aria-label="Restaurant availability">
+        <div class="home-status-main">
+          <div class="home-status-icon" aria-hidden="true">●</div>
+          <div class="home-status-copy">
+            <span class="home-label">RESTAURANT STATUS</span>
+            <strong id="ov-status">—</strong>
+            <span id="ov-status-sub">Loading restaurant status…</span>
           </div>
-          <button class="btn ghost" id="ov-open-store" type="button" style="padding:10px 14px;border-radius:12px;">Manage availability</button>
         </div>
-      </div>
-      <div class="earnings-grid" id="ov-cards">
-        <div class="earnings-card"><div class="earnings-label">Loading</div><div class="earnings-value">…</div></div>
-        <div class="earnings-card"><div class="earnings-label">Loading</div><div class="earnings-value">…</div></div>
-      </div>
-      <div class="card" style="padding:16px;margin-bottom:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-          <div style="font-weight:800;">Quick actions</div>
-          <button class="refresh-btn" id="ov-refresh" type="button">↻ Refresh</button>
+        <button class="btn ghost home-status-action" id="ov-open-store" type="button">Manage availability <span aria-hidden="true">›</span></button>
+      </section>
+
+      <section class="home-attention" aria-label="Business alerts">
+        <div class="home-section-heading">
+          <div><span class="home-kicker">IMPORTANT</span><h3>Needs your attention</h3></div>
         </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
-          <button class="btn accept" type="button" data-goto="orders">View live orders</button>
-          <button class="btn ghost" type="button" data-goto="menu">Manage stock</button>
-          <button class="btn ghost" type="button" data-goto="earnings">Earnings</button>
-          <button class="btn ghost" type="button" data-goto="reviews">Reviews</button>
+        <div class="home-alerts-slot">
+          <div class="home-attention-empty">
+            <span aria-hidden="true">✓</span>
+            <div><strong>You’re all caught up</strong><small>New order and account alerts will appear here.</small></div>
+          </div>
+          <div class="list-card" id="ov-alerts" hidden></div>
         </div>
-      </div>
-      <div class="card" style="padding:16px;">
-        <div style="font-weight:800;margin-bottom:4px;">Document &amp; account status</div>
-        <div id="ov-docs" class="earnings-sub">Loading…</div>
-      </div>
-      <div class="list-card" id="ov-alerts" hidden></div>
+      </section>
+
+      <section class="home-performance" aria-label="Today's performance">
+        <div class="home-section-heading">
+          <div><span class="home-kicker">PERFORMANCE</span><h3>Today’s overview</h3></div>
+        </div>
+        <div class="earnings-grid home-metrics" id="ov-cards">
+          <div class="earnings-card"><div class="earnings-label">Loading</div><div class="earnings-value">…</div></div>
+          <div class="earnings-card"><div class="earnings-label">Loading</div><div class="earnings-value">…</div></div>
+        </div>
+      </section>
+
+      <section class="home-actions card">
+        <div class="home-section-heading">
+          <div><span class="home-kicker">SHORTCUTS</span><h3>Quick actions</h3></div>
+        </div>
+        <div class="home-action-list">
+          <button class="home-action primary" type="button" data-goto="orders"><span class="home-action-icon">▣</span><span><strong>View orders</strong><small>Review and manage incoming orders</small></span><b>›</b></button>
+          <button class="home-action" type="button" data-goto="menu"><span class="home-action-icon">☷</span><span><strong>Manage menu</strong><small>Update items and availability</small></span><b>›</b></button>
+          <button class="home-action" type="button" data-goto="earnings"><span class="home-action-icon">₹</span><span><strong>Open finance</strong><small>Check earnings and withdrawals</small></span><b>›</b></button>
+        </div>
+      </section>
+
+      <section class="home-account card">
+        <div class="home-section-heading">
+          <div><span class="home-kicker">ACCOUNT</span><h3>Documents &amp; account status</h3></div>
+        </div>
+        <div id="ov-docs" class="earnings-sub">Loading account status…</div>
+      </section>
       <div class="list-card" id="ov-activity" hidden></div>
     </section>
 
@@ -800,13 +874,22 @@
     <div class="modal">
       <h3>More</h3>
       <p>Manage every part of your restaurant.</p>
-      <div class="more-grid">
-        <button class="more-item" data-more="store" type="button"><span class="mi-ico">🏪</span><strong>Restaurant</strong><span>Profile, status &amp; hours</span></button>
-        <button class="more-item" data-more="inventory" type="button"><span class="mi-ico">📦</span><strong>Inventory</strong><span>Stock &amp; bulk availability</span></button>
-        <button class="more-item" data-more="analytics" type="button"><span class="mi-ico">📈</span><strong>Analytics</strong><span>Orders &amp; sales trends</span></button>
-        <button class="more-item" data-more="notifications" type="button"><span class="mi-ico">🔔</span><strong>Notifications</strong><span>Alerts &amp; updates</span></button>
-        <button class="more-item" data-more="support" type="button"><span class="mi-ico">💬</span><strong>Support</strong><span>Raise &amp; track tickets</span></button>
-        <button class="more-item" data-more="settings" type="button"><span class="mi-ico">⚙️</span><strong>Settings</strong><span>Preferences &amp; session</span></button>
+      <div class="more-groups">
+        <div class="more-group"><h4>Restaurant</h4>
+          <button class="more-row" data-more="store" type="button"><span class="mi-ico">🏪</span><span><strong>Restaurant profile</strong><small>Business details, status and hours</small></span><b>›</b></button>
+        </div>
+        <div class="more-group"><h4>Business tools</h4>
+          <button class="more-row" data-more="inventory" type="button"><span class="mi-ico">📦</span><span><strong>Inventory</strong><small>Stock and item availability</small></span><b>›</b></button>
+          <button class="more-row" data-more="analytics" type="button"><span class="mi-ico">📈</span><span><strong>Analytics</strong><small>Orders and sales trends</small></span><b>›</b></button>
+        </div>
+        <div class="more-group"><h4>Customers &amp; help</h4>
+          <button class="more-row" data-more="reviews" type="button"><span class="mi-ico">⭐</span><span><strong>Reviews</strong><small>Customer feedback and replies</small></span><b>›</b></button>
+          <button class="more-row" data-more="notifications" type="button"><span class="mi-ico">🔔</span><span><strong>Notifications</strong><small>Important updates and alerts</small></span><b>›</b></button>
+          <button class="more-row" data-more="support" type="button"><span class="mi-ico">💬</span><span><strong>Support</strong><small>Raise and track tickets</small></span><b>›</b></button>
+        </div>
+        <div class="more-group"><h4>Account</h4>
+          <button class="more-row" data-more="settings" type="button"><span class="mi-ico">⚙️</span><span><strong>Settings</strong><small>Preferences and session</small></span><b>›</b></button>
+        </div>
       </div>
       <div class="modal-actions"><button class="btn ghost" id="moreClose" type="button">Close</button></div>
     </div>
