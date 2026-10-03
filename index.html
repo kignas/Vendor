@@ -369,6 +369,72 @@
     background-size: 200% 100%; animation: shimmer 1.5s infinite;
   }
   @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* ============ VENDOR 2.0 COMPONENTS ============ */
+  .badge-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .badge.approved { background: var(--green-soft); color: var(--green-dark); }
+  .badge.pending { background: var(--warning-soft); color: var(--warning); }
+  .badge.rejected { background: var(--danger-soft); color: var(--danger); }
+  .badge.neutral { background: var(--page); color: var(--ink-soft); border: 1px solid var(--border); }
+  .badge.veg { background: var(--green-soft); color: var(--green-dark); }
+  .badge.nonveg { background: #fdecec; color: #b91c1c; }
+
+  .section-title { font-size: 16px; font-weight: 800; margin: 0 0 4px; }
+  .section-sub { font-size: 12px; color: var(--ink-soft); margin: 0 0 14px; line-height: 1.5; }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px; box-shadow: var(--shadow-sm); }
+  .stat-label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--ink-soft); letter-spacing: 0.02em; }
+  .stat-value { font-size: 20px; font-weight: 800; margin-top: 6px; }
+  .stat-value.sm { font-size: 15px; }
+  .stat-note { font-size: 11px; color: var(--ink-faint); margin-top: 4px; }
+
+  .list-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 16px; }
+  .list-card-head { padding: 14px 16px; border-bottom: 1px solid var(--border-soft); font-weight: 800; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .list-row { padding: 14px 16px; border-bottom: 1px solid var(--border-soft); display: flex; gap: 12px; align-items: flex-start; }
+  .list-row:last-child { border-bottom: 0; }
+  .list-row .lr-main { flex: 1; min-width: 0; }
+  .list-row .lr-title { font-weight: 800; font-size: 14px; }
+  .list-row .lr-sub { font-size: 12px; color: var(--ink-soft); margin-top: 3px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+  .list-row .lr-time { font-size: 11px; color: var(--ink-faint); white-space: nowrap; }
+
+  .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .form-field > label { font-size: 12px; font-weight: 800; color: var(--ink-soft); }
+  .form-field .hint { font-size: 11px; color: var(--ink-faint); font-weight: 600; }
+  .form-field input, .form-field textarea, .form-field select {
+    width: 100%; font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--ink);
+    border: 1px solid var(--border); border-radius: var(--r-md); padding: 11px 12px; background: var(--surface);
+  }
+  .form-field textarea { min-height: 84px; resize: vertical; }
+  .form-row { display: flex; gap: 12px; }
+  .form-row .form-field { flex: 1; }
+  .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; }
+  .switch-row > div > strong { font-size: 14px; font-weight: 700; }
+  .switch-row .hint { display: block; font-size: 11px; color: var(--ink-faint); font-weight: 600; margin-top: 2px; }
+
+  .upload-drop { border: 1.5px dashed var(--border); border-radius: var(--r-md); padding: 16px; text-align: center; color: var(--ink-soft); font-size: 13px; font-weight: 700; cursor: pointer; background: var(--page); }
+  .thumb-preview { width: 100%; max-height: 190px; object-fit: cover; border-radius: var(--r-md); border: 1px solid var(--border); margin-bottom: 10px; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 800; color: var(--ink-soft); cursor: pointer; font-family: var(--font-body); }
+  .chip.selected { border-color: var(--green); background: var(--green-soft); color: var(--green-dark); }
+  .mini-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px; }
+  .mini-card.selected { border-color: var(--green); box-shadow: 0 0 0 2px var(--green-soft); }
+
+  .bar-track { height: 8px; background: var(--border-soft); border-radius: 999px; overflow: hidden; margin-top: 8px; }
+  .bar-fill { height: 100%; background: var(--green); border-radius: 999px; transition: width .4s; }
+
+  .more-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .more-item { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; text-align: left; border: 1px solid var(--border); background: var(--surface); border-radius: var(--r-md); padding: 14px; cursor: pointer; font-family: var(--font-body); }
+  .more-item .mi-ico { font-size: 18px; }
+  .more-item strong { font-size: 14px; font-weight: 800; color: var(--ink); }
+  .more-item span { font-size: 11px; color: var(--ink-soft); line-height: 1.4; }
+  .sheet-scroll { max-height: 62vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .inline-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .inline-actions .btn { padding: 8px 12px; font-size: 13px; }
+  .stack-actions { display: flex; flex-direction: column; gap: 10px; }
+  .money-pos { color: var(--green-dark); }
+  .money-neg { color: var(--danger); }
 </style>
 </head>
 <body>
@@ -424,9 +490,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.9 6.4 20.1l1.4-6.3-4.8-4.3 6.4-.6L12 3Z"/></svg>
         Reviews
       </button>
-      <button class="section-tab" role="tab" data-section="store" aria-selected="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1.5-5h15L21 9M4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9Z"/><path d="M9 20v-6h6v6"/></svg>
-        Store
+      <button class="section-tab" role="tab" data-section="more" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+        More
       </button>
     </nav>
 
@@ -462,6 +528,8 @@
         <div style="font-weight:800;margin-bottom:4px;">Document &amp; account status</div>
         <div id="ov-docs" class="earnings-sub">Loading…</div>
       </div>
+      <div class="list-card" id="ov-alerts" hidden></div>
+      <div class="list-card" id="ov-activity" hidden></div>
     </section>
 
     <!-- SECTION: ORDERS -->
@@ -487,7 +555,10 @@
     <section class="dashboard-section" id="section-menu" hidden>
       <div class="toolbar-row">
         <span id="menuCount">Loading…</span>
-        <span>Toggle stock availability</span>
+        <button class="btn accept" id="menuAddBtn" type="button" style="padding:8px 12px;font-size:13px;">+ Add item</button>
+      </div>
+      <div class="card" style="padding:10px 12px;margin-bottom:12px;">
+        <input id="menuSearch" type="search" placeholder="Search items…" style="width:100%;border:0;background:transparent;font-family:var(--font-body);font-size:14px;font-weight:600;outline:none;" />
       </div>
       <main class="menu-grid" id="menuGrid" aria-live="polite">
         <div class="skeleton-ticket"></div>
@@ -524,6 +595,19 @@
           </table>
         </div>
       </div>
+
+      <div class="card" style="padding:16px;margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div style="font-weight:800;">Settlements &amp; payouts</div>
+          <button class="refresh-btn" id="financeRefresh" type="button">↻ Refresh</button>
+        </div>
+        <div class="stat-grid" id="financeStats" style="margin-top:14px;"></div>
+        <div id="financeNote" class="stat-note"></div>
+        <div class="inline-actions" style="margin-top:12px;">
+          <button class="btn accept" id="withdrawOpenBtn" type="button">Request withdrawal</button>
+        </div>
+        <div id="withdrawList" style="margin-top:8px;"></div>
+      </div>
     </section>
 
     <!-- SECTION: REVIEWS -->
@@ -539,8 +623,14 @@
       <div class="card" style="overflow:hidden;"><div id="vendor-reviews-list"><div class="state-panel">Loading reviews…</div></div></div>
     </section>
 
-    <!-- SECTION: STORE -->
+    <!-- SECTION: RESTAURANT -->
     <section class="dashboard-section" id="section-store" hidden>
+      <div class="store-block">
+        <h3 style="margin:0 0 4px;">Restaurant profile</h3>
+        <div class="store-sub">Business details on file. Fields marked <em>admin-managed</em> are controlled by Eatswada and cannot be edited here.</div>
+        <div id="profileBody"><div class="state-panel" style="border:0;box-shadow:none;">Loading profile…</div></div>
+      </div>
+
       <div class="store-block">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
@@ -558,6 +648,89 @@
           <div class="state-panel" style="border:0;box-shadow:none;">Loading hours…</div>
         </div>
         <button class="btn accept store-save" id="saveHoursBtn" type="button">Save hours</button>
+      </div>
+    </section>
+
+    <!-- SECTION: INVENTORY -->
+    <section class="dashboard-section" id="section-inventory" hidden>
+      <div class="toolbar-row">
+        <span id="invSummary">Loading…</span>
+        <button class="refresh-btn" id="invRefresh" type="button">↻ Refresh</button>
+      </div>
+      <div class="stat-grid" id="invStats"></div>
+      <div class="card" style="padding:14px 16px;margin-bottom:16px;">
+        <div style="font-weight:800;font-size:14px;">Bulk availability</div>
+        <div class="earnings-sub" style="margin:4px 0 12px;">Select items, then apply. Applies the supported per-item stock endpoint to each selected item.</div>
+        <div class="inline-actions">
+          <button class="btn ghost" id="invSelectAll" type="button">Select all</button>
+          <button class="btn ghost" id="invClear" type="button">Clear</button>
+          <button class="btn accept" id="invMakeAvailable" type="button" disabled>Mark available</button>
+          <button class="btn danger" id="invMakeUnavailable" type="button" disabled>Mark unavailable</button>
+        </div>
+        <div id="invBulkCount" class="stat-note">0 selected</div>
+      </div>
+      <div class="list-card" id="invList"><div class="state-panel" style="border:0;box-shadow:none;">Loading inventory…</div></div>
+    </section>
+
+    <!-- SECTION: ANALYTICS -->
+    <section class="dashboard-section" id="section-analytics" hidden>
+      <div class="earnings-toolbar">
+        <div><strong>Analytics</strong><div class="earnings-sub">Order and sales performance over time.</div></div>
+        <select class="earnings-select" id="analytics-period">
+          <option value="7d" selected>Last 7 days</option>
+          <option value="30d">Last 30 days</option>
+          <option value="90d">Last 90 days</option>
+          <option value="all">All time</option>
+        </select>
+      </div>
+      <div class="stat-grid" id="analytics-stats"></div>
+      <div class="list-card" id="analytics-daily-card" hidden><div class="list-card-head">Daily totals</div><div id="analytics-daily"></div></div>
+      <div class="list-card" id="analytics-top-card" hidden><div class="list-card-head">Top-selling items</div><div id="analytics-top"></div></div>
+      <div id="analytics-empty"></div>
+    </section>
+
+    <!-- SECTION: SUPPORT -->
+    <section class="dashboard-section" id="section-support" hidden>
+      <div class="earnings-toolbar">
+        <div><strong>Support</strong><div class="earnings-sub">Raise and track issues with Eatswada.</div></div>
+        <button class="btn accept" id="supportNewBtn" type="button" style="padding:10px 14px;">+ New ticket</button>
+      </div>
+      <div id="supportNewCard" class="list-card" hidden>
+        <div class="list-card-head">New support ticket</div>
+        <div style="padding:16px;">
+          <div class="form-field"><label for="supSubject">Subject</label><input id="supSubject" type="text" maxlength="120" placeholder="Short summary" /></div>
+          <div class="form-field"><label for="supCategory">Category</label>
+            <select id="supCategory">
+              <option value="payment">Payment issue</option>
+              <option value="order">Order issue</option>
+              <option value="delivery">Delivery issue</option>
+              <option value="technical">Technical issue</option>
+              <option value="account">Account issue</option>
+              <option value="document">Document verification</option>
+              <option value="other" selected>Other</option>
+            </select>
+          </div>
+          <div class="form-field"><label for="supMessage">Description</label><textarea id="supMessage" maxlength="2000" placeholder="Describe the issue…"></textarea></div>
+          <div class="inline-actions">
+            <button class="btn accept" id="supportCreateBtn" type="button">Submit ticket</button>
+            <button class="btn ghost" id="supportCancelBtn" type="button">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="list-card" id="supportList"><div class="state-panel" style="border:0;box-shadow:none;">Loading tickets…</div></div>
+    </section>
+
+    <!-- SECTION: SETTINGS -->
+    <section class="dashboard-section" id="section-settings" hidden>
+      <div class="section-title">Account settings</div>
+      <div class="section-sub" id="settingsSub">Preferences exposed by the backend for this vendor.</div>
+      <div class="card" style="padding:16px;margin-bottom:16px;">
+        <div id="settingsBody"><div class="state-panel" style="border:0;box-shadow:none;">Loading settings…</div></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div style="font-weight:800;margin-bottom:4px;">Session</div>
+        <div class="earnings-sub">You are signed in as a vendor on this device.</div>
+        <div class="inline-actions"><button class="btn ghost" id="settingsLogoutBtn" type="button">Sign out</button></div>
       </div>
     </section>
   </div>
@@ -619,6 +792,100 @@
       <p>Orders, menu approvals, documents and settlement updates from Eatswada.</p>
       <div id="notifList" style="max-height:56vh;overflow-y:auto;margin:-4px 0 4px;"></div>
       <div class="modal-actions"><button class="btn ghost" id="notifClose" type="button">Close</button></div>
+    </div>
+  </div>
+
+  <!-- More Sheet -->
+  <div class="modal-overlay" id="moreSheet">
+    <div class="modal">
+      <h3>More</h3>
+      <p>Manage every part of your restaurant.</p>
+      <div class="more-grid">
+        <button class="more-item" data-more="store" type="button"><span class="mi-ico">🏪</span><strong>Restaurant</strong><span>Profile, status &amp; hours</span></button>
+        <button class="more-item" data-more="inventory" type="button"><span class="mi-ico">📦</span><strong>Inventory</strong><span>Stock &amp; bulk availability</span></button>
+        <button class="more-item" data-more="analytics" type="button"><span class="mi-ico">📈</span><strong>Analytics</strong><span>Orders &amp; sales trends</span></button>
+        <button class="more-item" data-more="notifications" type="button"><span class="mi-ico">🔔</span><strong>Notifications</strong><span>Alerts &amp; updates</span></button>
+        <button class="more-item" data-more="support" type="button"><span class="mi-ico">💬</span><strong>Support</strong><span>Raise &amp; track tickets</span></button>
+        <button class="more-item" data-more="settings" type="button"><span class="mi-ico">⚙️</span><strong>Settings</strong><span>Preferences &amp; session</span></button>
+      </div>
+      <div class="modal-actions"><button class="btn ghost" id="moreClose" type="button">Close</button></div>
+    </div>
+  </div>
+
+  <!-- Menu Item Editor -->
+  <div class="modal-overlay" id="menuSheet">
+    <div class="modal">
+      <h3 id="menuSheetTitle">Add menu item</h3>
+      <p id="menuSheetSub">Item details. Image upload uses the vendor upload endpoint.</p>
+      <div class="sheet-scroll">
+        <div class="form-field"><label for="miName">Item name *</label><input id="miName" type="text" maxlength="120" /></div>
+        <div class="form-field"><label for="miDesc">Description</label><textarea id="miDesc" maxlength="500"></textarea></div>
+        <div class="form-row">
+          <div class="form-field"><label for="miPrice">Price (₹) *</label><input id="miPrice" type="number" min="0" step="1" inputmode="numeric" /></div>
+          <div class="form-field"><label for="miOriginal">Original price (₹)</label><input id="miOriginal" type="number" min="0" step="1" inputmode="numeric" /></div>
+        </div>
+        <div class="form-field"><label for="miCategory">Category *</label><input id="miCategory" type="text" list="miCategoryList" maxlength="40" placeholder="e.g. Main Course" /><datalist id="miCategoryList"></datalist><span class="hint">Pick an existing category or type a new one.</span></div>
+        <div class="form-field"><label>Food type</label>
+          <div class="chip-row">
+            <button class="chip" type="button" data-veg="1">🟢 Veg</button>
+            <button class="chip" type="button" data-veg="0">🔴 Non-veg</button>
+          </div>
+        </div>
+        <div class="form-field"><label>Item image</label>
+          <img id="miPreview" class="thumb-preview" hidden alt="Item preview" />
+          <label class="upload-drop" for="miImageFile">Tap to upload an image (JPG/PNG/WebP, max 5MB)</label>
+          <input id="miImageFile" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+          <span class="hint" id="miImageHint">No image selected.</span>
+        </div>
+        <div class="switch-row"><div><strong>In stock</strong><span class="hint">Customers can order this item</span></div><label class="switch"><input type="checkbox" id="miInStock" checked /><span class="track"></span></label></div>
+        <div class="switch-row"><div><strong>Bestseller</strong><span class="hint">Highlight as a popular item</span></div><label class="switch"><input type="checkbox" id="miBestseller" /><span class="track"></span></label></div>
+        <div class="switch-row"><div><strong>Recommended</strong><span class="hint">Show in recommended section</span></div><label class="switch"><input type="checkbox" id="miRecommended" /><span class="track"></span></label></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="menuSheetCancel" type="button">Cancel</button>
+        <button class="btn accept" id="menuSheetSave" type="button">Save item</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Withdraw Sheet -->
+  <div class="modal-overlay" id="withdrawSheet">
+    <div class="modal">
+      <h3>Request withdrawal</h3>
+      <p id="withdrawSub">Eatswada admin processes payouts. Your request will be queued for review.</p>
+      <div class="form-field"><label for="wdAmount">Amount (₹)</label><input id="wdAmount" type="number" min="1" step="1" inputmode="numeric" /></div>
+      <div class="form-field"><label for="wdNote">Note (optional)</label><input id="wdNote" type="text" maxlength="140" /></div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="withdrawCancel" type="button">Cancel</button>
+        <button class="btn accept" id="withdrawSubmit" type="button">Request withdrawal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Reply Sheet -->
+  <div class="modal-overlay" id="reviewReplySheet">
+    <div class="modal">
+      <h3>Reply to review</h3>
+      <p>Your reply is shown publicly. 1–500 characters.</p>
+      <textarea id="reviewReplyInput" maxlength="500" placeholder="Thank you for your feedback…"></textarea>
+      <div class="stat-note" id="reviewReplyCount" style="margin-top:6px;">0 / 500</div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="reviewReplyCancel" type="button">Cancel</button>
+        <button class="btn accept" id="reviewReplySubmit" type="button">Post reply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Support Reply Sheet -->
+  <div class="modal-overlay" id="supportReplySheet">
+    <div class="modal">
+      <h3>Reply to ticket</h3>
+      <p id="supportReplyTitle">Add a message to this ticket.</p>
+      <textarea id="supportReplyInput" maxlength="2000" placeholder="Type your message…"></textarea>
+      <div class="modal-actions">
+        <button class="btn ghost" id="supportReplyCancel" type="button">Cancel</button>
+        <button class="btn accept" id="supportReplySubmit" type="button">Send reply</button>
+      </div>
     </div>
   </div>
 
@@ -847,7 +1114,8 @@
     new: ['No new orders yet', 'New orders will land here.'],
     preparing: ['Nothing in the kitchen', 'Accepted orders waiting to go out will show up here.'],
     dispatch: ['No orders out for delivery', 'Orders move here once they are handed to a delivery partner.'],
-    history: ['No past orders', 'Delivered and cancelled orders will appear here.']
+    history: ['No past orders', 'Delivered and cancelled orders will appear here.'],
+    menu: ['No menu items yet', 'Add your first item to start selling.']
   };
 
   function renderEmpty(tab) {
@@ -1073,18 +1341,24 @@
         return;
       }
       listEl.innerHTML = reviews.map(r => {
-        const name = r.user?.name || 'Customer';
+        const rid = r._id || r.id;
+        const name = (r.user && r.user.name) || (r.customer && r.customer.name) || 'Customer';
         const score = Math.max(1, Math.min(5, Number(r.score || 0)));
         const stars = '★'.repeat(score) + '☆'.repeat(5-score);
         const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '';
         const comment = r.comment ? escapeHtml(r.comment) : '<span style="color:var(--ink-faint)">No written comment.</span>';
-        return `<article style="padding:18px 20px;border-bottom:1px solid var(--border-soft);">
-          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
-            <div><strong>${escapeHtml(name)}</strong><div style="color:#f59e0b;letter-spacing:1px;margin-top:4px;">${stars}</div></div>
-            <time style="font-size:12px;color:var(--ink-faint);white-space:nowrap;">${escapeHtml(date)}</time>
-          </div>
-          <p style="margin-top:10px;line-height:1.55;color:var(--ink-soft);">${comment}</p>
-        </article>`;
+        const reply = r.vendorReply;
+        const replyText = reply ? (typeof reply === 'string' ? reply : (reply.message || reply.text || '')) : '';
+        const replyHtml = replyText ? '<div style="margin-top:10px;padding:10px 12px;background:var(--green-soft);border-radius:10px;"><strong style="font-size:11px;color:var(--green-dark);text-transform:uppercase;letter-spacing:.04em;">Your reply</strong><p style="margin:4px 0 0;font-size:13px;color:var(--ink);line-height:1.5;">' + escapeHtml(replyText) + '</p></div>' : '';
+        const replyBtn = (rid && !replyText) ? '<div class="inline-actions"><button class="btn ghost" type="button" data-review-reply="' + escapeHtml(String(rid)) + '">Reply</button></div>' : '';
+        return '<article style="padding:18px 20px;border-bottom:1px solid var(--border-soft);">' +
+          '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">' +
+            '<div><strong>' + escapeHtml(name) + '</strong><div style="color:#f59e0b;letter-spacing:1px;margin-top:4px;">' + stars + '</div></div>' +
+            '<time style="font-size:12px;color:var(--ink-faint);white-space:nowrap;">' + escapeHtml(date) + '</time>' +
+          '</div>' +
+          '<p style="margin-top:10px;line-height:1.55;color:var(--ink-soft);">' + comment + '</p>' +
+          replyHtml + replyBtn +
+        '</article>';
       }).join('');
     } catch (err) {
       scoreEl.textContent = '—';
@@ -1130,6 +1404,8 @@
     if (!cards) return;
     renderOverviewStatus();
     renderOverviewDocs();
+    renderAlerts();
+    renderActivity();
     cards.innerHTML = overviewCard('Loading', '…').repeat(4);
     try {
       const [today, month] = await Promise.all([
@@ -1186,7 +1462,7 @@
       const res = await fetchJson(CFG.NOTIFICATIONS_BASE, { headers: authHeaders() });
       state.notifications = Array.isArray(res && res.data) ? res.data : [];
       renderNotificationBadge();
-      if (openSheet) { renderNotificationSheet(); markNotificationsRead(); }
+      if (openSheet) { renderNotificationSheet(); markNotificationsRead(); markNotificationsReadBackend(state.notifications); }
     } catch (err) {
       if (err.message === 'Your session has expired.') return;
       if (openSheet) { const list = document.getElementById('notifList'); if (list) list.innerHTML = '<div class="state-panel" style="border:0;box-shadow:none;"><h3>Couldn\u2019t load notifications</h3><p>' + escapeHtml(err.message || 'Please try again.') + '</p></div>'; }
@@ -1200,18 +1476,37 @@
     } catch (_) {}
     renderNotificationBadge();
   }
+  async function markNotificationsReadBackend(rows) {
+    const read = notifReadSet();
+    const unread = (rows || []).filter(n => n && n._id && !read.has(String(n._id)));
+    for (const n of unread) {
+      try { await fetchJson(API_ORIGIN + '/api/notifications/' + n._id + '/read', { method: 'PATCH', headers: authHeaders() }); } catch (_) { return; }
+      read.add(String(n._id));
+    }
+    try { localStorage.setItem(NOTIF_READ_KEY, JSON.stringify([...read].slice(-300))); } catch (_) {}
+    renderNotificationBadge();
+  }
   function openNotifSheet() { const s = document.getElementById('notifSheet'); if (s) s.classList.add('open'); loadNotifications(true); }
   function closeNotifSheet() { const s = document.getElementById('notifSheet'); if (s) s.classList.remove('open'); }
 
   function switchSection(name) {
+    if (name === 'more') { openMoreSheet(); return; }
+    if (name === 'notifications') { openNotifSheet(); return; }
     state.activeSection = name;
     el.sectionTabs.forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.section === name)));
     el.sections.forEach(sec => sec.hidden = sec.id !== 'section-' + name);
+    if (['store', 'inventory', 'analytics', 'support', 'settings'].indexOf(name) >= 0) {
+      el.sectionTabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.section === 'more')));
+    }
     if (name === 'home') loadOverview();
     if (name === 'menu' && !state.menuLoaded) loadMenu();
-    if (name === 'earnings') loadEarnings();
+    if (name === 'earnings') { loadEarnings(); loadFinance(); }
     if (name === 'reviews') loadReviews();
-    if (name === 'store') renderStore();
+    if (name === 'store') { renderStore(); loadProfile(); }
+    if (name === 'inventory') loadInventory();
+    if (name === 'analytics') loadAnalytics();
+    if (name === 'support') loadSupport();
+    if (name === 'settings') loadSettings();
   }
 
   async function menuFetch(path, options = {}) {
@@ -1219,23 +1514,64 @@
     return fetchJson(MENU_API_BASE + path, { ...options, headers: { ...authHeaders(), ...(options.headers || {}) } });
   }
 
+  const MENU_APPROVAL = { approved: 'approved', approved_by_admin: 'approved', live: 'approved', pending: 'pending', pending_approval: 'pending', in_review: 'pending', rejected: 'rejected', declined: 'rejected' };
+  function menuApprovalOf(item) {
+    if (!item) return null;
+    const raw = item.approvalStatus || item.approval || item.menuStatus || item.moderationStatus || item.status;
+    if (!raw) return null;
+    return MENU_APPROVAL[String(raw).toLowerCase()] || null;
+  }
+  function menuApprovalBadge(item) {
+    const a = menuApprovalOf(item); if (!a) return '';
+    const label = a === 'approved' ? 'Approved' : a === 'pending' ? 'Pending approval' : 'Rejected';
+    return '<span class="badge ' + a + '">' + label + '</span>';
+  }
+
   function renderMenuCard(item) {
-    const card = document.createElement('article'); card.className = 'menu-card' + (item.inStock ? '' : ' out-of-stock'); card.dataset.id = item._id;
-    card.innerHTML = `
-      <div class="menu-card-body">
-        <div class="menu-card-name">${escapeHtml(item.name)}</div>
-        <div class="menu-card-meta">${escapeHtml(item.category || 'General')}</div>
-        <div class="menu-card-price">${formatMoney(item.price)}</div>
-        <div class="menu-card-foot">
-          <label class="switch" title="${item.inStock ? 'Mark out of stock' : 'Mark in stock'}">
-            <input type="checkbox" class="menu-item-toggle" data-id="${item._id}" ${item.inStock ? 'checked' : ''} />
-            <span class="track"></span>
-          </label>
-          <span class="menu-card-meta">${item.inStock ? 'In stock' : 'Out of stock'}</span>
-        </div>
-      </div>
-    `;
+    const card = document.createElement('article');
+    card.className = 'menu-card' + (item.inStock ? '' : ' out-of-stock'); card.dataset.id = item._id;
+    const img = item.image
+      ? '<img class="thumb-sm" src="' + escapeHtml(item.image) + '" alt="" loading="lazy" onerror="this.style.visibility=&quot;hidden&quot;">'
+      : '<div class="thumb-sm thumb-empty"></div>';
+    const veg = item.isVeg === false ? '<span class="badge nonveg">Non-veg</span>' : item.isVeg === true ? '<span class="badge veg">Veg</span>' : '';
+    const strike = (item.originalPrice && Number(item.originalPrice) > Number(item.price))
+      ? ' <span style="font-size:12px;color:var(--ink-faint);text-decoration:line-through;">' + formatMoney(item.originalPrice) + '</span>' : '';
+    card.innerHTML = img +
+      '<div class="menu-card-body">' +
+        '<div class="menu-card-name">' + escapeHtml(item.name) + '</div>' +
+        '<div class="menu-card-meta">' + escapeHtml(item.category || 'General') + '</div>' +
+        '<div class="menu-card-price">' + formatMoney(item.price) + strike + '</div>' +
+        '<div class="badge-row" style="margin-top:4px;">' + veg + menuApprovalBadge(item) + '</div>' +
+        '<div class="menu-card-foot">' +
+          '<label class="switch" title="' + (item.inStock ? 'Mark out of stock' : 'Mark in stock') + '">' +
+            '<input type="checkbox" class="menu-item-toggle" data-id="' + item._id + '" ' + (item.inStock ? 'checked' : '') + ' />' +
+            '<span class="track"></span>' +
+          '</label>' +
+          '<span class="menu-card-meta">' + (item.inStock ? 'In stock' : 'Out of stock') + '</span>' +
+          '<span style="flex:1"></span>' +
+          '<button class="btn ghost" type="button" data-menu-edit="' + item._id + '" style="padding:6px 10px;font-size:12px;">Edit</button>' +
+          '<button class="btn ghost" type="button" data-menu-del="' + item._id + '" style="padding:6px 10px;font-size:12px;color:var(--danger);">Delete</button>' +
+        '</div>' +
+      '</div>';
     return card;
+  }
+
+  function populateMenuCategories() {
+    const dl = document.getElementById('miCategoryList'); if (!dl) return;
+    const cats = Array.from(new Set(state.menuItems.map(i => i.category).filter(Boolean))).sort();
+    dl.innerHTML = cats.map(c => '<option value="' + escapeHtml(c) + '"></option>').join('');
+  }
+
+  function renderMenuList() {
+    const search = document.getElementById('menuSearch');
+    const q = (search && search.value ? search.value : '').trim().toLowerCase();
+    let items = state.menuItems;
+    if (q) items = items.filter(i => String(i.name || '').toLowerCase().includes(q) || String(i.category || '').toLowerCase().includes(q));
+    el.menuCount.textContent = state.menuItems.length ? (state.menuItems.length + ' items') : '';
+    el.menuGrid.innerHTML = '';
+    if (!state.menuItems.length) { el.menuGrid.appendChild(renderEmpty('menu')); return; }
+    if (!items.length) { const d = document.createElement('div'); d.className = 'state-panel'; d.innerHTML = '<h3>No matches</h3><p>No items match your search.</p>'; el.menuGrid.appendChild(d); return; }
+    [...items].sort((a, b) => String(a.category || '').localeCompare(String(b.category || '')) || String(a.name || '').localeCompare(String(b.name || ''))).forEach(item => el.menuGrid.appendChild(renderMenuCard(item)));
   }
 
   async function loadMenu() {
@@ -1243,10 +1579,7 @@
     try {
       const res = await menuFetch('/menu'); if (requestId !== state.menuRequest) return;
       state.menuItems = Array.isArray(res?.data) ? res.data : []; state.menuLoaded = true;
-      el.menuCount.textContent = state.menuItems.length ? `${state.menuItems.length} items` : '';
-      el.menuGrid.innerHTML = '';
-      if (!state.menuItems.length) { el.menuGrid.appendChild(renderEmpty('menu')); return; }
-      [...state.menuItems].sort((a, b) => (a.category || '').localeCompare(b.category || '') || a.name.localeCompare(b.name)).forEach(item => el.menuGrid.appendChild(renderMenuCard(item)));
+      populateMenuCategories(); renderMenuList(); renderAlerts(); renderActivity();
     } catch (err) {
       if (err.message === 'Your session has expired.') return;
       renderRetry(el.menuGrid, err.message, loadMenu); showToast('error', err.message);
@@ -1255,12 +1588,16 @@
 
   async function toggleMenuItemStock(input) {
     input.disabled = true;
+    const id = input.dataset.id;
+    const desired = input.checked;
     try {
-      await menuFetch('/menu/' + input.dataset.id + '/toggle-stock', { method: 'PUT' });
-      showToast('success', input.checked ? 'Marked in stock.' : 'Marked out of stock.');
-      const card = input.closest('.menu-card');
-      if (card) { card.classList.toggle('out-of-stock', !input.checked); const label = card.querySelector('.menu-card-foot .menu-card-meta'); if (label) label.textContent = input.checked ? 'In stock' : 'Out of stock'; }
-    } catch (err) { input.checked = !input.checked; showToast('error', err.message || 'Could not update stock.'); } finally { input.disabled = false; }
+      await menuFetch('/menu/' + id + '/toggle-stock', { method: 'PUT' });
+      const item = state.menuItems.find(i => i._id === id);
+      if (item) item.inStock = desired;
+      showToast('success', desired ? 'Marked in stock.' : 'Marked out of stock.');
+      if (state.activeSection === 'inventory') renderInventory(); else renderMenuList();
+      renderAlerts();
+    } catch (err) { input.checked = !desired; showToast('error', err.message || 'Could not update stock.'); } finally { input.disabled = false; }
   }
 
   el.menuGrid.addEventListener('change', (e) => { if (e.target.classList.contains('menu-item-toggle')) toggleMenuItemStock(e.target); });
@@ -1328,6 +1665,491 @@
   }
   function stopPolling() { if (state.pollTimer) clearTimeout(state.pollTimer); }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) loadQueue(false); });
+
+  /* ====================================================================
+     VENDOR 2.0 MODULES
+     Only endpoints confirmed live on the Render backend are called.
+     Auth-gated endpoints were verified with HTTP status probes; request/
+     response fields follow the backend model shapes observed publicly.
+     ==================================================================== */
+  const API_ORIGIN = CFG.API_ORIGIN;
+
+  const v2 = {
+    profile: null, analyticsPeriod: '7d',
+    finance: null, withdrawals: [], availableBalance: null,
+    support: [],
+    inventorySelected: new Set(), editingMenuId: null, menuImageUrl: '',
+    pendingReviewId: null, pendingSupportId: null, bulkBusy: false
+  };
+
+  function str(v) { return (v === null || v === undefined) ? '' : String(v); }
+  function enumLabel(s) { return str(s).replace(/[_-]+/g, ' ').trim().replace(/\b\w/g, function (m) { return m.toUpperCase(); }); }
+  function num(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }
+  function openModal(id) { const m = document.getElementById(id); if (m) m.classList.add('open'); }
+  function closeModal(id) { const m = document.getElementById(id); if (m) m.classList.remove('open'); }
+
+  /* ---- More sheet ---- */
+  function openMoreSheet() { openModal('moreSheet'); }
+  function closeMoreSheet() { closeModal('moreSheet'); }
+
+  /* ---- Restaurant profile (read-only; no vendor update endpoint) ---- */
+  async function loadProfile() {
+    const body = document.getElementById('profileBody'); if (!body) return;
+    body.innerHTML = '<div class="state-panel" style="border:0;box-shadow:none;">Loading profile…</div>';
+    let data = null;
+    try { const res = await apiFetch('/profile'); data = (res && res.data) || res; }
+    catch (e) {
+      try { const r2 = await apiFetch('/restaurant'); data = (r2 && r2.data) || state.restaurant; }
+      catch (e2) { data = state.restaurant; }
+    }
+    if (!data) data = state.restaurant || {};
+    v2.profile = data; renderProfile(data);
+  }
+  function profileRow(label, value, adminManaged) {
+    const v = (value === null || value === undefined || value === '') ? '—' : value;
+    return '<div class="list-row" style="padding:10px 0;"><div class="lr-main"><div class="lr-sub" style="margin:0;text-transform:uppercase;font-size:10px;font-weight:800;color:var(--ink-faint);">' + escapeHtml(label) + (adminManaged ? ' · admin-managed' : '') + '</div><div class="lr-title" style="margin-top:3px;">' + escapeHtml(String(v)) + '</div></div></div>';
+  }
+  function renderProfile(r) {
+    const body = document.getElementById('profileBody'); if (!body) return;
+    r = r || {};
+    const cuisine = Array.isArray(r.cuisine) ? r.cuisine.join(', ') : r.cuisine;
+    const rows = [
+      profileRow('Restaurant name', r.name),
+      profileRow('Business type', enumLabel(r.businessType || '')),
+      profileRow('Cuisine', cuisine),
+      profileRow('Description', r.description),
+      profileRow('Phone', r.phone),
+      profileRow('Address', r.address),
+      profileRow('FSSAI number', r.fssaiLicenseNumber),
+      profileRow('FSSAI verification', enumLabel(r.fssaiVerificationStatus || 'pending')),
+      profileRow('Approval status', enumLabel(r.approvalStatus || '')),
+      profileRow('Delivery mode', r.deliveryMode === 'self' ? 'Self delivery' : r.deliveryMode ? 'Eatswada delivery' : ''),
+      profileRow('Commission rate', r.commissionRate != null ? (r.commissionRate + '%') : '', true),
+      profileRow('Settlement schedule', enumLabel(r.settlementSchedule || ''), true)
+    ];
+    body.innerHTML = rows.join('') + '<div class="stat-note" style="margin-top:10px;">Profile fields are read-only. The backend exposes no vendor profile-update endpoint (PUT /api/vendor/profile → 404), so profile changes are handled by Eatswada admin.</div>';
+  }
+
+  /* ---- Menu CRUD ---- */
+  function openMenuEditor(item) {
+    v2.editingMenuId = item ? item._id : null;
+    v2.menuImageUrl = item && item.image ? item.image : '';
+    document.getElementById('menuSheetTitle').textContent = item ? 'Edit menu item' : 'Add menu item';
+    document.getElementById('menuSheetSub').textContent = item ? 'Editing an approved item may send it back for review on the backend.' : 'New items may require Eatswada approval before going live.';
+    document.getElementById('miName').value = item ? (item.name || '') : '';
+    document.getElementById('miDesc').value = item ? (item.description || '') : '';
+    document.getElementById('miPrice').value = item && item.price != null ? item.price : '';
+    document.getElementById('miOriginal').value = item && item.originalPrice != null ? item.originalPrice : '';
+    document.getElementById('miCategory').value = item ? (item.category || '') : '';
+    document.getElementById('miInStock').checked = item ? item.inStock !== false : true;
+    document.getElementById('miBestseller').checked = !!(item && item.isBestseller);
+    document.getElementById('miRecommended').checked = !!(item && item.isRecommended);
+    setVegChip(item ? item.isVeg !== false : true);
+    setMenuPreview(v2.menuImageUrl);
+    document.getElementById('miImageFile').value = '';
+    document.getElementById('miImageHint').textContent = v2.menuImageUrl ? 'Current image.' : 'No image selected.';
+    openModal('menuSheet');
+  }
+  function setVegChip(isVeg) {
+    document.querySelectorAll('#menuSheet .chip[data-veg]').forEach(c => c.classList.toggle('selected', (c.dataset.veg === '1') === !!isVeg));
+  }
+  function selectedVeg() { const c = document.querySelector('#menuSheet .chip[data-veg].selected'); return c ? c.dataset.veg === '1' : true; }
+  function setMenuPreview(url) {
+    const img = document.getElementById('miPreview'); if (!img) return;
+    if (url) { img.src = url; img.hidden = false; } else { img.removeAttribute('src'); img.hidden = true; }
+  }
+  async function uploadMenuImage(file) {
+    if (!file) return '';
+    if (!/^image\/(png|jpe?g|webp)$/i.test(file.type)) { showToast('error', 'Only JPG, PNG or WebP images are allowed.'); return ''; }
+    if (file.size > 5 * 1024 * 1024) { showToast('error', 'Image must be 5MB or smaller.'); return ''; }
+    const fd = new FormData(); fd.append('image', file);
+    const res = await fetch(MENU_API_BASE + '/menu/upload-image', { method: 'POST', headers: authHeaders(), body: fd });
+    let body = null; try { body = await res.json(); } catch (_) {}
+    if (res.status === 401) handleUnauthorized();
+    if (!res.ok) throw new Error((body && (body.message || body.error)) || 'Image upload failed.');
+    const url = (body && body.data && (body.data.url || body.data.image || body.data.secure_url)) || (body && (body.url || body.image)) || '';
+    if (!url) throw new Error('Upload succeeded but no image URL was returned.');
+    return url;
+  }
+  async function saveMenuItem() {
+    const name = document.getElementById('miName').value.trim();
+    const price = num(document.getElementById('miPrice').value);
+    const category = document.getElementById('miCategory').value.trim();
+    if (!name) { showToast('error', 'Item name is required.'); return; }
+    if (price === null || price < 0) { showToast('error', 'Enter a valid price.'); return; }
+    if (!category) { showToast('error', 'Category is required.'); return; }
+    const original = num(document.getElementById('miOriginal').value);
+    const payload = {
+      name: name,
+      description: document.getElementById('miDesc').value.trim(),
+      price: price,
+      category: category,
+      isVeg: selectedVeg(),
+      inStock: document.getElementById('miInStock').checked,
+      isBestseller: document.getElementById('miBestseller').checked,
+      isRecommended: document.getElementById('miRecommended').checked
+    };
+    if (original !== null && original > 0) payload.originalPrice = original;
+    if (v2.menuImageUrl) payload.image = v2.menuImageUrl;
+    const btn = document.getElementById('menuSheetSave'); btn.disabled = true;
+    try {
+      if (v2.editingMenuId) await apiFetch('/menu/' + v2.editingMenuId, { method: 'PUT', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
+      else await apiFetch('/menu', { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
+      showToast('success', v2.editingMenuId ? 'Item updated.' : 'Item created.');
+      closeModal('menuSheet'); await loadMenu();
+    } catch (err) { showToast('error', err.message || 'Could not save item.'); }
+    finally { btn.disabled = false; }
+  }
+  async function deleteMenuItem(id) {
+    const item = state.menuItems.find(i => i._id === id);
+    if (!confirm('Delete “' + ((item && item.name) || 'this item') + '”? This cannot be undone.')) return;
+    try { await apiFetch('/menu/' + id, { method: 'DELETE' }); showToast('success', 'Item deleted.'); await loadMenu(); }
+    catch (err) { showToast('error', err.message || 'Could not delete item.'); }
+  }
+
+  /* ---- Inventory / bulk availability (built on the live menu + toggle-stock endpoints) ---- */
+  async function loadInventory() {
+    const list = document.getElementById('invList'); if (!list) return;
+    if (!state.menuLoaded) {
+      list.innerHTML = '<div class="state-panel" style="border:0;box-shadow:none;">Loading inventory…</div>';
+      try { const res = await menuFetch('/menu'); state.menuItems = Array.isArray(res && res.data) ? res.data : []; state.menuLoaded = true; populateMenuCategories(); }
+      catch (err) { renderRetry(list, err.message, loadInventory); return; }
+    }
+    renderInventory();
+  }
+  function renderInventory() {
+    const list = document.getElementById('invList'); if (!list) return;
+    const stats = document.getElementById('invStats');
+    const items = state.menuItems || [];
+    const inStock = items.filter(i => i.inStock).length;
+    document.getElementById('invSummary').textContent = items.length ? (items.length + ' items') : '';
+    if (stats) stats.innerHTML = overviewCard('In stock', String(inStock)) + overviewCard('Out of stock', String(items.length - inStock));
+    if (!items.length) { list.innerHTML = '<div class="state-panel" style="border:0;box-shadow:none;"><h3>No menu items</h3><p>Add items in the Menu tab to manage stock.</p></div>'; updateBulkButtons(); return; }
+    list.innerHTML = items.map(i => {
+      const selected = v2.inventorySelected.has(i._id);
+      return '<div class="list-row">' +
+        '<label class="switch" style="margin-top:2px;"><input type="checkbox" class="inv-select" data-id="' + i._id + '" ' + (selected ? 'checked' : '') + '><span class="track"></span></label>' +
+        '<div class="lr-main"><div class="lr-title">' + escapeHtml(i.name) + '</div><div class="lr-sub">' + escapeHtml(i.category || 'General') + ' · ' + formatMoney(i.price) + '</div></div>' +
+        '<div style="text-align:right;"><span class="badge ' + (i.inStock ? 'approved' : 'rejected') + '">' + (i.inStock ? 'In stock' : 'Out of stock') + '</span>' +
+        '<div style="margin-top:6px;"><label class="switch"><input type="checkbox" class="menu-item-toggle" data-id="' + i._id + '" ' + (i.inStock ? 'checked' : '') + '><span class="track"></span></label></div></div>' +
+      '</div>';
+    }).join('');
+    updateBulkButtons();
+  }
+  function updateBulkButtons() {
+    const n = v2.inventorySelected.size;
+    const c = document.getElementById('invBulkCount'); if (c) c.textContent = n + ' selected';
+    ['invMakeAvailable', 'invMakeUnavailable'].forEach(id => { const b = document.getElementById(id); if (b) b.disabled = n === 0 || v2.bulkBusy; });
+  }
+  async function applyBulkAvailability(makeAvailable) {
+    if (v2.bulkBusy || !v2.inventorySelected.size) return;
+    v2.bulkBusy = true; updateBulkButtons();
+    const ids = Array.from(v2.inventorySelected);
+    let ok = 0, fail = 0;
+    for (const id of ids) {
+      const item = state.menuItems.find(i => i._id === id);
+      if (!item) continue;
+      if (item.inStock === makeAvailable) { ok++; continue; }
+      try { await apiFetch('/menu/' + id + '/toggle-stock', { method: 'PUT', headers: { 'Content-Type': 'application/json' } }); item.inStock = makeAvailable; ok++; }
+      catch (e) { fail++; }
+    }
+    v2.bulkBusy = false;
+    showToast(fail ? 'error' : 'success', ok + ' updated' + (fail ? ', ' + fail + ' failed' : '') + '.');
+    renderInventory(); renderMenuList(); renderAlerts();
+  }
+
+  /* ---- Analytics ---- */
+  async function loadAnalytics() {
+    const stats = document.getElementById('analytics-stats'); if (!stats) return;
+    stats.innerHTML = overviewCard('Loading', '…').repeat(4);
+    const dailyCard = document.getElementById('analytics-daily-card'); if (dailyCard) dailyCard.hidden = true;
+    const topCard = document.getElementById('analytics-top-card'); if (topCard) topCard.hidden = true;
+    const period = (document.getElementById('analytics-period') || {}).value || '7d';
+    try { const res = await apiFetch('/analytics?period=' + encodeURIComponent(period)); renderAnalytics(res); }
+    catch (err) { stats.innerHTML = '<div class="state-panel" style="grid-column:1/-1"><h3>Couldn’t load analytics</h3><p>' + escapeHtml(err.message || 'Please try again.') + '</p><button class="btn accept" style="margin-top:16px" type="button" id="analyticsRetry">Retry</button></div>'; const rb = document.getElementById('analyticsRetry'); if (rb) rb.addEventListener('click', loadAnalytics); }
+  }
+  function renderAnalytics(res) {
+    const d = (res && res.data) || res || {};
+    const stats = document.getElementById('analytics-stats'); if (!stats) return;
+    const total = num(d.totalOrders != null ? d.totalOrders : (d.total != null ? d.total : d.orderCount));
+    const delivered = num(d.delivered != null ? d.delivered : (d.deliveredOrders != null ? d.deliveredOrders : (d.statusCounts && d.statusCounts.delivered)));
+    const cancelled = num(d.cancelled != null ? d.cancelled : (d.cancelledOrders != null ? d.cancelledOrders : (d.statusCounts && d.statusCounts.cancelled)));
+    const sales = num(d.deliveredFoodSales != null ? d.deliveredFoodSales : (d.foodSales != null ? d.foodSales : d.sales));
+    const avg = num(d.avgOrderValue != null ? d.avgOrderValue : (d.averageOrderValue != null ? d.averageOrderValue : d.avgDeliveredOrderValue));
+    const cells = [];
+    if (total !== null) cells.push(overviewCard('Total orders', String(total)));
+    if (delivered !== null) cells.push(overviewCard('Delivered', String(delivered)));
+    if (cancelled !== null) cells.push(overviewCard('Cancelled', String(cancelled)));
+    if (sales !== null) cells.push(overviewCard('Delivered sales', money(sales)));
+    if (avg !== null) cells.push(overviewCard('Avg order value', money(avg)));
+    stats.innerHTML = cells.length ? cells.join('') : '<div class="state-panel" style="grid-column:1/-1"><h3>No analytics for this period</h3><p>Try another period or check back after more orders.</p></div>';
+    const daily = Array.isArray(d.daily) ? d.daily : Array.isArray(d.dailyTotals) ? d.dailyTotals : [];
+    if (daily.length) { const card = document.getElementById('analytics-daily-card'); if (card) card.hidden = false; document.getElementById('analytics-daily').innerHTML = daily.map(row => { const day = str(row.date || row.day || row._id).slice(0, 10); const orders = num(row.orders != null ? row.orders : (row.count != null ? row.count : row.total)); const amount = num(row.sales != null ? row.sales : (row.deliveredFoodSales != null ? row.deliveredFoodSales : row.amount)); return '<div class="list-row"><div class="lr-main"><div class="lr-title">' + escapeHtml(day) + '</div><div class="lr-sub">' + (orders !== null ? orders + ' orders' : '') + (amount !== null ? (orders !== null ? ' · ' : '') + money(amount) : '') + '</div></div></div>'; }).join(''); }
+    const top = Array.isArray(d.topItems) ? d.topItems : Array.isArray(d.topSellingItems) ? d.topSellingItems : [];
+    if (top.length) { const card = document.getElementById('analytics-top-card'); if (card) card.hidden = false; document.getElementById('analytics-top').innerHTML = top.map((t, i) => { const nm = t.name || t.itemName || t._id || 'Item'; const q = num(t.quantity != null ? t.quantity : (t.qty != null ? t.qty : (t.count != null ? t.count : t.totalSold))); return '<div class="list-row"><div class="lr-main"><div class="lr-title">' + (i + 1) + '. ' + escapeHtml(nm) + '</div><div class="lr-sub">' + (q !== null ? q + ' sold' : '') + '</div></div></div>'; }).join(''); }
+  }
+
+  /* ---- Settlements & withdrawals ---- */
+  async function loadFinance() {
+    const stats = document.getElementById('financeStats'); if (!stats) return;
+    stats.innerHTML = overviewCard('Loading', '…').repeat(2);
+    try {
+      const res = await apiFetch('/settlements/summary');
+      const d = (res && res.data) || res || {};
+      v2.finance = d;
+      const available = num(d.availableBalance != null ? d.availableBalance : (d.available != null ? d.available : (d.withdrawableBalance != null ? d.withdrawableBalance : d.balance)));
+      const pending = num(d.pendingBalance != null ? d.pendingBalance : (d.pending != null ? d.pending : d.pendingSettlement));
+      const withdrawn = num(d.withdrawnAmount != null ? d.withdrawnAmount : (d.withdrawn != null ? d.withdrawn : d.totalWithdrawn));
+      const pendingWd = num(d.pendingWithdrawalAmount != null ? d.pendingWithdrawalAmount : d.pendingWithdrawal);
+      v2.availableBalance = available;
+      const cells = [overviewCard('Available balance', available !== null ? money(available) : '—'), overviewCard('Pending settlement', pending !== null ? money(pending) : '—')];
+      if (withdrawn !== null) cells.push(overviewCard('Withdrawn', money(withdrawn)));
+      if (pendingWd !== null) cells.push(overviewCard('Pending withdrawal', money(pendingWd)));
+      stats.innerHTML = cells.join('');
+      const min = num(d.minWithdrawal != null ? d.minWithdrawal : d.minimumWithdrawal);
+      document.getElementById('financeNote').textContent = min !== null ? ('Minimum withdrawal: ' + money(min)) : 'Payouts are processed by Eatswada admin.';
+    } catch (err) {
+      stats.innerHTML = '<div class="state-panel" style="grid-column:1/-1"><h3>Finance unavailable</h3><p>' + escapeHtml(err.message || 'Please try again.') + '</p></div>';
+      document.getElementById('financeNote').textContent = '';
+    }
+    await loadWithdrawals();
+  }
+  async function loadWithdrawals() {
+    const box = document.getElementById('withdrawList'); if (!box) return;
+    box.innerHTML = '<div class="stat-note">Loading withdrawal requests…</div>';
+    try {
+      const res = await apiFetch('/settlements/withdrawals');
+      let rows = Array.isArray(res && res.data) ? res.data : (res && res.data && Array.isArray(res.data.withdrawals) ? res.data.withdrawals : (res && res.withdrawals));
+      rows = Array.isArray(rows) ? rows : [];
+      v2.withdrawals = rows;
+      if (!rows.length) { box.innerHTML = '<div class="stat-note">No withdrawal requests yet.</div>'; renderAlerts(); return; }
+      box.innerHTML = rows.map(w => {
+        const amt = num(w.amount != null ? w.amount : w.requestedAmount);
+        const status = str(w.status).toLowerCase();
+        const cls = /paid|completed|approved|success/.test(status) ? 'approved' : /reject|fail/.test(status) ? 'rejected' : 'pending';
+        const when = w.createdAt || w.requestedAt || w.date;
+        const ref = w.reference || w.transactionReference;
+        return '<div class="list-row" style="padding:12px 0;"><div class="lr-main"><div class="lr-title">' + (amt !== null ? money(amt) : 'Withdrawal') + '</div><div class="lr-sub">' + (when ? new Date(when).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '') + (ref ? ' · Ref ' + escapeHtml(ref) : '') + (w.rejectionReason ? ' · ' + escapeHtml(w.rejectionReason) : '') + '</div></div><span class="badge ' + cls + '">' + enumLabel(w.status || 'pending') + '</span></div>';
+      }).join('');
+      renderAlerts();
+    } catch (err) { box.innerHTML = '<div class="stat-note">' + escapeHtml(err.message || 'Could not load withdrawals.') + '</div>'; }
+  }
+  function openWithdrawSheet() {
+    if (!document.getElementById('withdrawSheet')) return;
+    document.getElementById('wdAmount').value = '';
+    document.getElementById('wdNote').value = '';
+    const min = v2.finance && num(v2.finance.minWithdrawal != null ? v2.finance.minWithdrawal : v2.finance.minimumWithdrawal);
+    const sub = document.getElementById('withdrawSub');
+    if (sub) sub.textContent = (min !== null ? 'Minimum withdrawal ' + money(min) + '. ' : '') + 'Eatswada admin processes payouts. Your request will be queued for review.';
+    openModal('withdrawSheet');
+  }
+  async function submitWithdrawal() {
+    const amount = num(document.getElementById('wdAmount').value);
+    if (amount === null || amount <= 0) { showToast('error', 'Enter a valid amount.'); return; }
+    const note = document.getElementById('wdNote').value.trim();
+    const payload = { amount: amount };
+    if (note) payload.note = note;
+    const btn = document.getElementById('withdrawSubmit'); btn.disabled = true;
+    try { await apiFetch('/settlements/withdraw', { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } }); showToast('success', 'Withdrawal requested.'); closeModal('withdrawSheet'); await loadFinance(); }
+    catch (err) { showToast('error', err.message || 'Could not request withdrawal.'); }
+    finally { btn.disabled = false; }
+  }
+
+  /* ---- Support ---- */
+  async function loadSupport() {
+    const list = document.getElementById('supportList'); if (!list) return;
+    list.innerHTML = '<div class="state-panel" style="border:0;box-shadow:none;">Loading tickets…</div>';
+    try {
+      const res = await apiFetch('/support');
+      let rows = Array.isArray(res && res.data) ? res.data : null;
+      if (!rows && res && res.data && Array.isArray(res.data.tickets)) rows = res.data.tickets;
+      if (!rows && Array.isArray(res && res.tickets)) rows = res.tickets;
+      rows = Array.isArray(rows) ? rows : [];
+      v2.support = rows;
+      if (!rows.length) { list.innerHTML = '<div class="state-panel" style="border:0;box-shadow:none;"><h3>No support tickets</h3><p>Create a ticket and the Eatswada team will respond here.</p></div>'; return; }
+      list.innerHTML = rows.map(t => {
+        const id = String(t._id || t.id || '');
+        const msgs = Array.isArray(t.messages) ? t.messages : Array.isArray(t.replies) ? t.replies : [];
+        const status = str(t.status || 'open').toLowerCase();
+        const cls = /closed|resolved/.test(status) ? 'approved' : /open|pending|in_progress|in-progress/.test(status) ? 'pending' : 'neutral';
+        return '<div class="list-row"><div class="lr-main">' +
+          '<div class="lr-title">' + escapeHtml(t.subject || t.title || 'Ticket') + '</div>' +
+          '<div class="lr-sub">' + escapeHtml(enumLabel(t.category || 'general')) + (id ? ' · ' + escapeHtml(id) : '') + (t.createdAt ? ' · ' + new Date(t.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '') + '</div>' +
+          (t.message || t.description ? '<div class="lr-sub" style="margin-top:6px;">' + escapeHtml(t.message || t.description) + '</div>' : '') +
+          msgs.map(m => '<div class="lr-sub" style="margin-top:6px;padding-left:10px;border-left:2px solid var(--border);">' + escapeHtml(m.message || m.body || '') + '</div>').join('') +
+          (id ? '<div class="inline-actions"><button class="btn ghost" type="button" data-support-reply="' + escapeHtml(id) + '">Reply</button></div>' : '') +
+        '</div><span class="badge ' + cls + '">' + enumLabel(t.status || 'open') + '</span></div>';
+      }).join('');
+      renderAlerts();
+    } catch (err) { renderRetry(list, err.message || 'Could not load tickets.', loadSupport); }
+  }
+  async function createSupportTicket() {
+    const subject = document.getElementById('supSubject').value.trim();
+    const category = document.getElementById('supCategory').value;
+    const message = document.getElementById('supMessage').value.trim();
+    if (!subject) { showToast('error', 'Subject is required.'); return; }
+    if (!message) { showToast('error', 'Description is required.'); return; }
+    const btn = document.getElementById('supportCreateBtn'); btn.disabled = true;
+    try {
+      await apiFetch('/support', { method: 'POST', body: JSON.stringify({ subject: subject, category: category, message: message }), headers: { 'Content-Type': 'application/json' } });
+      showToast('success', 'Ticket submitted.');
+      document.getElementById('supSubject').value = ''; document.getElementById('supMessage').value = '';
+      document.getElementById('supportNewCard').hidden = true;
+      await loadSupport();
+    } catch (err) { showToast('error', err.message || 'Could not submit ticket.'); }
+    finally { btn.disabled = false; }
+  }
+  function openSupportReply(id, title) {
+    v2.pendingSupportId = id;
+    const t = document.getElementById('supportReplyTitle'); if (t) t.textContent = title ? ('Reply to “' + title + '”') : 'Add a message to this ticket.';
+    document.getElementById('supportReplyInput').value = '';
+    openModal('supportReplySheet');
+  }
+  async function submitSupportReply() {
+    const message = document.getElementById('supportReplyInput').value.trim();
+    if (!message) { showToast('error', 'Enter a message.'); return; }
+    const id = v2.pendingSupportId;
+    const btn = document.getElementById('supportReplySubmit'); btn.disabled = true;
+    try { await apiFetch('/support/' + id + '/reply', { method: 'POST', body: JSON.stringify({ message: message }), headers: { 'Content-Type': 'application/json' } }); showToast('success', 'Reply sent.'); closeModal('supportReplySheet'); await loadSupport(); }
+    catch (err) { showToast('error', err.message || 'Could not send reply.'); }
+    finally { btn.disabled = false; }
+  }
+
+  /* ---- Settings ---- */
+  async function loadSettings() {
+    const body = document.getElementById('settingsBody'); if (!body) return;
+    body.innerHTML = '<div class="state-panel" style="border:0;box-shadow:none;">Loading settings…</div>';
+    try { const res = await apiFetch('/settings'); const d = (res && res.data) || res || {}; v2.settings = d; renderSettings(d); }
+    catch (err) { renderRetry(body, err.message || 'Could not load settings.', loadSettings); }
+  }
+  function renderSettings(d) {
+    const body = document.getElementById('settingsBody'); if (!body) return;
+    const keys = Object.keys(d || {}).filter(k => typeof d[k] === 'boolean');
+    if (!keys.length) { body.innerHTML = '<div class="stat-note">No editable preferences are exposed by the backend for this account. Business and platform settings are managed by Eatswada admin.</div>'; return; }
+    body.innerHTML = keys.map(k => '<div class="switch-row"><div><strong>' + escapeHtml(enumLabel(k)) + '</strong></div><label class="switch"><input type="checkbox" class="setting-toggle" data-key="' + escapeHtml(k) + '" ' + (d[k] ? 'checked' : '') + '><span class="track"></span></label></div>').join('') +
+      '<div class="inline-actions" style="margin-top:12px;"><button class="btn accept" id="settingsSaveBtn" type="button">Save settings</button></div>';
+    const save = document.getElementById('settingsSaveBtn'); if (save) save.addEventListener('click', saveSettings);
+  }
+  async function saveSettings() {
+    const payload = {};
+    document.querySelectorAll('.setting-toggle').forEach(t => { payload[t.dataset.key] = t.checked; });
+    const btn = document.getElementById('settingsSaveBtn'); if (btn) btn.disabled = true;
+    try { await apiFetch('/settings', { method: 'PUT', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } }); showToast('success', 'Settings saved.'); }
+    catch (err) { showToast('error', err.message || 'Could not save settings.'); }
+    finally { if (btn) btn.disabled = false; }
+  }
+
+  /* ---- Review replies ---- */
+  function openReviewReply(id) {
+    v2.pendingReviewId = id;
+    document.getElementById('reviewReplyInput').value = '';
+    document.getElementById('reviewReplyCount').textContent = '0 / 500';
+    openModal('reviewReplySheet');
+  }
+  async function submitReviewReply() {
+    const msg = document.getElementById('reviewReplyInput').value.trim();
+    if (msg.length < 1 || msg.length > 500) { showToast('error', 'Reply must be 1–500 characters.'); return; }
+    const id = v2.pendingReviewId;
+    const btn = document.getElementById('reviewReplySubmit'); btn.disabled = true;
+    try { await apiFetch('/reviews/' + id + '/reply', { method: 'POST', body: JSON.stringify({ message: msg }), headers: { 'Content-Type': 'application/json' } }); showToast('success', 'Reply posted.'); closeModal('reviewReplySheet'); await loadReviews(); }
+    catch (err) { showToast('error', err.message || 'Could not post reply.'); }
+    finally { btn.disabled = false; }
+  }
+
+  /* ---- Alerts & activity (derived from real backend data only) ---- */
+  function renderAlerts() {
+    const box = document.getElementById('ov-alerts'); if (!box) return;
+    const alerts = [];
+    const status = state.currentStatus;
+    if (status && status !== 'open') alerts.push({ t: 'Restaurant is ' + enumLabel(status).toLowerCase(), s: 'Customers may not be able to order right now.', goto: 'store' });
+    const pending = (state.menuItems || []).filter(i => menuApprovalOf(i) === 'pending').length;
+    if (pending) alerts.push({ t: pending + ' menu item' + (pending > 1 ? 's' : '') + ' pending approval', s: 'Waiting for Eatswada review.', goto: 'menu' });
+    const oos = (state.menuItems || []).filter(i => !i.inStock).length;
+    if (oos) alerts.push({ t: oos + ' item' + (oos > 1 ? 's' : '') + ' out of stock', s: 'Customers cannot order these items.', goto: 'inventory' });
+    const newOrders = state.queue.filter(o => o.status === 'placed').length;
+    if (newOrders) alerts.push({ t: newOrders + ' new order' + (newOrders > 1 ? 's' : '') + ' waiting', s: 'Accept or reject from Orders.', goto: 'orders' });
+    const pendingWd = (v2.withdrawals || []).filter(w => /pending|processing|requested/.test(str(w.status).toLowerCase())).length;
+    if (pendingWd) alerts.push({ t: pendingWd + ' withdrawal request' + (pendingWd > 1 ? 's' : '') + ' pending', s: 'Eatswada admin processes payouts.', goto: 'earnings' });
+    if (!alerts.length) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = '<div class="list-card-head">Alerts</div>' + alerts.map(a => '<button class="list-row" type="button" data-goto2="' + a.goto + '" style="width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border-soft);cursor:pointer;"><div class="lr-main"><div class="lr-title">' + escapeHtml(a.t) + '</div><div class="lr-sub">' + escapeHtml(a.s) + '</div></div><span style="color:var(--ink-faint);">›</span></button>').join('');
+    box.querySelectorAll('[data-goto2]').forEach(b => b.addEventListener('click', () => switchSection(b.dataset.goto2)));
+  }
+  function renderActivity() {
+    const box = document.getElementById('ov-activity'); if (!box) return;
+    const events = [];
+    const orders = (state.history && state.history.length ? state.history : state.queue) || [];
+    orders.slice(0, 6).forEach(o => {
+      const s = str(o.status).toLowerCase();
+      const verb = s.indexOf('cancel') >= 0 ? 'Order cancelled' : s.indexOf('deliver') >= 0 ? 'Order delivered' : s ? 'Order ' + enumLabel(s) : 'Order updated';
+      events.push({ t: verb + ' · #' + str(o.publicOrderId || o.orderNumber || String(o._id || '').slice(-6).toUpperCase()), at: o.updatedAt || o.createdAt });
+    });
+    (state.menuItems || []).filter(i => menuApprovalOf(i)).slice(0, 4).forEach(i => {
+      const a = menuApprovalOf(i);
+      events.push({ t: 'Menu “' + i.name + '” ' + (a === 'approved' ? 'approved' : a === 'pending' ? 'pending approval' : 'rejected'), at: i.updatedAt || i.createdAt });
+    });
+    events.sort((a, b) => new Date(b.at || 0) - new Date(a.at || 0));
+    if (!events.length) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = '<div class="list-card-head">Recent activity</div>' + events.slice(0, 8).map(e => '<div class="list-row"><div class="lr-main"><div class="lr-title" style="font-size:13px;">' + escapeHtml(e.t) + '</div><div class="lr-sub">' + (e.at ? timeAgo(e.at) : '') + '</div></div></div>').join('');
+  }
+
+  /* ---- V2 event wiring ---- */
+  document.getElementById('moreClose')?.addEventListener('click', closeMoreSheet);
+  document.getElementById('moreSheet')?.addEventListener('click', (e) => { if (e.target.id === 'moreSheet') closeMoreSheet(); });
+  document.querySelectorAll('[data-more]').forEach(b => b.addEventListener('click', () => { closeMoreSheet(); switchSection(b.dataset.more); }));
+
+  document.getElementById('menuAddBtn')?.addEventListener('click', () => openMenuEditor(null));
+  document.getElementById('menuSearch')?.addEventListener('input', renderMenuList);
+  el.menuGrid.addEventListener('click', (e) => {
+    const edit = e.target.closest('[data-menu-edit]'); const del = e.target.closest('[data-menu-del]');
+    if (edit) { const it = state.menuItems.find(i => i._id === edit.dataset.menuEdit); if (it) openMenuEditor(it); }
+    if (del) deleteMenuItem(del.dataset.menuDel);
+  });
+  document.querySelectorAll('#menuSheet .chip[data-veg]').forEach(c => c.addEventListener('click', () => setVegChip(c.dataset.veg === '1')));
+  document.getElementById('menuSheetCancel')?.addEventListener('click', () => closeModal('menuSheet'));
+  document.getElementById('menuSheetSave')?.addEventListener('click', saveMenuItem);
+  document.getElementById('menuSheet')?.addEventListener('click', (e) => { if (e.target.id === 'menuSheet') closeModal('menuSheet'); });
+  document.getElementById('miImageFile')?.addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0]; if (!file) return;
+    const hint = document.getElementById('miImageHint'); if (hint) hint.textContent = 'Uploading…';
+    try { const url = await uploadMenuImage(file); if (url) { v2.menuImageUrl = url; setMenuPreview(url); if (hint) hint.textContent = 'Image uploaded.'; } else if (hint) hint.textContent = v2.menuImageUrl ? 'Current image.' : 'No image selected.'; }
+    catch (err) { if (hint) hint.textContent = 'Upload failed.'; showToast('error', err.message || 'Upload failed.'); }
+  });
+
+  document.getElementById('invRefresh')?.addEventListener('click', loadInventory);
+  document.getElementById('invSelectAll')?.addEventListener('click', () => { state.menuItems.forEach(i => v2.inventorySelected.add(i._id)); renderInventory(); });
+  document.getElementById('invClear')?.addEventListener('click', () => { v2.inventorySelected.clear(); renderInventory(); });
+  document.getElementById('invMakeAvailable')?.addEventListener('click', () => applyBulkAvailability(true));
+  document.getElementById('invMakeUnavailable')?.addEventListener('click', () => applyBulkAvailability(false));
+  document.getElementById('invList')?.addEventListener('change', (e) => {
+    if (e.target.classList.contains('menu-item-toggle')) toggleMenuItemStock(e.target);
+    else if (e.target.classList.contains('inv-select')) { const id = e.target.dataset.id; if (e.target.checked) v2.inventorySelected.add(id); else v2.inventorySelected.delete(id); updateBulkButtons(); }
+  });
+
+  document.getElementById('analytics-period')?.addEventListener('change', loadAnalytics);
+
+  document.getElementById('financeRefresh')?.addEventListener('click', loadFinance);
+  document.getElementById('withdrawOpenBtn')?.addEventListener('click', openWithdrawSheet);
+  document.getElementById('withdrawCancel')?.addEventListener('click', () => closeModal('withdrawSheet'));
+  document.getElementById('withdrawSubmit')?.addEventListener('click', submitWithdrawal);
+  document.getElementById('withdrawSheet')?.addEventListener('click', (e) => { if (e.target.id === 'withdrawSheet') closeModal('withdrawSheet'); });
+
+  document.getElementById('supportNewBtn')?.addEventListener('click', () => { const c = document.getElementById('supportNewCard'); if (c) c.hidden = !c.hidden; });
+  document.getElementById('supportCancelBtn')?.addEventListener('click', () => { const c = document.getElementById('supportNewCard'); if (c) c.hidden = true; });
+  document.getElementById('supportCreateBtn')?.addEventListener('click', createSupportTicket);
+  document.getElementById('supportList')?.addEventListener('click', (e) => { const b = e.target.closest('[data-support-reply]'); if (b) openSupportReply(b.dataset.supportReply, ''); });
+  document.getElementById('supportReplyCancel')?.addEventListener('click', () => closeModal('supportReplySheet'));
+  document.getElementById('supportReplySubmit')?.addEventListener('click', submitSupportReply);
+  document.getElementById('supportReplySheet')?.addEventListener('click', (e) => { if (e.target.id === 'supportReplySheet') closeModal('supportReplySheet'); });
+
+  document.getElementById('vendor-reviews-list')?.addEventListener('click', (e) => { const b = e.target.closest('[data-review-reply]'); if (b) openReviewReply(b.dataset.reviewReply); });
+  document.getElementById('reviewReplyCancel')?.addEventListener('click', () => closeModal('reviewReplySheet'));
+  document.getElementById('reviewReplySubmit')?.addEventListener('click', submitReviewReply);
+  document.getElementById('reviewReplyInput')?.addEventListener('input', (e) => { const c = document.getElementById('reviewReplyCount'); if (c) c.textContent = e.target.value.length + ' / 500'; });
+  document.getElementById('reviewReplySheet')?.addEventListener('click', (e) => { if (e.target.id === 'reviewReplySheet') closeModal('reviewReplySheet'); });
+
+  document.getElementById('settingsLogoutBtn')?.addEventListener('click', logout);
 
   async function init() {
     if (!localStorage.getItem(TOKEN_KEY)) { location.replace('login.html'); return; }
