@@ -3,8 +3,8 @@
   "short_name": "Eatswada Vendor",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f2f3f6",
-  "theme_color": "#0b8f5a",
+  "background_color": "#F4F4F6",
+  "theme_color": "#D71945",
   "description": "Eatswada restaurant partner app for orders and stock availability.",
   "icons": [
     {

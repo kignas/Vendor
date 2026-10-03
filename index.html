@@ -499,6 +499,8 @@
   @media(max-width:390px) { .home-status-card { align-items:flex-start; flex-direction:column; } .home-status-action { align-self:stretch; } .home-intro h2 { font-size:20px; } }
 
 </style>
+<link rel="stylesheet" href="./theme.css">
+<meta name="theme-color" content="#D71945">
 </head>
 <body>
 
@@ -555,7 +557,7 @@
         <div class="home-status-main">
           <div class="home-status-icon" aria-hidden="true">●</div>
           <div class="home-status-copy">
-            <span class="home-label">RESTAURANT STATUS</span>
+            <span class="home-label">Restaurant status</span>
             <strong id="ov-status">—</strong>
             <span id="ov-status-sub">Loading restaurant status…</span>
           </div>
@@ -1177,7 +1179,7 @@
       <ul class="ticket-items">${itemsHtml}</ul>
       <div class="ticket-customer">
         <div class="ticket-customer-head">
-          <span class="ticket-customer-label">CUSTOMER</span>
+          <span class="ticket-customer-label">Customer</span>
           ${order.customerPhone ? `<a href="tel:${escapeHtml(order.customerPhone)}" style="color:var(--green-dark); font-weight:800; font-size:13px; text-decoration:none;">☎ Call</a>` : ''}
         </div>
         <strong>${escapeHtml(order.customerName || order.user?.name || 'Customer')}</strong>
