@@ -31,13 +31,15 @@ The portal includes a manifest and service worker so the vendor can install it f
 5. Run the backend syntax, launch and security gates before production deployment.
 
 ## Frontend configuration
-- Every API host lives in `config.js` only. The active host is selected by
-  `ACTIVE_API` — `'render'` by default (`https://eatswada.onrender.com`); set
-  it to `'aws'` for `https://api.eatswada.com`. One line switches hosts.
+- Every API host lives in `config.js` only. `ACTIVE_API` is `'render'`
+  (`https://eatswada.onrender.com`), the only host wired up in this build.
 - The Render host can be overridden with `window.EATSWADA_RENDER_ORIGIN` before
   `config.js` loads. Pages read `window.EATSWADA_CONFIG`; components do not
   hardcode URLs. If the selected host is unset the portal fails loudly
   (`CONFIG_ERROR`) instead of silently falling back to another host.
+- `config.js` derives `API`, `API_BASE`, `AUTH_BASE`, `APPLICATIONS_BASE` and
+  `NOTIFICATIONS_BASE` from one origin. Always read these keys — never rebuild a
+  URL from a literal host.
 
 ## Verified backend capability map (live API probe)
 Auth-gated routes that exist:
@@ -48,27 +50,42 @@ Auth-gated routes that exist:
 - `GET /api/vendor/reviews`
 - `PUT /api/vendor/restaurant/availability`, `PUT /api/vendor/restaurant/hours`
 - `GET /api/notifications`, `POST /api/notifications/register-token`
-- `POST /api/vendor-applications`, `GET /api/vendor-applications/:id/status`
+- `POST /api/vendor-applications` — creates an application, **and updates it in place when the
+  body carries the existing `id`** (this is the correction/resubmission mechanism)
+- `GET /api/vendor-applications/:id/status?statusToken=...` — returns `status`,
+  `changeRequest`, `rejectionReason` and submission metadata
 
-Not available yet (return 404) — do not build UI that calls these:
+Exists but auth-gated — **contract not yet exercised** (answers 401, not 404). Do not build UI
+on these until a real vendor token can test them:
+- `GET /api/vendor-applications/:id`, `GET /api/vendor-applications/mine`
+- `GET /api/vendor/dashboard`
+- `GET /api/vendor/settings`, `PUT /api/vendor/settings/*`
+- `POST /api/vendor/menu`, `PUT /api/vendor/menu/:id`
+
+Still 404 — do not build UI that calls these:
 - `/api/vendor/inventory`
-- `/api/vendor/settings`
 - `/api/vendor/earnings/settlements`
 - `/api/vendor/withdrawals`
 - `/api/vendor/support`, `/api/vendor/support/tickets`
 - `/api/vendor/documents`
-- `/api/vendor/application`
-- `/api/vendor/dashboard`
 - `/api/vendor/menu/categories`
-- `/api/vendor/notifications`
+- `PUT/PATCH/DELETE /api/vendor-applications/:id` (and `/resubmit`, `/edit`)
 
-## Blocked modules (until the endpoints above exist)
-- Menu add/edit/upload/approval (only stock toggle is supported)
+## Blocked modules (until verified)
+- Menu add/edit/upload/approval (only stock toggle is verified today)
 - Inventory management
 - Restaurant settings beyond availability + opening hours
 - Earnings settlements / withdrawals
 - Customer support tickets
 - Document verification status
-- Registration fields: delivery-method persistence, PAN, bank, GSTIN,
-  FSSAI certificate upload, photographs, preparation time, maximum active
-  orders, delivery radius
+
+## Never collected (product rule, not a backend gap)
+- Business PAN, GST/GSTIN, bank account / settlement details, commission,
+  minimum order value, delivery fee, free-delivery threshold
+- FSSAI certificate uploads and owner identity-document uploads
+
+## Application registration fields (persisted)
+`ownerName`, `email`, `phone`, `password`, `restaurantName`, `businessType`
+(`restaurant` | `cloud_kitchen`), `cuisine`, `description`, `address`,
+`fssaiLicenseNumber`, `deliveryMode` (`self_delivery` | `eatswada_rider`),
+`openingHours`, `location`. Anything outside this list is not collected.
