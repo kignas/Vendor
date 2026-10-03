@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#159A62">
 <title>Become an Eatswada Vendor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,13 +36,10 @@
   .card::before{ content:""; position:absolute; inset:0 0 auto; height:4px; background:linear-gradient(90deg,var(--green),#34B77F,var(--green)); }
 
   /* Stepper */
-  .stepper{ display:flex; align-items:center; gap:8px; margin:2px 0 14px; }
+  .stepper{ display:flex; align-items:center; gap:8px; margin:2px 0 20px; }
   .stepper .bar{ flex:1; height:6px; border-radius:999px; background:#E9EDEB; overflow:hidden; }
   .stepper .bar > i{ display:block; height:100%; width:0; border-radius:999px; background:linear-gradient(90deg,#1AA66B,#159A62); transition:width .25s ease; }
   .stepper .label{ font-size:12px; font-weight:800; color:var(--ink-soft); white-space:nowrap; }
-  .dots{ display:flex; gap:6px; margin-bottom:20px; }
-  .dots i{ flex:1; height:4px; border-radius:999px; background:#E9EDEB; transition:background .25s ease; }
-  .dots i.done{ background:linear-gradient(90deg,#1AA66B,#159A62); }
   .step-title{ font-size:18px; font-weight:800; letter-spacing:-.3px; margin:0 0 4px; }
   .step-sub{ font-size:13px; color:var(--ink-soft); margin:0 0 20px; line-height:1.5; }
 
@@ -59,10 +56,9 @@
   input:hover,textarea:hover,select:hover{ border-color:#C9D2CD; }
   input:focus,textarea:focus,select:focus{ background:#fff; outline:none; border-color:var(--green); box-shadow:0 0 0 4px rgba(21,154,98,.10); }
   input:disabled{ opacity:.6; }
-  input[readonly]{ background:#F2F4F4; color:#5B636A; }
   .hint{ font-size:11px; color:var(--ink-soft); margin-top:6px; line-height:1.5; }
   .field-error{ display:none; font-size:12px; font-weight:700; color:var(--red); margin-top:6px; }
-  .field.invalid input,.field.invalid textarea,.field.invalid select{ border-color:var(--red); box-shadow:0 0 0 3px rgba(198,58,47,.08); }
+  .field.invalid input,.field.invalid textarea{ border-color:var(--red); box-shadow:0 0 0 3px rgba(198,58,47,.08); }
   .field.invalid .field-error{ display:block; }
 
   /* Choice cards */
@@ -143,22 +139,33 @@
   </div>
 
   <section class="card">
-    <div class="stepper">
-      <span class="label" id="stepLabel">Step 1 of 5</span>
+    <div class="stepper" aria-hidden="true">
+      <span class="label" id="stepLabel">Step 1 of 8</span>
       <span class="bar"><i id="stepBar"></i></span>
     </div>
-    <div class="dots" id="dots" aria-hidden="true"></div>
-
-    <div class="notice" id="existingNotice" style="display:none"></div>
 
     <form id="form" novalidate>
-      <!-- STEP 1: OWNER DETAILS -->
+      <!-- STEP 1: BUSINESS TYPE -->
       <section class="panel" data-panel="0">
-        <h2 class="step-title">Owner details</h2>
-        <p class="step-sub">The person who owns and operates this kitchen.</p>
+        <h2 class="step-title">Business type</h2>
+        <p class="step-sub">Tell us how this kitchen operates.</p>
+        <div class="choices" id="businessTypeChoices" role="radiogroup" aria-label="Business type">
+          <button type="button" class="choice" data-value="restaurant" role="radio" aria-checked="false">
+            <strong>Restaurant</strong><span>Dine-in or takeaway kitchen with a physical storefront.</span>
+          </button>
+          <button type="button" class="choice" data-value="cloud_kitchen" role="radio" aria-checked="false">
+            <strong>Cloud Kitchen</strong><span>Delivery-only kitchen with no customer seating.</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 2: OWNER INFORMATION -->
+      <section class="panel" data-panel="1" hidden>
+        <h2 class="step-title">Owner information</h2>
+        <p class="step-sub">The contact who owns and operates this kitchen.</p>
         <div class="grid">
           <div class="field full" id="f-ownerName">
-            <label for="ownerName">Owner full name *</label>
+            <label for="ownerName">Owner name *</label>
             <input id="ownerName" maxlength="120" autocomplete="name" required>
             <div class="field-error">Enter the owner's full name.</div>
           </div>
@@ -168,152 +175,130 @@
             <div class="field-error">Enter a valid mobile number.</div>
           </div>
           <div class="field" id="f-email">
-            <label for="email">Email address *</label>
+            <label for="email">Email *</label>
             <input id="email" type="email" autocomplete="email" placeholder="you@restaurant.com" required>
             <div class="field-error">Enter a valid email address.</div>
           </div>
+          <div class="field full" id="f-restaurantName">
+            <label for="restaurantName">Business name *</label>
+            <input id="restaurantName" maxlength="160" required>
+            <div class="field-error">Enter your business name.</div>
+          </div>
           <div class="field full" id="f-password">
-            <label for="password" id="passwordLabel">Password *</label>
+            <label for="password">Password *</label>
             <input id="password" type="password" minlength="10" autocomplete="new-password" required>
-            <div class="hint" id="passwordHint">At least 10 characters. You'll use this to sign in after approval.</div>
+            <div class="hint">At least 10 characters. You'll use this to sign in after approval.</div>
             <div class="field-error">Password must be at least 10 characters.</div>
           </div>
         </div>
       </section>
 
-      <!-- STEP 2: RESTAURANT DETAILS -->
-      <section class="panel" data-panel="1" hidden>
-        <h2 class="step-title">Restaurant details</h2>
-        <p class="step-sub">What you serve, where you are, and when you are open.</p>
+      <!-- STEP 3: BUSINESS INFORMATION -->
+      <section class="panel" data-panel="2" hidden>
+        <h2 class="step-title">Business information</h2>
+        <p class="step-sub">Where the kitchen is and what it serves.</p>
         <div class="grid">
-          <div class="field full" id="f-restaurantName">
-            <label for="restaurantName">Restaurant name *</label>
-            <input id="restaurantName" maxlength="160" autocomplete="organization" required>
-            <div class="field-error">Enter your restaurant name.</div>
-          </div>
-          <div class="field full">
-            <label id="restaurantTypeLabel">Restaurant type *</label>
-            <div class="choices" id="restaurantTypeChoices" role="radiogroup" aria-labelledby="restaurantTypeLabel">
-              <button type="button" class="choice" data-value="restaurant" role="radio" aria-checked="false">
-                <strong>Restaurant</strong><span>Dine-in or takeaway kitchen with a physical storefront.</span>
-              </button>
-              <button type="button" class="choice" data-value="cloud_kitchen" role="radio" aria-checked="false">
-                <strong>Cloud kitchen</strong><span>Delivery-only kitchen with no customer seating.</span>
-              </button>
-            </div>
-            <div class="hint">Eatswada currently onboards restaurants and cloud kitchens.</div>
-            <div class="field-error" id="restaurantTypeError">Choose a restaurant type.</div>
-          </div>
-          <div class="field full" id="f-cuisine">
-            <label for="cuisine">Cuisine types *</label>
-            <input id="cuisine" placeholder="Biryani, Indian, Fast Food" required>
-            <div class="hint">Separate multiple cuisines with commas.</div>
+          <div class="field" id="f-cuisine">
+            <label for="cuisine">Cuisine *</label>
+            <input id="cuisine" placeholder="Biryani, Indian" required>
             <div class="field-error">Add at least one cuisine.</div>
           </div>
+          <div class="field full" id="f-address">
+            <label for="address">Business address *</label>
+            <input id="address" maxlength="500" required>
+            <div class="field-error">Enter the full business address.</div>
+          </div>
           <div class="field full" id="f-description">
-            <label for="description">Short description <span style="font-weight:600;color:var(--ink-soft)">(optional)</span></label>
+            <label for="description">Business description</label>
             <textarea id="description" maxlength="1000" placeholder="A short description customers will see."></textarea>
           </div>
-          <div class="field full" id="f-address">
-            <label for="address">Full restaurant address *</label>
-            <textarea id="address" maxlength="500" placeholder="Shop/floor number, building, street, area, city, state, PIN" required></textarea>
-            <div class="field-error">Enter the full restaurant address.</div>
-          </div>
           <div class="field full">
-            <label>Map location pin *</label>
+            <label>Restaurant location *</label>
             <div class="actions" style="margin-top:0">
               <button class="btn ghost" id="locationBtn" type="button">📍 Use my current location</button>
             </div>
-            <div class="hint">Stand at the restaurant when using GPS. The backend requires coordinates for delivery-distance calculations.</div>
+            <div class="hint">Stand at the restaurant when using GPS. Coordinates are required for delivery-distance calculations.</div>
           </div>
           <div class="field" id="f-longitude">
             <label for="longitude">Longitude</label>
             <input id="longitude" inputmode="decimal" placeholder="Auto-filled" readonly required>
-            <div class="field-error">Capture the restaurant location.</div>
           </div>
           <div class="field" id="f-latitude">
             <label for="latitude">Latitude</label>
             <input id="latitude" inputmode="decimal" placeholder="Auto-filled" readonly required>
-            <div class="field-error">Capture the restaurant location.</div>
-          </div>
-          <div class="field full">
-            <label>Operating days and hours</label>
-            <div id="hours" style="display:grid;gap:0"></div>
-            <div class="hint">Mark closed days when needed. Opening and closing time cannot be the same.</div>
           </div>
         </div>
       </section>
 
-      <!-- STEP 3: BUSINESS AND VERIFICATION -->
-      <section class="panel" data-panel="2" hidden>
-        <h2 class="step-title">Business &amp; verification details</h2>
+      <!-- STEP 4: LEGAL VERIFICATION -->
+      <section class="panel" data-panel="3" hidden>
+        <h2 class="step-title">Legal verification</h2>
         <p class="step-sub">A valid FSSAI number is mandatory to list on Eatswada.</p>
         <div class="notice">
           <strong>Verification is manual.</strong> Eatswada reviews your FSSAI number during admin approval.
-          FSSAI certificate upload and identity document upload are not available yet — the backend has no
-          secure vendor upload endpoint. Your onboarding team will request documents through a secure channel
-          after you submit.
+          No certificate upload is required at this stage.
         </div>
-        <div class="grid">
-          <div class="field full" id="f-fssai">
-            <label for="fssai">FSSAI registration / license number *</label>
-            <input id="fssai" inputmode="numeric" maxlength="14" placeholder="Enter your FSSAI number" required>
-            <div class="hint">Provide the number issued for this restaurant.</div>
-            <div class="field-error">Enter your FSSAI registration number.</div>
-          </div>
-        </div>
-        <div class="notice" style="margin-top:14px">
-          <strong>Tax and bank details are never collected here.</strong> Eatswada does not ask for
-          business PAN, GST, or bank/settlement information during application. If anyone contacts you
-          asking for these, report it to the Eatswada team.
+        <div class="field full" id="f-fssai">
+          <label for="fssai">FSSAI license / registration number *</label>
+          <input id="fssai" maxlength="100" placeholder="Enter your FSSAI number" required>
+          <div class="hint">Provide the number issued for this restaurant.</div>
+          <div class="field-error">Enter your FSSAI registration number.</div>
         </div>
       </section>
 
-      <!-- STEP 4: DELIVERY SETUP -->
-      <section class="panel" data-panel="3" hidden>
-        <h2 class="step-title">Delivery setup</h2>
-        <p class="step-sub">Choose who delivers your orders.</p>
-        <div class="choices" id="deliveryChoices" role="radiogroup" aria-label="Delivery method">
-          <button type="button" class="choice" data-value="self_delivery" role="radio" aria-checked="false">
-            <strong>Self delivery</strong><span>Your own staff delivers the order to the customer. You manage riders and delivery times.</span>
-          </button>
-          <button type="button" class="choice" data-value="eatswada_rider" role="radio" aria-checked="false">
-            <strong>Eatswada delivery</strong><span>An Eatswada rider picks up and delivers the order. Eatswada manages the delivery.</span>
-          </button>
-        </div>
-        <div class="notice" style="margin-top:16px">
-          <strong>Pricing and settlement terms are set by Eatswada.</strong> Fees, minimum order value and
-          commission are configured by the Eatswada Admin team after your restaurant is approved, so they are
-          not part of this application.
-        </div>
-        <div class="field-error" id="deliveryTypeError" style="margin-top:10px">Choose a delivery method to continue.</div>
-      </section>
-
-      <!-- STEP 5: AGREEMENTS AND SUBMISSION -->
+      <!-- STEP 5: DELIVERY CONFIGURATION -->
       <section class="panel" data-panel="4" hidden>
-        <h2 class="step-title">Agreements &amp; submit</h2>
-        <p class="step-sub">Review your details and accept the terms to submit.</p>
-        <div id="editBanner" class="notice" style="display:none;border-left:4px solid var(--amber);background:var(--amber-soft)"></div>
-        <div id="review" class="notice" style="font-size:13px"></div>
-        <div class="checkline" id="f-agreements" style="margin-top:6px">
+        <h2 class="step-title">Delivery configuration</h2>
+        <p class="step-sub">Choose how orders will be delivered. Commercial terms are configured separately by Eatswada after review.</p>
+        <div class="choices" id="deliveryChoices" role="radiogroup" aria-label="Delivery method">
+          <button type="button" class="choice" data-value="self" role="radio" aria-checked="false">
+            <strong>Self delivery</strong><span>Your restaurant handles delivery.</span>
+          </button>
+          <button type="button" class="choice" data-value="eatswada" role="radio" aria-checked="false">
+            <strong>Eatswada delivery</strong><span>An Eatswada rider handles delivery.</span>
+          </button>
+        </div>
+
+
+      </section>
+
+      <!-- STEP 6: RESTAURANT CONFIGURATION -->
+      <section class="panel" data-panel="5" hidden>
+        <h2 class="step-title">Restaurant configuration</h2>
+        <p class="step-sub">Set your weekly opening hours.</p>
+        <div class="notice">
+          Preparation time, maximum active orders, delivery radius and delivery availability are managed by
+          Eatswada during onboarding and in restaurant settings after your account is approved.
+        </div>
+        <div id="hours" style="display:grid;gap:0"></div>
+        <div class="hint">Mark closed days when needed. Opening and closing time cannot be the same.</div>
+      </section>
+
+      <!-- STEP 7: AGREEMENT -->
+      <section class="panel" data-panel="6" hidden>
+        <h2 class="step-title">Vendor agreement</h2>
+        <p class="step-sub">Please review and accept each term to continue.</p>
+        <div class="checkline" id="f-agreements">
           <label style="display:flex;gap:11px;align-items:flex-start;font-weight:600">
             <input type="checkbox" id="agreeTerms">
-            <span>I accept the Vendor Agreement (Eatswada shares the full document during onboarding).</span>
+            <span>I accept the <a href="#" data-doc="Vendor Agreement">Vendor Agreement</a> and the <a href="#" data-doc="Privacy Policy">Privacy Policy</a>.</span>
           </label>
         </div>
         <div class="checkline">
           <label style="display:flex;gap:11px;align-items:flex-start;font-weight:600">
-            <input type="checkbox" id="agreePrivacy">
-            <span>I have read and accept the Privacy Policy (shared during onboarding).</span>
+            <input type="checkbox" id="agreeDelivery">
+            <span>I accept responsibility for order preparation and, where I choose self delivery,
+              for delivering orders on time. Settlement and payout terms are set by Eatswada.</span>
           </label>
         </div>
-        <div class="checkline">
-          <label style="display:flex;gap:11px;align-items:flex-start;font-weight:600">
-            <input type="checkbox" id="agreeAccurate">
-            <span>I confirm that the information in this application is true, complete and accurate.</span>
-          </label>
-        </div>
-        <div class="field-error" id="agreementError" style="margin-top:10px">Please accept all three items to continue.</div>
+        <div class="field-error" id="agreementError" style="margin-top:10px">Please accept all terms to continue.</div>
+      </section>
+
+      <!-- STEP 8: REVIEW & SUBMIT -->
+      <section class="panel" data-panel="7" hidden>
+        <h2 class="step-title">Review &amp; submit</h2>
+        <p class="step-sub">Confirm your details. You can go back to edit any step.</p>
+        <div id="review" class="notice" style="font-size:13px"></div>
         <div class="message" id="message"></div>
         <div class="result" id="result"></div>
       </section>
@@ -338,47 +323,17 @@
 (function () {
   'use strict';
 
-  if (window.EATSWADA_CONFIG.CONFIG_ERROR) {
-    document.querySelector('.card').innerHTML =
-      '<h2 class="step-title">Configuration error</h2><p class="step-sub">' +
-      String(window.EATSWADA_CONFIG.CONFIG_ERROR) + '</p>';
-    return;
-  }
-
   var CFG = window.EATSWADA_CONFIG;
   var API = CFG.APPLICATIONS_BASE;
-  var TOTAL_STEPS = 5;
+  var TOTAL_STEPS = 8;
   var DAYS = [['monday','Monday'],['tuesday','Tuesday'],['wednesday','Wednesday'],['thursday','Thursday'],['friday','Friday'],['saturday','Saturday'],['sunday','Sunday']];
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   var PHONE_RE = /^\+?[0-9][0-9\s-]{7,15}$/;
-
-  /* Local identity storage — lets the same browser edit/resubmit the same
-     application instead of creating a duplicate. No password is ever stored.
-     All access is guarded: some browsers/private modes throw on storage use,
-     and a throw here must never take the whole form down. */
-  var LS_ID = 'eatswada_vendor_application_id';
-  var LS_TOKEN = 'eatswada_vendor_application_status_token';
-  var LS_DRAFT = 'eatswada_vendor_application_draft';
-
-  function readStore(key) {
-    try { var a = sessionStorage.getItem(key); if (a) return a; } catch (e) {}
-    try { var b = localStorage.getItem(key); if (b) return b; } catch (e) {}
-    return '';
-  }
-  function writeStore(key, value) {
-    var ok = false;
-    try { sessionStorage.setItem(key, value); ok = true; } catch (e) {}
-    try { localStorage.setItem(key, value); ok = true; } catch (e) {}
-    return ok;
-  }
-  function readJson(key) { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; } }
-  function writeJson(key, obj) { try { localStorage.setItem(key, JSON.stringify(obj)); } catch (e) {} }
 
   var form = document.getElementById('form');
   var panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
   var stepLabel = document.getElementById('stepLabel');
   var stepBar = document.getElementById('stepBar');
-  var dots = document.getElementById('dots');
   var backBtn = document.getElementById('backBtn');
   var nextBtn = document.getElementById('nextBtn');
   var submitBtn = document.getElementById('submitBtn');
@@ -387,22 +342,9 @@
   var reviewEl = document.getElementById('review');
   var agreementError = document.getElementById('agreementError');
   var locationBtn = document.getElementById('locationBtn');
-  var editBanner = document.getElementById('editBanner');
-  var existingNotice = document.getElementById('existingNotice');
   var v = function (id) { var n = document.getElementById(id); return n ? n.value.trim() : ''; };
 
-  var state = {
-    step: 0,
-    businessType: '',
-    deliveryMode: '',
-    submitted: false,
-    inFlight: false,
-    editing: false,        // true → POST carries the existing application id
-    editingId: null,
-    editingToken: null
-  };
-
-  for (var d = 0; d < TOTAL_STEPS; d++) dots.appendChild(document.createElement('i'));
+  var state = { step: 0, businessType: '', deliveryMode: '', submitted: false, inFlight: false };
 
   function showMessage(text, type) {
     messageEl.textContent = text;
@@ -433,20 +375,6 @@
       hoursEl.querySelectorAll('[data-day="' + day + '"][data-opens],[data-day="' + day + '"][data-closes]').forEach(function (x) { x.disabled = cb.checked; });
     });
   });
-  function setHours(oh) {
-    oh = oh || {};
-    DAYS.forEach(function (pair) {
-      var key = pair[0];
-      var day = oh[key] || {};
-      var closedCb = hoursEl.querySelector('[data-closed][data-day="' + key + '"]');
-      var opensEl = hoursEl.querySelector('[data-opens][data-day="' + key + '"]');
-      var closesEl = hoursEl.querySelector('[data-closes][data-day="' + key + '"]');
-      closedCb.checked = !!day.closed;
-      opensEl.disabled = closesEl.disabled = !!day.closed;
-      if (day.opensAt) opensEl.value = day.opensAt;
-      if (day.closesAt) closesEl.value = day.closesAt;
-    });
-  }
   function getHours() {
     var out = {};
     for (var i = 0; i < DAYS.length; i++) {
@@ -461,25 +389,46 @@
   }
 
   /* ---------- Choice groups ---------- */
-  function wireChoices(containerId, key, errorId) {
+  function wireChoices(containerId, key) {
     var container = document.getElementById(containerId);
     container.querySelectorAll('.choice').forEach(function (btn) {
       btn.addEventListener('click', function () {
         container.querySelectorAll('.choice').forEach(function (b) { b.classList.remove('selected'); b.setAttribute('aria-checked', 'false'); });
         btn.classList.add('selected'); btn.setAttribute('aria-checked', 'true');
         state[key] = btn.dataset.value;
-        if (errorId) document.getElementById(errorId).style.display = 'none';
+        saveDraft();
       });
     });
   }
-  function selectChoice(containerId, key, value) {
-    if (!value) return;
-    var btn = document.getElementById(containerId).querySelector('[data-value="' + value + '"]');
-    if (btn) btn.click();
-    else state[key] = '';
+  wireChoices('businessTypeChoices', 'businessType');
+  wireChoices('deliveryChoices', 'deliveryMode');
+
+  /* ---------- Local correction draft (never persist password) ---------- */
+  var DRAFT_KEY = 'eatswada_vendor_application_draft_v1';
+  function saveDraft() {
+    try {
+      var draft = {};
+      ['ownerName','phone','email','restaurantName','cuisine','description','address','longitude','latitude','fssai'].forEach(function(id){ draft[id] = v(id); });
+      draft.businessType = state.businessType;
+      draft.deliveryMode = state.deliveryMode;
+      draft.hours = {};
+      DAYS.forEach(function(pair){ var k=pair[0]; draft.hours[k] = { closed: hoursEl.querySelector('[data-closed][data-day="'+k+'"]').checked, opensAt: hoursEl.querySelector('[data-opens][data-day="'+k+'"]').value, closesAt: hoursEl.querySelector('[data-closes][data-day="'+k+'"]').value }; });
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch (e) { /* Storage may be disabled; form remains usable. */ }
   }
-  wireChoices('restaurantTypeChoices', 'businessType', 'restaurantTypeError');
-  wireChoices('deliveryChoices', 'deliveryMode', 'deliveryTypeError');
+  function restoreDraft() {
+    try {
+      var raw = localStorage.getItem(DRAFT_KEY); if (!raw) return;
+      var d = JSON.parse(raw); if (!d || typeof d !== 'object') return;
+      ['ownerName','phone','email','restaurantName','cuisine','description','address','longitude','latitude','fssai'].forEach(function(id){ if (typeof d[id] === 'string') document.getElementById(id).value = d[id]; });
+      if (d.businessType) { state.businessType = d.businessType; var b = document.querySelector('#businessTypeChoices [data-value="'+d.businessType+'"]'); if (b) { b.classList.add('selected'); b.setAttribute('aria-checked','true'); } }
+      if (d.deliveryMode) { state.deliveryMode = d.deliveryMode; var m = document.querySelector('#deliveryChoices [data-value="'+d.deliveryMode+'"]'); if (m) { m.classList.add('selected'); m.setAttribute('aria-checked','true'); } }
+      if (d.hours && typeof d.hours === 'object') DAYS.forEach(function(pair){ var k=pair[0], h=d.hours[k]; if(!h)return; var closed=hoursEl.querySelector('[data-closed][data-day="'+k+'"]'), opens=hoursEl.querySelector('[data-opens][data-day="'+k+'"]'), closes=hoursEl.querySelector('[data-closes][data-day="'+k+'"]'); closed.checked=!!h.closed; opens.value=h.opensAt||'10:00'; closes.value=h.closesAt||'22:00'; opens.disabled=closed.checked; closes.disabled=closed.checked; });
+    } catch (e) { /* Ignore an invalid local draft. */ }
+  }
+  form.addEventListener('input', saveDraft);
+  form.addEventListener('change', saveDraft);
+  restoreDraft();
 
   /* ---------- Geolocation ---------- */
   locationBtn.addEventListener('click', function () {
@@ -504,34 +453,28 @@
     clearMessage();
     var ok = true;
 
-    if (step === 0) {
+    if (step === 1) {
       if (!v('ownerName')) { ok = false; setInvalid('ownerName', true); } else setInvalid('ownerName', false);
       if (!PHONE_RE.test(v('phone'))) { ok = false; setInvalid('phone', true); } else setInvalid('phone', false);
       if (!EMAIL_RE.test(v('email'))) { ok = false; setInvalid('email', true); } else setInvalid('email', false);
-      if (v('password').length < 10) { ok = false; setInvalid('password', true); } else setInvalid('password', false);
-    } else if (step === 1) {
       if (!v('restaurantName')) { ok = false; setInvalid('restaurantName', true); } else setInvalid('restaurantName', false);
-      if (!state.businessType) {
-        ok = false;
-        document.getElementById('restaurantTypeError').style.display = 'block';
-      } else document.getElementById('restaurantTypeError').style.display = 'none';
+      if (v('password').length < 10) { ok = false; setInvalid('password', true); } else setInvalid('password', false);
+    } else if (step === 2) {
       if (!v('cuisine')) { ok = false; setInvalid('cuisine', true); } else setInvalid('cuisine', false);
       if (!v('address')) { ok = false; setInvalid('address', true); } else setInvalid('address', false);
       var lon = Number(v('longitude')), lat = Number(v('latitude'));
       if (!Number.isFinite(lon) || !Number.isFinite(lat) || lon < -180 || lon > 180 || lat < -90 || lat > 90) {
         ok = false; setInvalid('longitude', true); setInvalid('latitude', true);
       } else { setInvalid('longitude', false); setInvalid('latitude', false); }
-    } else if (step === 2) {
-      if (!v('fssai')) { ok = false; setInvalid('fssai', true); } else setInvalid('fssai', false);
     } else if (step === 3) {
-      if (!state.deliveryMode) {
-        ok = false;
-        document.getElementById('deliveryTypeError').style.display = 'block';
-      } else document.getElementById('deliveryTypeError').style.display = 'none';
+      if (!v('fssai')) { ok = false; setInvalid('fssai', true); } else setInvalid('fssai', false);
     } else if (step === 4) {
+      if (!state.deliveryMode) { ok = false; showMessage('Choose a delivery method to continue.', 'error'); }
+    } else if (step === 5) {
+      try { getHours(); } catch (e) { ok = false; showMessage(e.message, 'error'); }
+    } else if (step === 6) {
       var agreed = document.getElementById('agreeTerms').checked &&
-        document.getElementById('agreePrivacy').checked &&
-        document.getElementById('agreeAccurate').checked;
+        document.getElementById('agreeDelivery').checked;
       agreementError.style.display = agreed ? 'none' : 'block';
       document.getElementById('f-agreements').classList.toggle('invalid', !agreed);
       if (!agreed) ok = false;
@@ -542,28 +485,25 @@
   }
 
   /* ---------- Review ---------- */
-  var TYPE_LABEL = { restaurant:'Restaurant', cloud_kitchen:'Cloud kitchen' };
-  var DELIVERY_LABEL = { self_delivery:'Self delivery', eatswada_rider:'Eatswada delivery' };
   function buildReview() {
     var hours = getHours();
     var openDays = DAYS.filter(function (d) { return !hours[d[0]].closed; }).map(function (d) { return d[1].slice(0, 3); }).join(', ') || 'None';
     var rows = [
-      ['Owner', v('ownerName')],
-      ['Mobile', v('phone')],
+      ['Business type', state.businessType === 'cloud_kitchen' ? 'Cloud Kitchen' : (state.businessType ? 'Restaurant' : '—')],
+      ['Owner', v('ownerName') + ' · ' + v('phone')],
       ['Email', v('email')],
-      ['Restaurant', v('restaurantName')],
-      ['Restaurant type', TYPE_LABEL[state.businessType] || '—'],
+      ['Business name', v('restaurantName')],
       ['Cuisine', v('cuisine')],
-      ['Description', v('description') || '—'],
       ['Address', v('address')],
+      ['Description', v('description') || '—'],
       ['Location', v('latitude') && v('longitude') ? (v('latitude') + ', ' + v('longitude')) : '—'],
       ['FSSAI', v('fssai')],
-      ['Delivery', DELIVERY_LABEL[state.deliveryMode] || '—'],
+      ['Delivery method', state.deliveryMode === 'self' ? 'Self delivery' : state.deliveryMode === 'eatswada' ? 'Eatswada delivery' : '—'],
       ['Open days', openDays]
     ];
     reviewEl.innerHTML = rows.map(function (r) {
       return '<div style="display:flex;justify-content:space-between;gap:14px;padding:6px 0;border-bottom:1px solid var(--line)">' +
-        '<span style="color:var(--ink-soft);flex:none">' + r[0] + '</span>' +
+        '<span style="color:var(--ink-soft)">' + r[0] + '</span>' +
         '<span style="font-weight:700;text-align:right;word-break:break-word">' + escapeHtml(String(r[1])) + '</span></div>';
     }).join('');
   }
@@ -574,7 +514,6 @@
     panels.forEach(function (p, i) { p.hidden = i !== state.step; });
     stepLabel.textContent = 'Step ' + (state.step + 1) + ' of ' + TOTAL_STEPS;
     stepBar.style.width = (((state.step + 1) / TOTAL_STEPS) * 100) + '%';
-    Array.prototype.forEach.call(dots.children, function (dot, i) { dot.classList.toggle('done', i <= state.step); });
     backBtn.hidden = state.step === 0;
     nextBtn.hidden = state.step === TOTAL_STEPS - 1;
     submitBtn.hidden = state.step !== TOTAL_STEPS - 1;
@@ -588,124 +527,7 @@
   });
   backBtn.addEventListener('click', function () { if (state.step > 0) { state.step--; clearMessage(); renderStep(); } });
 
-  /* ---------- Existing-application detection (edit / resubmit) ----------
-     The backend updates an existing application when the POST body carries
-     its id — verified against the Render testing API. It never edits by itself,
-     so an edit here always resubmits the SAME application id. */
-  function readIdentity() {
-    var params = new URLSearchParams(location.search);
-    var id = (params.get('id') || readStore(LS_ID)).trim();
-    var token = (params.get('token') || readStore(LS_TOKEN)).trim();
-    if (id && token) persistIdentity(id, token);
-    return id && token ? { id: id, token: token } : null;
-  }
-
-  function persistIdentity(id, token) {
-    writeStore(LS_ID, id);
-    writeStore(LS_TOKEN, token);
-  }
-
-  function cacheDraft() {
-    writeJson(LS_DRAFT, {
-      ownerName: v('ownerName'), phone: v('phone'), email: v('email'),
-      restaurantName: v('restaurantName'), businessType: state.businessType,
-      cuisine: v('cuisine'), description: v('description'), address: v('address'),
-      fssai: v('fssai'), deliveryMode: state.deliveryMode,
-      openingHours: getHours(),
-      longitude: v('longitude'), latitude: v('latitude')
-    });
-  }
-
-  function prefill(draft, server) {
-    draft = draft || {}; server = server || {};
-    var set = function (id, value) { var n = document.getElementById(id); if (n && value !== undefined && value !== null && String(value) !== '') n.value = String(value); };
-    // Server-confirmed fields win over the locally cached draft.
-    set('ownerName', server.ownerName || draft.ownerName);
-    set('restaurantName', server.restaurantName || draft.restaurantName);
-    selectChoice('restaurantTypeChoices', 'businessType', server.businessType || draft.businessType);
-    selectChoice('deliveryChoices', 'deliveryMode', server.deliveryMode || draft.deliveryMode);
-    set('phone', draft.phone);
-    set('email', draft.email);
-    set('cuisine', draft.cuisine);
-    set('description', draft.description);
-    set('address', draft.address);
-    set('fssai', draft.fssai);
-    if (draft.longitude && draft.latitude) {
-      set('longitude', Number(draft.longitude).toFixed(6));
-      set('latitude', Number(draft.latitude).toFixed(6));
-    }
-    if (draft.openingHours) setHours(draft.openingHours);
-    // Password is never stored or prefilled — it must be re-entered.
-    if (state.editing) {
-      document.getElementById('passwordLabel').textContent = 'Confirm your password *';
-      document.getElementById('passwordHint').textContent = 'Re-enter your account password to resubmit this application.';
-    }
-  }
-
-  async function checkExistingApplication() {
-    var wantsEdit = new URLSearchParams(location.search).get('edit') === '1';
-    var identity = readIdentity();
-    if (!identity) {
-      if (wantsEdit) {
-        existingNotice.innerHTML = '<strong>We could not find your application details on this device.</strong> ' +
-          'Open the <a href="application-status.html" style="color:var(--green-ink);font-weight:800">application status page</a> and check your status first — ' +
-          'that restores your application here so you can edit it instead of creating a duplicate.';
-        existingNotice.style.display = 'block';
-      }
-      return;
-    }
-
-    var status = '';
-    var server = {};
-    try {
-      var r = await fetch(API + '/' + encodeURIComponent(identity.id) + '/status?statusToken=' + encodeURIComponent(identity.token), { headers: { Accept: 'application/json' } });
-      var j = await r.json().catch(function () { return null; });
-      if (!r.ok || !j || !j.success) throw new Error((j && j.message) || 'Could not check status.');
-      status = String((j.data && j.data.status) || '').toLowerCase();
-      server = j.data || {};
-    } catch (e) {
-      // Identity exists but status is unknown (network down, token rotated on
-      // another device). Fall through: a fresh submission is still allowed.
-      return;
-    }
-
-    if (status === 'more_information_required' || status === 'rejected') {
-      state.editing = true;
-      state.editingId = identity.id;
-      state.editingToken = identity.token;
-      prefill(readJson(LS_DRAFT), server);
-      var adminMsg = server.changeRequest || server.rejectionReason || '';
-      editBanner.innerHTML =
-        '<strong>The Eatswada team requested changes to your application.</strong>' +
-        (adminMsg ? '<div style="margin-top:8px;font-weight:700;color:var(--ink)">“' + escapeHtml(adminMsg) + '”</div>' : '') +
-        '<div style="margin-top:8px">Update your details below and resubmit — your application ID stays the same.</div>';
-      editBanner.style.display = 'block';
-      document.querySelector('.brand h1').textContent = 'Update your application';
-    } else if (status === 'approved') {
-      existingNotice.innerHTML =
-        '<strong>Good news — your application is approved!</strong> ' +
-        'Sign in to your vendor dashboard to start taking orders. ' +
-        '<a href="login.html" style="color:var(--green-ink);font-weight:800">Go to login →</a>';
-      existingNotice.style.display = 'block';
-      nextBtn.disabled = true; nextBtn.style.display = 'none';
-      backBtn.disabled = true; backBtn.style.display = 'none';
-    } else if (status === 'pending' || status === 'under_review' || status === 'draft' || status === 'submitted') {
-      // An application of this browser is already being reviewed. Offer edit
-      // or status check, but never a silent second submission (duplicate).
-      existingNotice.innerHTML =
-        '<strong>You already have an application being reviewed.</strong> ' +
-        'You can check its status, or edit it before the review completes.' +
-        '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">' +
-        '<a class="btn ghost" style="text-decoration:none" href="application-status.html">Check status</a>' +
-        '<a class="btn primary" style="text-decoration:none" href="apply.html?edit=1">Edit application</a>' +
-        '</div>';
-      existingNotice.style.display = 'block';
-      nextBtn.disabled = true; nextBtn.style.display = 'none';
-      backBtn.disabled = true; backBtn.style.display = 'none';
-    }
-  }
-
-  /* ---------- Submit (create OR resubmit the same application) ---------- */
+  /* ---------- Submit ---------- */
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
     if (state.submitted || state.inFlight) return;
@@ -719,25 +541,20 @@
         phone: v('phone'),
         password: v('password'),
         restaurantName: v('restaurantName'),
-        businessType: state.businessType,
         cuisine: v('cuisine'),
         description: v('description'),
         address: v('address'),
         fssaiLicenseNumber: v('fssai'),
-        deliveryMode: state.deliveryMode,
+        deliveryMode: state.deliveryMode === 'self' ? 'self_delivery' : 'eatswada_rider',
         openingHours: getHours(),
         location: { type: 'Point', coordinates: [Number(v('longitude')), Number(v('latitude'))] }
       };
     } catch (err) { showMessage(err.message, 'error'); return; }
 
-    if (state.editing && state.editingId) {
-      payload.id = state.editingId;   // same application identity → backend updates it
-    }
-
     state.inFlight = true;
     submitBtn.disabled = true;
-    submitBtn.textContent = state.editing ? 'Resubmitting…' : 'Submitting…';
-    showMessage(state.editing ? 'Resubmitting your application…' : 'Submitting application…', 'success');
+    submitBtn.textContent = 'Submitting…';
+    showMessage('Submitting application…', 'success');
 
     var controller = new AbortController();
     var timeout = setTimeout(function () { controller.abort(); }, 20000);
@@ -751,44 +568,35 @@
       var body = await res.json().catch(function () { return null; });
       if (!res.ok || !body || !body.success) throw new Error((body && body.message) || 'Could not submit the application.');
       var a = body.data || {};
-      var statusKey = String(a.status || 'pending').toLowerCase();
-
-      // The backend rotates the status token on every update — keep the
-      // newest pair so the status page keeps working.
-      if (a.id) persistIdentity(a.id, a.statusToken || state.editingToken || '');
-      cacheDraft();
-
-      var STATUS_LABEL = {
-        draft:'DRAFT', submitted:'SUBMITTED', pending:'PENDING REVIEW',
-        under_review:'UNDER REVIEW', more_information_required:'MORE INFORMATION REQUIRED',
-        approved:'APPROVED', rejected:'REJECTED'
-      };
-      resultEl.innerHTML =
-        (state.editing
-          ? '<strong>Application updated and resubmitted for review.</strong>'
-          : '<strong>Application submitted.</strong>') +
-        '<div style="margin-top:7px">Reference ID: <span class="mono">' + escapeHtml(String(a.id || '—')) + '</span></div>' +
-        '<div style="margin-top:10px"><span class="badge">' + escapeHtml(STATUS_LABEL[statusKey] || statusKey.toUpperCase()) + '</span></div>' +
-        '<div style="margin-top:10px"><a href="application-status.html" style="color:var(--green-ink);font-weight:800">Track your application status →</a></div>' +
-        '<div style="margin-top:10px;color:var(--ink-soft)">Save your reference ID — you can check progress anytime on the status page.</div>';
-      resultEl.className = 'result show';
-      showMessage(state.editing ? 'Your corrections have been sent to the Eatswada team.' : 'Your application has been received and is pending admin review.', 'success');
       state.submitted = true;
+      if (a.id) sessionStorage.setItem('eatswada_vendor_application_id', a.id);
+      if (a.statusToken) sessionStorage.setItem('eatswada_vendor_application_status_token', a.statusToken);
+      try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+      resultEl.innerHTML =
+        '<strong>Application submitted.</strong>' +
+        '<div style="margin-top:7px">Reference ID: <span class="mono">' + escapeHtml(String(a.id || '—')) + '</span></div>' +
+        '<div style="margin-top:10px"><span class="badge">PENDING REVIEW</span></div>' +
+        '<div style="margin-top:10px;color:var(--ink-soft)">Save this page or check progress anytime on the status page.</div>';
+      resultEl.className = 'result show';
+      showMessage('Your application is pending admin review.', 'success');
       nextBtn.hidden = true;
       submitBtn.hidden = true;
-      backBtn.hidden = true;
     } catch (err) {
-      showMessage(err.name === 'AbortError' ? 'The server took too long to respond. Your details are still here — please try again.' : (err.message || 'Could not submit the application. Your details are still here — please try again.'), 'error');
+      showMessage(err.name === 'AbortError' ? 'The server took too long to respond. Please try again.' : (err.message || 'Could not submit the application. Please try again.'), 'error');
       submitBtn.disabled = false;
-      submitBtn.textContent = state.editing ? 'Resubmit application' : 'Submit application';
+      submitBtn.textContent = 'Submit application';
     } finally {
       clearTimeout(timeout);
       state.inFlight = false;
     }
   });
 
+  // Keep the payment/legal doc links informational without navigating away.
+  document.querySelectorAll('[data-doc]').forEach(function (a) {
+    a.addEventListener('click', function (e) { e.preventDefault(); showMessage((a.dataset.doc === 'Privacy Policy' ? 'Privacy Policy' : 'Vendor Agreement') + ' is provided by Eatswada at onboarding.', 'success'); });
+  });
+
   renderStep();
-  checkExistingApplication();
 })();
 </script>
 </body>
