@@ -9,24 +9,23 @@
 <link rel="manifest" href="./manifest.json">
 <style>
   :root {
-    --brand: #E23744;
-    --green: #E23744;
-    --green-dark: #C81E2E;
-    --green-soft: #FDECEF;
-    --ink: #1C1C1E;
-    --ink-soft: #636366;
-    --ink-faint: #8E8E93;
-    --page: #F2F2F7;
+    --green: #0b8f5a;
+    --green-dark: #086b43;
+    --green-soft: #e6f4ee;
+    --ink: #111827;
+    --ink-soft: #4b5563;
+    --ink-faint: #9ca3af;
+    --page: #f9fafb;
     --surface: #ffffff;
-    --border: #E5E5EA;
-    --border-soft: #F2F2F7;
+    --border: #e5e7eb;
+    --border-soft: #f3f4f6;
     
-    --danger: #FF3B30;
-    --danger-soft: #FEE2E2;
-    --warning: #FF9F0A;
-    --warning-soft: #FFF4E5;
-    --blue: #007AFF;
-    --blue-soft: #E8F1FF;
+    --danger: #ef4444;
+    --danger-soft: #fef2f2;
+    --warning: #f59e0b;
+    --warning-soft: #fffbeb;
+    --blue: #3b82f6;
+    --blue-soft: #eff6ff;
 
     --font-body: 'Manrope', system-ui, -apple-system, sans-serif;
     
@@ -34,11 +33,11 @@
     --r-md: 12px;
     --r-lg: 16px;
     
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    --shadow-float: 0 10px 28px rgba(0, 0, 0, 0.1);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-float: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
     
-    --nav-h: 68px;
+    --nav-h: 72px;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -501,7 +500,7 @@
 
 </style>
 <link rel="stylesheet" href="./theme.css">
-<meta name="theme-color" content="#E23744">
+<meta name="theme-color" content="#D71945">
 </head>
 <body>
 
@@ -660,6 +659,24 @@
         <div class="earnings-card"><div class="earnings-label">Net Earnings</div><div class="earnings-value">₹—</div></div>
         <div class="earnings-card"><div class="earnings-label">In progress</div><div class="earnings-value">₹—</div></div>
       </div>
+      <div class="card vendor-payout-card" style="padding:16px;margin:14px 0 16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div>
+            <div style="font-weight:800;">Weekly payouts</div>
+            <div class="earnings-sub" style="margin-top:4px;">A 7-day payout cycle for eligible completed earnings</div>
+          </div>
+          <span class="badge pending">Every 7 days</span>
+        </div>
+        <div class="stat-grid" id="financeStats" style="margin-top:14px;"></div>
+        <div class="payout-cycle-note" style="margin-top:12px;padding:12px;border-radius:12px;background:var(--surface-soft, #f5f5f7);font-size:13px;line-height:1.5;">
+          Eligible earnings are reviewed and processed by Eatswada in a 7-day cycle. The payout date can depend on settlement review and bank processing. This is not an instant withdrawal.
+        </div>
+        <div id="financeNote" class="stat-note" style="margin-top:8px;"></div>
+        <div style="margin-top:14px;font-weight:750;font-size:14px;">Payout activity</div>
+        <div id="withdrawList" style="margin-top:8px;"></div>
+        <button class="refresh-btn" id="financeRefresh" type="button" style="margin-top:10px;">↻ Refresh payout details</button>
+      </div>
+
       <div class="card" style="padding:0; overflow:hidden;">
         <div style="padding:16px; font-weight:800; border-bottom:1px solid var(--border-soft);">Recent completed</div>
         <div class="earnings-table-wrap">
@@ -674,18 +691,7 @@
         </div>
       </div>
 
-      <div class="card" style="padding:16px;margin-top:16px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-          <div style="font-weight:800;">Settlements &amp; payouts</div>
-          <button class="refresh-btn" id="financeRefresh" type="button">↻ Refresh</button>
-        </div>
-        <div class="stat-grid" id="financeStats" style="margin-top:14px;"></div>
-        <div id="financeNote" class="stat-note"></div>
-        <div class="inline-actions" style="margin-top:12px;">
-          <button class="btn accept" id="withdrawOpenBtn" type="button">Request withdrawal</button>
-        </div>
-        <div id="withdrawList" style="margin-top:8px;"></div>
-      </div>
+
     </section>
 
     <!-- SECTION: REVIEWS -->
@@ -938,8 +944,8 @@
   <!-- Withdraw Sheet -->
   <div class="modal-overlay" id="withdrawSheet">
     <div class="modal">
-      <h3>Request withdrawal</h3>
-      <p id="withdrawSub">Eatswada admin processes payouts. Your request will be queued for review.</p>
+      <h3>Legacy withdrawal request</h3>
+      <p id="withdrawSub">Eatswada now follows a 7-day payout cycle for eligible earnings. Contact support if a payout is missing.</p>
       <div class="form-field"><label for="wdAmount">Amount (₹)</label><input id="wdAmount" type="number" min="1" step="1" inputmode="numeric" /></div>
       <div class="form-field"><label for="wdNote">Note (optional)</label><input id="wdNote" type="text" maxlength="140" /></div>
       <div class="modal-actions">
@@ -2156,7 +2162,7 @@
     const newOrders = state.queue.filter(o => o.status === 'placed').length;
     if (newOrders) alerts.push({ t: newOrders + ' new order' + (newOrders > 1 ? 's' : '') + ' waiting', s: 'Accept or reject from Orders.', goto: 'orders' });
     const pendingWd = (v2.withdrawals || []).filter(w => /pending|processing|requested/.test(str(w.status).toLowerCase())).length;
-    if (pendingWd) alerts.push({ t: pendingWd + ' withdrawal request' + (pendingWd > 1 ? 's' : '') + ' pending', s: 'Eatswada admin processes payouts.', goto: 'earnings' });
+    if (pendingWd) alerts.push({ t: pendingWd + ' withdrawal request' + (pendingWd > 1 ? 's' : '') + ' pending', s: 'Eligible earnings are processed in a 7-day payout cycle by Eatswada.', goto: 'earnings' });
     if (!alerts.length) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false;
     box.innerHTML = '<div class="list-card-head">Alerts</div>' + alerts.map(a => '<button class="list-row" type="button" data-goto2="' + a.goto + '" style="width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border-soft);cursor:pointer;"><div class="lr-main"><div class="lr-title">' + escapeHtml(a.t) + '</div><div class="lr-sub">' + escapeHtml(a.s) + '</div></div><span style="color:var(--ink-faint);">›</span></button>').join('');
