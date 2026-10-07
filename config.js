@@ -8,8 +8,7 @@
 (function () {
   'use strict';
 
-  // ---- Host slots --------------------------------------------------------
-  var RENDER_API_ORIGIN = window.EATSWADA_RENDER_ORIGIN || 'https://eatswada.onrender.com';
+  // ---- Host slots -------------------------------------------------------
   var AWS_API_ORIGIN = 'https://api.eatswada.com';
 
   // ---- Active-host switch (ONE line) ------------------------------------
