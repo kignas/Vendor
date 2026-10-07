@@ -184,6 +184,8 @@
   .ticket-no { font-size: 16px; font-weight: 800; }
   .ticket-time { font-size: 12px; font-weight: 700; color: var(--ink-soft); }
   .ticket.status-placed .ticket-time { color: var(--warning); }
+  .ticket.status-placed .ticket-response-window { margin-top: 4px; font-size: 11px; font-weight: 800; color: var(--warning); font-variant-numeric: tabular-nums; }
+  .ticket.status-placed .ticket-response-window.expired { color: var(--danger); }
 
   .ticket-items { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
   .ticket-items li { display: flex; gap: 8px; font-size: 14px; font-weight: 600; color: var(--ink); }
@@ -1007,7 +1009,7 @@
     activeSection: 'home', activeTab: 'new', queue: [], history: [],        
     historyLoaded: false, restaurant: null, pollTimer: null, pendingRejectOrderId: null,
     menuItems: [], menuLoaded: false, previousNewOrderCount: 0, initialQueueLoaded: false,
-    queueRequest: 0, historyRequest: 0, menuRequest: 0, actionBusy: new Set(), consecutivePollErrors: 0
+    queueRequest: 0, historyRequest: 0, menuRequest: 0, actionBusy: new Set(), consecutivePollErrors: 0, orderResponseTimer: null
   };
 
   const el = {
@@ -1168,7 +1170,9 @@
     const itemsHtml = itemsToShow.map(i => `<li><span class="qty">${i.quantity}×</span><span>${escapeHtml(i.name)}</span></li>`).join('') + (extra > 0 ? `<li style="font-size:13px; color:var(--ink-soft);">+${extra} more item${extra > 1 ? 's' : ''}</li>` : '');
     let footHtml = '';
     
-    if (order.status === 'placed') footHtml = `<div class="ticket-actions"><button class="btn reject" data-action="reject">Reject</button><button class="btn accept" data-action="accept">Accept</button></div>`;
+    const responseDeadline = order.restaurantResponseDeadline ? new Date(order.restaurantResponseDeadline).getTime() : (order.createdAt ? new Date(order.createdAt).getTime() + 5 * 60 * 1000 : 0);
+    const responseExpired = order.status === 'placed' && responseDeadline && Date.now() >= responseDeadline;
+    if (order.status === 'placed') footHtml = `<div class="ticket-actions"><button class="btn reject" data-action="reject" ${responseExpired ? 'disabled' : ''}>Reject</button><button class="btn accept" data-action="accept" ${responseExpired ? 'disabled' : ''}>Accept</button></div>`;
     else if (order.status === 'confirmed') footHtml = `<button class="btn advance" data-action="advance">Start preparing</button>`;
     else if (order.status === 'preparing') footHtml = `<button class="btn advance" data-action="advance">Send to rider</button>`;
     else if (order.status === 'waiting_for_rider') footHtml = `<span class="badge dispatch">Finding a rider…</span>`;
@@ -1182,7 +1186,7 @@
           <span class="ticket-no">#${escapeHtml(order.publicOrderId || order.orderNumber || order._id.slice(-6).toUpperCase())}</span>
           ${order.publicShipmentId || order.shipmentId ? `<div style="font-size:11px; color:var(--ink-soft); margin-top:2px;">Shipment: ${escapeHtml(order.publicShipmentId || order.shipmentId)}</div>` : ''}
         </div>
-        <span class="ticket-time">${timeAgo(order.createdAt)}</span>
+        <span class="ticket-time">${timeAgo(order.createdAt)}${order.status === 'placed' ? `<div class="ticket-response-window${responseExpired ? ' expired' : ''}" data-response-deadline="${responseDeadline || ''}">${responseExpired ? 'Response window expired · updating…' : 'Respond within 5:00'}</div>` : ''}</span>
       </header>
       <ul class="ticket-items">${itemsHtml}</ul>
       <div class="ticket-customer">
@@ -1340,13 +1344,45 @@
     } catch (err) { el.restaurantName.textContent = 'Restaurant'; showToast('error', err.message); }
   }
 
+  function clearOrderResponseTimer() {
+    if (state.orderResponseTimer) { clearInterval(state.orderResponseTimer); state.orderResponseTimer = null; }
+  }
+
+  function startOrderResponseTimer() {
+    clearOrderResponseTimer();
+    const tick = () => {
+      const nodes = document.querySelectorAll('.ticket.status-placed .ticket-response-window[data-response-deadline]');
+      let hasActive = false;
+      nodes.forEach(node => {
+        const deadline = Number(node.dataset.responseDeadline || 0);
+        const ticket = node.closest('.ticket');
+        const buttons = ticket ? ticket.querySelectorAll('button[data-action="accept"],button[data-action="reject"]') : [];
+        const remaining = Math.max(0, deadline - Date.now());
+        if (remaining <= 0) {
+          node.textContent = 'Response window expired · updating…';
+          node.classList.add('expired');
+          buttons.forEach(b => { b.disabled = true; });
+        } else {
+          hasActive = true;
+          const totalSeconds = Math.ceil(remaining / 1000);
+          const mins = Math.floor(totalSeconds / 60);
+          const secs = totalSeconds % 60;
+          node.textContent = 'Respond within ' + mins + ':' + String(secs).padStart(2, '0');
+        }
+      });
+      if (!hasActive && !nodes.length) clearOrderResponseTimer();
+    };
+    tick();
+    state.orderResponseTimer = setInterval(tick, 250);
+  }
+
   async function loadQueue(isFirstLoad) {
     const requestId = ++state.queueRequest;
     try {
       if (isFirstLoad) el.ticketRail.innerHTML = '<div class="skeleton-ticket"></div>';
       const res = await apiFetch('/orders?view=queue'); if (requestId !== state.queueRequest) return;
       state.queue = Array.isArray(res?.data) ? res.data : []; state.consecutivePollErrors = 0; updateCounts();
-      if (state.activeTab !== 'history') renderActiveTab();
+      if (state.activeTab !== 'history') { renderActiveTab(); startOrderResponseTimer(); } else { clearOrderResponseTimer(); }
       el.lastUpdated.textContent = 'Updated just now'; setConnectionState('online');
     } catch (err) {
       if (err.message === 'Your session has expired.') return; state.consecutivePollErrors++;
@@ -1695,7 +1731,7 @@
 
   el.menuGrid.addEventListener('change', (e) => { if (e.target.classList.contains('menu-item-toggle')) toggleMenuItemStock(e.target); });
 
-  function logout() { if (confirm('Sign out of the vendor portal?')) { stopPolling(); localStorage.removeItem(TOKEN_KEY); localStorage.removeItem('nearbite_vendor_user'); localStorage.removeItem('nearbite_vendor_restaurant'); location.replace('login.html'); } }
+  function logout() { if (confirm('Sign out of the vendor portal?')) { stopPolling(); clearOrderResponseTimer(); localStorage.removeItem(TOKEN_KEY); localStorage.removeItem('nearbite_vendor_user'); localStorage.removeItem('nearbite_vendor_restaurant'); location.replace('login.html'); } }
   function updateNetworkUi() { setConnectionState(navigator.onLine ? 'online' : 'offline'); }
   window.addEventListener('online', () => { updateNetworkUi(); loadQueue(false); if (state.activeSection === 'menu' && state.menuLoaded) loadMenu(); });
   window.addEventListener('offline', updateNetworkUi); window.addEventListener('beforeunload', stopPolling);
