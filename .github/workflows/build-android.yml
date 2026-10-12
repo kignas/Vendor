@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Vendor Android APK
 
 on:
 workflow_dispatch:
@@ -30,7 +30,7 @@ steps:
     run: npm run android:prepare
 
   - name: Add Android project
-    run: npx cap add android
+    run: npm run android:prepare && npx cap add android
 
   - name: Sync Android project
     run: npx cap sync android
