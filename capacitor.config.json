@@ -1,0 +1,11 @@
+{
+  "appId": "com.eatswada.vendor",
+  "appName": "Eatswada Vendor",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
