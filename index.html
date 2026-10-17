@@ -1174,9 +1174,10 @@
     const responseExpired = order.status === 'placed' && responseDeadline && Date.now() >= responseDeadline;
     if (order.status === 'placed') footHtml = `<div class="ticket-actions"><button class="btn reject" data-action="reject" ${responseExpired ? 'disabled' : ''}>Reject</button><button class="btn accept" data-action="accept" ${responseExpired ? 'disabled' : ''}>Accept</button></div>`;
     else if (order.status === 'confirmed') footHtml = `<button class="btn advance" data-action="advance">Start preparing</button>`;
-    else if (order.status === 'preparing') footHtml = `<button class="btn advance" data-action="advance">Send to rider</button>`;
-    else if (order.status === 'waiting_for_rider') footHtml = `<span class="badge dispatch">Finding a rider…</span>`;
-    else if (order.status === 'assigned' || order.status === 'out_for_delivery') footHtml = `<span class="badge dispatch">With delivery partner</span>`;
+    else if (order.status === 'preparing') footHtml = `<button class="btn advance" data-action="advance" aria-label="Mark food ready and start rider dispatch">Mark food ready</button>`;
+    else if (order.status === 'waiting_for_rider') footHtml = `<span class="badge dispatch" title="Food is marked ready; Eatswada is looking for an available rider.">Food ready · Finding a rider…</span>`;
+    else if (order.status === 'assigned') footHtml = `<span class="badge dispatch" title="A rider has been assigned to this order.">Rider assigned</span>`;
+    else if (order.status === 'out_for_delivery') footHtml = `<span class="badge dispatch">Picked up · Out for delivery</span>`;
     else if (order.status === 'delivered') footHtml = `<span class="badge delivered">Delivered</span>`;
     else if (order.status === 'cancelled') footHtml = `<span class="badge cancelled">Cancelled</span>`;
 
