@@ -1,6 +1,6 @@
 {
   "appId": "com.eatswada.vendor",
-  "appName": "Eatswada Vendor",
+  "appName": "Eatswada Restaurant Partner",
   "webDir": "www",
   "server": {
     "androidScheme": "https"
