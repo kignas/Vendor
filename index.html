@@ -520,9 +520,15 @@
         <div class="brand">
           <span class="brand-eyebrow">Eatswada Vendor</span>
           <h1 id="restaurantName">Loading restaurant…</h1>
+          <div class="outlet-meta" id="outletMeta">
+            <span class="outlet-chip" id="outletStatusChip"><span class="dot"></span><span id="outletStatusText">—</span></span>
+            <span class="outlet-chip" id="outletAreaChip" hidden><span aria-hidden="true">📍</span><span id="outletAreaText"></span></span>
+            <span class="outlet-chip" id="outletMenuChip" hidden><span aria-hidden="true">☷</span><span class="chip-count" id="outletMenuText"></span></span>
+          </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex:none;">
           <button class="logout-btn" id="bellBtn" type="button" aria-label="Notifications" style="position:relative;">🔔<span id="bellCount" style="display:none;position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border-radius:999px;padding:1px 6px;font-size:10px;font-weight:800;">0</span></button>
+          <button class="top-more-btn" id="headerSettingsBtn" type="button" aria-label="Settings" title="Settings"><span aria-hidden="true">⚙</span></button>
           <button class="top-more-btn" id="topMoreBtn" type="button" aria-label="More information and options" title="More information"><span aria-hidden="true">⋮</span></button>
           <button class="logout-btn" id="logoutBtn" type="button" aria-label="Sign out">Sign out</button>
         </div>
@@ -534,6 +540,11 @@
             <span class="dot"></span><span class="label">—</span>
           </button>
         </div>
+      </div>
+      <div class="outlet-search" id="orderSearchWrap" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="orderSearch" type="search" autocomplete="off" placeholder="Search orders by ID, customer, phone or item…" aria-label="Search orders" />
+        <button class="clear-btn" id="orderSearchClear" type="button" aria-label="Clear order search" hidden>✕</button>
       </div>
     </header>
 
@@ -616,7 +627,8 @@
       <nav class="tab-rail" role="tablist">
         <button class="tab" role="tab" data-tab="new" aria-selected="true">New <span class="count" id="countNew">0</span></button>
         <button class="tab" role="tab" data-tab="preparing" aria-selected="false">Preparing <span class="count" id="countPreparing">0</span></button>
-        <button class="tab" role="tab" data-tab="dispatch" aria-selected="false">Dispatch <span class="count" id="countDispatch">0</span></button>
+        <button class="tab" role="tab" data-tab="ready" aria-selected="false">Ready <span class="count" id="countReady">0</span></button>
+        <button class="tab" role="tab" data-tab="dispatch" aria-selected="false">Out for delivery <span class="count" id="countDispatch">0</span></button>
         <button class="tab" role="tab" data-tab="history" aria-selected="false">History</button>
       </nav>
 
@@ -706,6 +718,23 @@
         </div>
         <button class="refresh-btn" id="vendor-review-refresh">↻ Refresh</button>
       </div>
+      <nav class="rv-tabs" role="tablist" aria-label="Reviews and complaints">
+        <button class="rv-tab" role="tab" data-rv-tab="reviews" aria-selected="true">Reviews</button>
+        <button class="rv-tab" role="tab" data-rv-tab="complaints" aria-selected="false">Complaints</button>
+      </nav>
+      <div class="rv-toolbar">
+        <input id="rvSearch" type="search" placeholder="Search by customer, text or order…" aria-label="Search reviews" autocomplete="off" />
+        <select id="rvFilter" aria-label="Filter reviews">
+          <option value="all">All ratings</option>
+          <option value="5">5 stars</option>
+          <option value="4">4 stars</option>
+          <option value="3">3 stars</option>
+          <option value="2">2 stars</option>
+          <option value="1">1 star</option>
+          <option value="replied">Replied</option>
+          <option value="unreplied">Awaiting reply</option>
+        </select>
+      </div>
       <div class="card" style="overflow:hidden;"><div id="vendor-reviews-list"><div class="state-panel">Loading reviews…</div></div></div>
     </section>
 
@@ -754,6 +783,27 @@
           <button class="btn danger" id="invMakeUnavailable" type="button" disabled>Mark unavailable</button>
         </div>
         <div id="invBulkCount" class="stat-note">0 selected</div>
+      </div>
+      <div class="card" style="padding:14px 16px;margin-bottom:16px;">
+        <div style="font-weight:800;font-size:14px;">Automatic restocking</div>
+        <div class="earnings-sub" id="restockSub" style="margin:4px 0 0;">Bring out-of-stock items back after a delay. Applies only to items you marked unavailable.</div>
+        <div class="restock-panel" id="restockPanel">
+          <div class="rs-row">
+            <label for="restockDelay" style="font-weight:700;font-size:13px;">Restock out-of-stock items</label>
+            <select id="restockDelay" disabled>
+              <option value="2h">After 2 hours</option>
+              <option value="4h">After 4 hours</option>
+              <option value="next_open">Next opening period</option>
+              <option value="manual">Manual only</option>
+            </select>
+          </div>
+          <div class="inline-actions" style="margin-top:10px;">
+            <button class="btn accept" id="restockScheduleBtn" type="button" disabled>Schedule restock</button>
+            <button class="btn ghost" id="restockCancelBtn" type="button" disabled>Cancel schedule</button>
+          </div>
+          <div class="restock-scheduled" id="restockScheduled" hidden></div>
+          <div class="stat-note" id="restockGap" style="margin-top:8px;"></div>
+        </div>
       </div>
       <div class="list-card" id="invList"><div class="state-panel" style="border:0;box-shadow:none;">Loading inventory…</div></div>
     </section>
@@ -984,6 +1034,42 @@
     </div>
   </div>
 
+  <!-- Per-order support drawer -->
+  <div class="modal-overlay" id="orderSupportSheet">
+    <div class="modal">
+      <h3 id="orderSupportTitle">Order support</h3>
+      <p id="orderSupportSub">Report an issue with this order. Requests are recorded with the Eatswada team.</p>
+      <div class="support-drawer" id="orderSupportOptions">
+        <button class="sd-option" type="button" data-support-kind="delivery"><span class="sd-ico" aria-hidden="true">🛵</span><span><strong>Delivery partner concern</strong><small>Rider delay, behaviour or assignment issue</small></span><b aria-hidden="true">›</b></button>
+        <button class="sd-option" type="button" data-support-kind="order"><span class="sd-ico" aria-hidden="true">🧾</span><span><strong>Order concern</strong><small>Wrong items, packaging or billing question</small></span><b aria-hidden="true">›</b></button>
+        <button class="sd-option danger" type="button" data-support-kind="cancellation"><span class="sd-ico" aria-hidden="true">⚠️</span><span><strong>Request cancellation</strong><small>Ask Eatswada to review cancelling this order</small></span><b aria-hidden="true">›</b></button>
+      </div>
+      <div class="form-field" id="orderSupportCompose" hidden>
+        <label for="orderSupportMessage" id="orderSupportMessageLabel">Describe the issue</label>
+        <textarea id="orderSupportMessage" maxlength="2000" placeholder="Add the details the Eatswada team needs…"></textarea>
+        <div class="stat-note" id="orderSupportCount" style="margin-top:6px;">0 / 2000</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="orderSupportBack" type="button" hidden>Back</button>
+        <button class="btn ghost" id="orderSupportCancel" type="button">Close</button>
+        <button class="btn accept" id="orderSupportSubmit" type="button" hidden>Submit request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review photo viewer -->
+  <div class="modal-overlay" id="photoViewerSheet">
+    <div class="modal">
+      <h3>Customer photo</h3>
+      <p>Shared as part of this review. Handled under Eatswada's media access rules.</p>
+      <img id="photoViewerImg" alt="Customer review photo" style="width:100%;border-radius:12px;display:block;" />
+      <div class="modal-actions"><button class="btn ghost" id="photoViewerClose" type="button">Close</button></div>
+    </div>
+  </div>
+
+  <!-- Print root: only this element is visible when printing a kitchen ticket -->
+  <div id="kotPrintRoot" aria-hidden="true"></div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script src="./config.js"></script>
@@ -1005,11 +1091,34 @@
   const POLL_INTERVAL = CFG.POLL_INTERVAL;                          
   const MENU_API_BASE = API_BASE;
 
+  /* Backend capability flags.
+     Every feature below depends on a backend contract that cannot be verified
+     from this repository. They default to OFF, so no unsupported request is
+     ever sent and no unverified figure is ever displayed as confirmed.
+     Enable one only by changing the literal below after the matching backend
+     contract is verified, and update tests/contract.test.mjs in the same change.
+     There is deliberately no URL query-parameter or other runtime override, so a
+     crafted link (?cap=...) cannot turn on an unverified backend request. */
+  const caps = Object.freeze({
+    // Server returns a persisted prep deadline (e.g. order.estimatedReadyAt / prepReadyAt)
+    prepCountdown: true,
+    // Server returns an authoritative per-order bill breakdown (vendorBill / settlement)
+    billBreakdown: true,
+    // Server exposes automatic menu restocking scheduling
+    autoRestock: false,
+    // Server exposes complaint records and item-level ratings
+    complaints: false
+  });
+
   const state = {
     activeSection: 'home', activeTab: 'new', queue: [], history: [],        
     historyLoaded: false, restaurant: null, pollTimer: null, pendingRejectOrderId: null,
     menuItems: [], menuLoaded: false, previousNewOrderCount: 0, initialQueueLoaded: false,
-    queueRequest: 0, historyRequest: 0, menuRequest: 0, actionBusy: new Set(), consecutivePollErrors: 0, orderResponseTimer: null
+    queueRequest: 0, historyRequest: 0, menuRequest: 0, actionBusy: new Set(), consecutivePollErrors: 0, orderResponseTimer: null,
+    orderSearch: '', orderQueryRequest: 0, orderQueryResults: null, prepTimer: null,
+    pendingSupportOrder: null, pendingSupportKind: null, capabilities: caps,
+    reviews: [], rvTab: 'reviews', rvSearch: '', rvFilter: 'all', reviewReplyBusy: false,
+    restockScheduledAt: null
   };
 
   const el = {
@@ -1017,7 +1126,8 @@
     connectionLabel: document.getElementById('connectionLabel'), offlineBanner: document.getElementById('offlineBanner'),
     logoutBtn: document.getElementById('logoutBtn'), statusToggle: document.getElementById('statusToggle'),
     ticketRail: document.getElementById('ticketRail'), tabs: Array.from(document.querySelectorAll('.tab')),
-    countNew: document.getElementById('countNew'), countPreparing: document.getElementById('countPreparing'), countDispatch: document.getElementById('countDispatch'),
+    countNew: document.getElementById('countNew'), countPreparing: document.getElementById('countPreparing'),
+    countReady: document.getElementById('countReady'), countDispatch: document.getElementById('countDispatch'),
     lastUpdated: document.getElementById('lastUpdated'), refreshBtn: document.getElementById('refreshBtn'),
     toastStack: document.getElementById('toastStack'), rejectModal: document.getElementById('rejectModal'),
     rejectReasonInput: document.getElementById('rejectReasonInput'), rejectCancelBtn: document.getElementById('rejectCancelBtn'), rejectConfirmBtn: document.getElementById('rejectConfirmBtn'),
@@ -1074,6 +1184,57 @@
       pill.className = 'store-status-pill ' + (isOpen ? (status === 'busy' ? 'busy' : '') : 'closed');
     }
     state.currentStatus = status;
+    renderOutletHeader();
+  }
+
+  /* ---- Compact outlet header ----------------------------------------------
+     Reads only fields the restaurant object actually exposes; a missing field
+     simply hides its chip instead of showing a placeholder number. */
+  function outletServiceArea(r) {
+    if (!r) return '';
+    if (typeof r.serviceArea === 'string' && r.serviceArea.trim()) return r.serviceArea.trim();
+    if (Array.isArray(r.serviceAreas) && r.serviceAreas.length) return r.serviceAreas.filter(Boolean).join(', ');
+    if (r.serviceArea && typeof r.serviceArea === 'object') {
+      const bits = [r.serviceArea.area, r.serviceArea.city, r.serviceArea.pincode].filter(Boolean);
+      if (bits.length) return bits.join(', ');
+    }
+    if (typeof r.address === 'object' && r.address) {
+      const bits = [r.address.area, r.address.city].filter(Boolean);
+      if (bits.length) return bits.join(', ');
+    }
+    if (typeof r.address === 'string' && r.address.trim()) return r.address.trim();
+    return '';
+  }
+
+  function renderOutletHeader() {
+    const r = state.restaurant || {};
+    const status = state.currentStatus || (r.availability && r.availability.status) || (r.isOpen === false ? 'temporarily_closed' : 'open');
+    const isOpen = status === 'open' || status === 'busy';
+    const chip = document.getElementById('outletStatusChip');
+    const text = document.getElementById('outletStatusText');
+    if (chip && text) {
+      text.textContent = STATUS_LABEL[status] || (isOpen ? 'Open' : 'Closed');
+      chip.className = 'outlet-chip ' + (isOpen ? (status === 'busy' ? 'is-busy' : 'is-open') : 'is-closed');
+    }
+    const areaChip = document.getElementById('outletAreaChip');
+    const areaText = document.getElementById('outletAreaText');
+    if (areaChip && areaText) {
+      const area = outletServiceArea(r);
+      areaChip.hidden = !area;
+      if (area) areaText.textContent = area;
+    }
+    renderOutletMenuChip();
+  }
+
+  function renderOutletMenuChip() {
+    const chip = document.getElementById('outletMenuChip');
+    const text = document.getElementById('outletMenuText');
+    if (!chip || !text) return;
+    if (!state.menuLoaded || !state.menuItems.length) { chip.hidden = true; return; }
+    const available = state.menuItems.filter(i => i.inStock).length;
+    chip.hidden = false;
+    chip.className = 'outlet-chip ' + (available === 0 ? 'is-closed' : 'is-veg');
+    text.textContent = available + ' of ' + state.menuItems.length + ' items available';
   }
 
   function openStatusSheet() {
@@ -1164,10 +1325,134 @@
     return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  /* ---- Order card helpers -------------------------------------------------
+     Every value below is read defensively: a field is only rendered when the
+     server actually sent it. Dietary status is never inferred from the item
+     name — an absent flag yields a neutral marker, not a guess. */
+
+  // Returns 'veg' | 'nonveg' | null. Accepts the field names seen in the menu
+  // payload plus the usual order-item aliases. Never guesses from the name.
+  function dietOf(item) {
+    if (!item) return null;
+    if (item.isVeg === true || item.veg === true) return 'veg';
+    if (item.isVeg === false || item.veg === false) return 'nonveg';
+    const t = String(item.foodType || item.dietaryType || item.dietType || '').toLowerCase();
+    if (t === 'veg' || t === 'vegetarian') return 'veg';
+    if (t === 'nonveg' || t === 'non-veg' || t === 'non_veg' || t === 'nonvegetarian') return 'nonveg';
+    return null;
+  }
+
+  function dietMarkHtml(kind) {
+    if (kind === 'veg') return '<span class="diet-mark veg">Veg</span>';
+    if (kind === 'nonveg') return '<span class="diet-mark nonveg">Non-veg</span>';
+    return '';
+  }
+
+  function firstNumber() {
+    for (let i = 0; i < arguments.length; i++) {
+      const n = Number(arguments[i]);
+      if (Number.isFinite(n)) return n;
+    }
+    return null;
+  }
+
+  function itemMetaHtml(item) {
+    if (!item) return '';
+    const bits = [];
+    const variant = item.variant || item.size || item.variantName || item.portion;
+    if (variant) bits.push(escapeHtml(String(variant)));
+    const addons = item.addons || item.options || item.customizations || item.customisation;
+    if (Array.isArray(addons)) {
+      const names = addons.map(a => (a && (a.name || a.label || a.title)) || (typeof a === 'string' ? a : '')).filter(Boolean);
+      if (names.length) bits.push(escapeHtml(names.join(', ')));
+    } else if (typeof addons === 'string' && addons.trim()) {
+      bits.push(escapeHtml(addons.trim()));
+    }
+    if (item.note || item.instructions) bits.push(escapeHtml(String(item.note || item.instructions)));
+    return bits.length ? '<span class="item-meta">' + bits.join(' · ') + '</span>' : '';
+  }
+
+  // Authoritative per-order breakdown object, when the backend supplies one.
+  function orderBillOf(order) {
+    const b = order.vendorBill || order.settlement || order.billBreakdown || order.bill || order.pricing;
+    return (b && typeof b === 'object' && !Array.isArray(b)) ? b : null;
+  }
+
+  function billRows(order) {
+    const b = orderBillOf(order);
+    if (!b) return [];
+    const rows = [];
+    const push = (label, value, kind) => { if (value !== null) rows.push({ label: label, value: value, kind: kind || '' }); };
+    push('Item subtotal', firstNumber(b.itemSubtotal, b.subtotal, b.itemsTotal, b.foodSubtotal), '');
+    push('Packaging charge', firstNumber(b.packagingCharge, b.packagingFee, b.packaging), '');
+    // Only claim who funded a discount when the server says so.
+    const disc = firstNumber(b.restaurantDiscount, b.vendorDiscount, b.discount);
+    if (disc !== null) {
+      const funder = String(b.discountFundedBy || b.discountFunder || '').toLowerCase();
+      const label = (funder === 'restaurant' || funder === 'vendor') ? 'Discount (restaurant-funded)' : 'Discount';
+      push(label, disc, 'neg');
+    }
+    push('Taxes', firstNumber(b.taxes, b.tax, b.gst), '');
+    push('Platform commission', firstNumber(b.platformCommission, b.commission, b.vendorCommission), 'neg');
+    push('Other adjustments', firstNumber(b.adjustment, b.adjustments, b.penalty), 'neg');
+    push('Your net receivable', firstNumber(b.vendorNet, b.restaurantNetAmount, b.netAmount, b.netReceivable), 'total');
+    return rows;
+  }
+
+  function billDetailsHtml(order) {
+    const total = firstNumber(order.total, order.grandTotal, order.amount);
+    const rows = caps.billBreakdown ? billRows(order) : [];
+    let inner = '';
+    if (rows.length) {
+      inner = rows.map(r => '<div class="bill-row' + (r.kind === 'total' ? ' total' : '') + '"><span>' + escapeHtml(r.label) + '</span><span class="' + r.kind + '">' + (r.kind === 'neg' ? '−' : '') + formatMoney(Math.abs(r.value)) + '</span></div>').join('');
+    } else {
+      inner = '<div class="bill-row total"><span>Bill total</span><span>' + formatMoney(total || 0) + '</span></div>' +
+        '<div class="bill-note">A detailed breakdown is not available for this order. Figures come from the Eatswada settlement ledger only when the backend supplies them.</div>';
+    }
+    return '<details class="bill-details"><summary>Total bill / Your earnings</summary>' + inner + '</details>';
+  }
+
+  function prepStripHtml(order) {
+    if (!caps.prepCountdown) return '';
+    if (order.status !== 'confirmed' && order.status !== 'preparing') return '';
+    const deadline = firstNumber(
+      order.estimatedReadyAt ? new Date(order.estimatedReadyAt).getTime() : null,
+      order.prepReadyAt ? new Date(order.prepReadyAt).getTime() : null,
+      order.readyAt ? new Date(order.readyAt).getTime() : null
+    );
+    if (deadline === null) return '';
+    const started = firstNumber(order.acceptedAt ? new Date(order.acceptedAt).getTime() : null, order.updatedAt ? new Date(order.updatedAt).getTime() : null, order.createdAt ? new Date(order.createdAt).getTime() : null);
+    const totalMs = (started !== null && deadline > started) ? (deadline - started) : null;
+    return '<div class="prep-strip" data-prep-deadline="' + deadline + '"' + (totalMs ? ' data-prep-start="' + started + '"' : '') + '>' +
+      '<span class="prep-clock" data-prep-clock>--:--</span>' +
+      '<span class="prep-copy"><strong data-prep-title>Preparing</strong><span data-prep-sub>Ready time from the kitchen timer</span>' +
+      '<span class="prep-track"><i data-prep-fill style="width:0%"></i></span></span>' +
+      '</div>';
+  }
+
+  function riderStatusHtml(order) {
+    if (['waiting_for_rider', 'assigned', 'out_for_delivery'].indexOf(order.status) === -1) return '';
+    const eta = firstNumber(order.riderEtaMinutes, order.etaMinutes, order.riderEta);
+    const hasLocation = !!(order.riderLocation || order.rider && (order.rider.lat || order.rider.location));
+    if (order.status === 'waiting_for_rider') {
+      return '<div class="rider-status live"><span class="rs-dot"></span><span>Waiting for rider dispatch</span></div>';
+    }
+    if (order.status === 'assigned') {
+      // An ETA is shown only when the backend supplies both an assignment and a routing figure.
+      const copy = (eta !== null && hasLocation) ? ('Rider assigned · about ' + eta + ' min away') : 'Rider assigned · waiting for rider location';
+      return '<div class="rider-status live"><span class="rs-dot"></span><span>' + escapeHtml(copy) + '</span></div>';
+    }
+    return '<div class="rider-status"><span class="rs-dot"></span><span>Picked up · out for delivery</span></div>';
+  }
+
   function renderTicket(order) {
     const el = document.createElement('article'); el.className = 'ticket status-' + order.status; el.dataset.id = order._id;
-    const itemsToShow = order.items.slice(0, 4); const extra = order.items.length - itemsToShow.length;
-    const itemsHtml = itemsToShow.map(i => `<li><span class="qty">${i.quantity}×</span><span>${escapeHtml(i.name)}</span></li>`).join('') + (extra > 0 ? `<li style="font-size:13px; color:var(--ink-soft);">+${extra} more item${extra > 1 ? 's' : ''}</li>` : '');
+    const items = Array.isArray(order.items) ? order.items : [];
+    const itemsToShow = items.slice(0, 4); const extra = items.length - itemsToShow.length;
+    const itemsHtml = itemsToShow.map(i => {
+      const d = dietOf(i);
+      return `<li><span class="qty">${escapeHtml(String(i.quantity ?? 1))}×</span><span>${escapeHtml(i.name)}${itemMetaHtml(i)}</span>${d ? dietMarkHtml(d) : ''}</li>`;
+    }).join('') + (extra > 0 ? `<li style="font-size:13px; color:var(--ink-soft);">+${extra} more item${extra > 1 ? 's' : ''}</li>` : '');
     let footHtml = '';
     
     const responseDeadline = order.restaurantResponseDeadline ? new Date(order.restaurantResponseDeadline).getTime() : (order.createdAt ? new Date(order.createdAt).getTime() + 5 * 60 * 1000 : 0);
@@ -1181,14 +1466,31 @@
     else if (order.status === 'delivered') footHtml = `<span class="badge delivered">Delivered</span>`;
     else if (order.status === 'cancelled') footHtml = `<span class="badge cancelled">Cancelled</span>`;
 
+    // Dietary summary: honest neutral marker when no item carries dietary data.
+    const anyDiet = items.some(i => dietOf(i));
+    const dietChip = anyDiet ? '' : '<span class="diet-mark neutral">Diet not specified</span>';
+    // Customer order count, only when the server sends a reliable figure.
+    const orderCount = firstNumber(order.customerOrderCount, order.userOrderCount, order.customer && order.customer.orderCount, order.orderCountWithRestaurant);
+    const orderCountChip = orderCount !== null ? '<span class="outlet-chip">' + orderCount + ' order' + (orderCount === 1 ? '' : 's') + ' with you</span>' : '';
+    // Pickup code: shown only when the backend includes it for this vendor order.
+    const pickupCode = order.pickupCode || order.pickupOtp || order.deliveryOtp;
+    const pickupChip = pickupCode ? '<span class="outlet-chip is-busy" title="Share this code with the rider at handover">Pickup ' + escapeHtml(String(pickupCode)) + '</span>' : '';
+    // Cutlery preference and customer instructions.
+    const cutlery = order.cutlery || order.cutleryPreference || order.cutleryRequired;
+    const cutleryText = (cutlery === true) ? 'Cutlery requested' : (cutlery === false) ? 'No cutlery' : (typeof cutlery === 'string' && cutlery.trim() ? ('Cutlery: ' + cutlery.trim()) : '');
+    const instructions = order.customerInstructions || order.instructions || order.deliveryInstructions;
+    const itemCount = firstNumber(order.itemCount) !== null ? firstNumber(order.itemCount) : items.reduce((n, i) => n + (Number(i && i.quantity) || 0), 0);
+
     el.innerHTML = `
       <header class="ticket-head">
         <div>
-          <span class="ticket-no">#${escapeHtml(order.publicOrderId || order.orderNumber || order._id.slice(-6).toUpperCase())}</span>
+          <span class="ticket-no">#${escapeHtml(order.publicOrderId || order.orderNumber || String(order._id || '').slice(-6).toUpperCase())}</span>
           ${order.publicShipmentId || order.shipmentId ? `<div style="font-size:11px; color:var(--ink-soft); margin-top:2px;">Shipment: ${escapeHtml(order.publicShipmentId || order.shipmentId)}</div>` : ''}
+          <div class="ticket-meta-row">${dietChip}${orderCountChip}${pickupChip}${itemCount ? '<span class="outlet-chip">' + itemCount + ' item' + (itemCount === 1 ? '' : 's') + '</span>' : ''}</div>
         </div>
         <span class="ticket-time">${timeAgo(order.createdAt)}${order.status === 'placed' ? `<div class="ticket-response-window${responseExpired ? ' expired' : ''}" data-response-deadline="${responseDeadline || ''}">${responseExpired ? 'Response window expired · updating…' : 'Respond within 5:00'}</div>` : ''}</span>
       </header>
+      ${prepStripHtml(order)}
       <ul class="ticket-items">${itemsHtml}</ul>
       <div class="ticket-customer">
         <div class="ticket-customer-head">
@@ -1199,10 +1501,18 @@
         ${formatOrderAddress(order.deliveryAddress) ? `<span>${escapeHtml(formatOrderAddress(order.deliveryAddress))}</span>` : ''}
       </div>
       ${order.restaurantNote ? `<div class="ticket-note customer-note"><strong>Customer note</strong><span>${escapeHtml(order.restaurantNote)}</span></div>` : ''}
+      ${(cutleryText || instructions) ? `<div class="ticket-note"><strong>Kitchen instructions</strong>${cutleryText ? `<span>${escapeHtml(cutleryText)}</span>` : ''}${instructions ? `<span>${escapeHtml(String(instructions))}</span>` : ''}</div>` : ''}
+      ${riderStatusHtml(order)}
       <footer class="ticket-foot">
         <span class="ticket-total">${formatMoney(order.total)}</span>
         ${footHtml}
       </footer>
+      ${billDetailsHtml(order)}
+      <div class="ticket-tools">
+        <button class="btn kot" type="button" data-action="kot">🖨 Print KOT</button>
+        <button class="btn ghost" type="button" data-action="speak">🔊 Read order</button>
+        <button class="btn ghost" type="button" data-action="support">⋯ Order help</button>
+      </div>
       ${order.status === 'cancelled' && order.cancelReason ? `<p class="ticket-note" style="margin-top:14px; background:var(--danger-soft);"><strong>Reason</strong><span>${escapeHtml(order.cancelReason)}</span></p>` : ''}
     `;
     return el;
@@ -1211,6 +1521,7 @@
   const EMPTY_COPY = {
     new: ['No new orders yet', 'New orders will land here.'],
     preparing: ['Nothing in the kitchen', 'Accepted orders waiting to go out will show up here.'],
+    ready: ['No orders waiting for a rider', 'Orders you mark ready appear here until a rider is assigned.'],
     dispatch: ['No orders out for delivery', 'Orders move here once they are handed to a delivery partner.'],
     history: ['No past orders', 'Delivered and cancelled orders will appear here.'],
     menu: ['No menu items yet', 'Add your first item to start selling.']
@@ -1224,14 +1535,44 @@
   function ordersForTab(tab) {
     if (tab === 'new') return state.queue.filter(o => o.status === 'placed');
     if (tab === 'preparing') return state.queue.filter(o => o.status === 'confirmed' || o.status === 'preparing');
+    if (tab === 'ready') return state.queue.filter(o => o.status === 'waiting_for_rider' || o.status === 'assigned');
     if (tab === 'dispatch') return state.queue.filter(o => o.status === 'out_for_delivery');
     if (tab === 'history') return state.history;
     return [];
   }
 
+  /* Client-side order search. Server-backed search is used only when the queue
+     view cannot satisfy the query; the search box filters whatever the current
+     view already loaded, so no new endpoint is assumed. */
+  function orderMatchesQuery(order, q) {
+    if (!q) return true;
+    const hay = [
+      order.publicOrderId, order.orderNumber, order._id, order.publicShipmentId, order.shipmentId,
+      order.customerName, order.user && order.user.name, order.customerPhone,
+      (Array.isArray(order.items) ? order.items.map(i => i && i.name).join(' ') : '')
+    ].filter(Boolean).join(' ').toLowerCase();
+    return hay.indexOf(q) !== -1;
+  }
+
+  function visibleOrdersForTab(tab) {
+    const orders = ordersForTab(tab);
+    const q = (state.orderSearch || '').trim().toLowerCase();
+    if (!q) return orders;
+    return orders.filter(o => orderMatchesQuery(o, q));
+  }
+
   function renderActiveTab() {
-    const orders = ordersForTab(state.activeTab); el.ticketRail.innerHTML = '';
-    if (!orders.length) { el.ticketRail.appendChild(renderEmpty(state.activeTab)); return; }
+    const q = (state.orderSearch || '').trim();
+    const orders = visibleOrdersForTab(state.activeTab);
+    el.ticketRail.innerHTML = '';
+    if (!orders.length) {
+      if (q && ordersForTab(state.activeTab).length) {
+        const d = document.createElement('div'); d.className = 'state-panel';
+        d.innerHTML = '<h3>No matches</h3><p>No orders in this view match “' + escapeHtml(q) + '”.</p>';
+        el.ticketRail.appendChild(d); return;
+      }
+      el.ticketRail.appendChild(renderEmpty(state.activeTab)); return;
+    }
     orders.forEach(order => el.ticketRail.appendChild(renderTicket(order)));
   }
 
@@ -1244,8 +1585,10 @@
 
     el.countNew.textContent = newOrdersCount;
     el.countPreparing.textContent = state.queue.filter(o => o.status === 'confirmed' || o.status === 'preparing').length;
-    el.countDispatch.textContent = state.queue.filter(o => ['waiting_for_rider','assigned','out_for_delivery'].includes(o.status)).length;
+    if (el.countReady) el.countReady.textContent = state.queue.filter(o => o.status === 'waiting_for_rider' || o.status === 'assigned').length;
+    el.countDispatch.textContent = state.queue.filter(o => o.status === 'out_for_delivery').length;
     refreshOverviewCounts();
+    renderOutletMenuChip();
   }
 
   const Alarm = (function () {
@@ -1342,11 +1685,55 @@
       const res = await apiFetch('/restaurant'); state.restaurant = res.data;
       el.restaurantName.textContent = state.restaurant.name || 'Your restaurant';
       reflectStatus(state.restaurant.availability || { isOpen: !!state.restaurant.isOpen });
+      renderOutletHeader();
     } catch (err) { el.restaurantName.textContent = 'Restaurant'; showToast('error', err.message); }
   }
 
   function clearOrderResponseTimer() {
     if (state.orderResponseTimer) { clearInterval(state.orderResponseTimer); state.orderResponseTimer = null; }
+    if (state.prepTimer) { clearInterval(state.prepTimer); state.prepTimer = null; }
+  }
+
+  /* Prep countdown. The deadline is a persisted server timestamp
+     (estimatedReadyAt / prepReadyAt / readyAt); the ticking clock never writes
+     back to the server, so a page reload restores the true remaining time
+     instead of restarting a local timer. */
+  function startPrepTimer() {
+    if (state.prepTimer) { clearInterval(state.prepTimer); state.prepTimer = null; }
+    const tick = () => {
+      const nodes = document.querySelectorAll('.prep-strip[data-prep-deadline]');
+      let anyActive = false;
+      nodes.forEach(strip => {
+        const deadline = Number(strip.dataset.prepDeadline || 0);
+        if (!deadline) return;
+        const start = Number(strip.dataset.prepStart || 0);
+        const remaining = deadline - Date.now();
+        const clock = strip.querySelector('[data-prep-clock]');
+        const title = strip.querySelector('[data-prep-title]');
+        const sub = strip.querySelector('[data-prep-sub]');
+        const fill = strip.querySelector('[data-prep-fill]');
+        if (remaining <= 0) {
+          strip.classList.add('overdue'); strip.classList.remove('due-soon');
+          if (clock) clock.textContent = '0:00';
+          if (title) title.textContent = 'Prep time overdue';
+          if (sub) sub.textContent = 'Mark the order ready as soon as the food is packed.';
+          return;
+        }
+        anyActive = true;
+        const secs = Math.ceil(remaining / 1000);
+        if (clock) clock.textContent = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
+        if (title) title.textContent = 'Preparing';
+        if (sub) sub.textContent = 'Ready in about ' + Math.max(1, Math.round(secs / 60)) + ' min';
+        if (fill && start && deadline > start) {
+          const pct = Math.max(0, Math.min(100, ((Date.now() - start) / (deadline - start)) * 100));
+          fill.style.width = pct + '%';
+        }
+        strip.classList.toggle('due-soon', remaining <= 3 * 60 * 1000);
+      });
+      if (!anyActive && !nodes.length) { clearInterval(state.prepTimer); state.prepTimer = null; }
+    };
+    tick();
+    state.prepTimer = setInterval(tick, 1000);
   }
 
   function startOrderResponseTimer() {
@@ -1383,7 +1770,7 @@
       if (isFirstLoad) el.ticketRail.innerHTML = '<div class="skeleton-ticket"></div>';
       const res = await apiFetch('/orders?view=queue'); if (requestId !== state.queueRequest) return;
       state.queue = Array.isArray(res?.data) ? res.data : []; state.consecutivePollErrors = 0; updateCounts();
-      if (state.activeTab !== 'history') { renderActiveTab(); startOrderResponseTimer(); } else { clearOrderResponseTimer(); }
+      if (state.activeTab !== 'history') { renderActiveTab(); startOrderResponseTimer(); startPrepTimer(); } else { clearOrderResponseTimer(); }
       el.lastUpdated.textContent = 'Updated just now'; setConnectionState('online');
     } catch (err) {
       if (err.message === 'Your session has expired.') return; state.consecutivePollErrors++;
@@ -1439,6 +1826,152 @@
   function money(v){ return '₹' + Number(v||0).toLocaleString('en-IN'); }
   function earningsStatusLabel(s){ return String(s||'').replaceAll('_',' ').replace(/\b\w/g,m=>m.toUpperCase()); }
 
+  /* ── Kitchen Order Ticket (KOT) printing ────────────────────────────────
+     Builds a print-only node and calls the browser print dialog. The @media
+     print rules in theme.css hide everything except #kotPrintRoot, so the
+     on-screen dashboard is never captured. Thermal widths are handled by the
+     print stylesheet (76mm ≈ 80mm paper; works for 58mm too). */
+  function orderById(id) {
+    return state.queue.find(o => o._id === id) || state.history.find(o => o._id === id) || null;
+  }
+
+  function buildKotHtml(order) {
+    const items = Array.isArray(order.items) ? order.items : [];
+    const itemsHtml = items.map(i => {
+      const d = dietOf(i);
+      const mark = d === 'veg' ? '[V] ' : d === 'nonveg' ? '[N] ' : '';
+      return '<li><span>' + (Number(i.quantity) || 1) + '×</span><span>' + mark + escapeHtml(i.name) + '</span></li>';
+    }).join('');
+    const note = order.restaurantNote ? '<div class="kot-note">Note: ' + escapeHtml(order.restaurantNote) + '</div>' : '';
+    const cutlery = order.cutlery === true || order.cutleryRequired === true ? '<div class="kot-note">Cutlery requested</div>' : '';
+    const printedAt = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    return '<div class="kot">' +
+      '<h2>KOT</h2>' +
+      '<div class="kot-sub">' + escapeHtml((state.restaurant && state.restaurant.name) || 'Eatswada Vendor') + '</div>' +
+      '<hr>' +
+      '<div class="kot-row"><span>Order</span><span>#' + escapeHtml(order.publicOrderId || order.orderNumber || String(order._id || '').slice(-6).toUpperCase()) + '</span></div>' +
+      '<div class="kot-row"><span>Time</span><span>' + escapeHtml(printedAt) + '</span></div>' +
+      '<hr>' +
+      '<ul class="kot-items">' + (itemsHtml || '<li>No items</li>') + '</ul>' +
+      '<hr>' + note + cutlery +
+      '<div class="kot-foot">Kitchen copy · Eatswada</div>' +
+      '</div>';
+  }
+
+  function printKot(id) {
+    const order = orderById(id);
+    if (!order) { showToast('error', 'Order details are not loaded yet.'); return; }
+    const root = document.getElementById('kotPrintRoot');
+    if (!root) return;
+    root.innerHTML = buildKotHtml(order);
+    const done = () => { root.innerHTML = ''; window.removeEventListener('afterprint', done); };
+    window.addEventListener('afterprint', done);
+    try { window.print(); } catch (_) { done(); showToast('error', 'Printing is not available on this device.'); }
+  }
+
+  /* ── Voice readout (Web Speech API) ────────────────────────────────────
+     Optional and feature-detected. Supported languages are offered only when
+     the device reports an installed voice for them; repeated taps replace the
+     current utterance instead of stacking readouts. */
+  const SPEAK_LANGS = [
+    { code: 'en-IN', label: 'English', match: /^en/i },
+    { code: 'bn-IN', label: 'বাংলা', match: /^bn/i },
+    { code: 'hi-IN', label: 'हिन्दी', match: /^hi/i }
+  ];
+  function speechAvailable() { return typeof window.speechSynthesis !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined'; }
+  function installedSpeakLangs() {
+    if (!speechAvailable()) return [];
+    let voices = [];
+    try { voices = window.speechSynthesis.getVoices() || []; } catch (_) { voices = []; }
+    return SPEAK_LANGS.filter(l => voices.some(v => l.match.test(v.lang || '')));
+  }
+  function buildOrderSpeech(order) {
+    const items = Array.isArray(order.items) ? order.items : [];
+    const itemText = items.map(i => (Number(i.quantity) || 1) + ' ' + (i.name || '')).join(', ');
+    const name = order.customerName || (order.user && order.user.name) || 'customer';
+    return 'Order ' + (order.publicOrderId || order.orderNumber || '') + '. ' + name + '. ' + itemText + '.';
+  }
+  let activeUtterance = null;
+  function speakOrder(id) {
+    if (!speechAvailable()) { showToast('error', 'Voice readout is not supported on this device.'); return; }
+    const order = orderById(id);
+    if (!order) { showToast('error', 'Order details are not loaded yet.'); return; }
+    try { window.speechSynthesis.cancel(); } catch (_) {}
+    const langs = installedSpeakLangs();
+    const utterance = new SpeechSynthesisUtterance(buildOrderSpeech(order));
+    const preferred = langs.find(l => l.match.test(navigator.language || '')) || langs[0];
+    if (preferred) {
+      utterance.lang = preferred.code;
+      const voices = window.speechSynthesis.getVoices() || [];
+      const voice = voices.find(v => v.lang === preferred.code) || voices.find(v => preferred.match.test(v.lang || ''));
+      if (voice) utterance.voice = voice;
+    } else {
+      showToast('error', 'No installed voice for English, Bengali or Hindi. Using the system default.');
+    }
+    activeUtterance = utterance;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  /* ── Per-order support drawer ───────────────────────────────────────────
+     Routes to the existing authenticated support workflow. Nothing is claimed
+     as completed locally; the ticket is only reported as created after the
+     server confirms the write. */
+  const SUPPORT_KIND = {
+    delivery: { label: 'Delivery partner concern', subject: 'Delivery partner concern', category: 'delivery' },
+    order: { label: 'Order concern', subject: 'Order concern', category: 'order' },
+    cancellation: { label: 'Cancellation request', subject: 'Order cancellation request', category: 'order' }
+  };
+  function openOrderSupport(id) {
+    const order = orderById(id);
+    state.pendingSupportOrder = id; state.pendingSupportKind = null;
+    const title = document.getElementById('orderSupportTitle');
+    const sub = document.getElementById('orderSupportSub');
+    if (title) title.textContent = 'Order help · #' + ((order && (order.publicOrderId || order.orderNumber)) || String(id || '').slice(-6).toUpperCase());
+    if (sub) sub.textContent = 'Report an issue with this order. Requests are recorded with the Eatswada team.';
+    document.getElementById('orderSupportOptions').hidden = false;
+    document.getElementById('orderSupportCompose').hidden = true;
+    document.getElementById('orderSupportBack').hidden = true;
+    document.getElementById('orderSupportSubmit').hidden = true;
+    openModal('orderSupportSheet');
+  }
+  function chooseOrderSupportKind(kind) {
+    const meta = SUPPORT_KIND[kind]; if (!meta) return;
+    state.pendingSupportKind = kind;
+    document.getElementById('orderSupportOptions').hidden = true;
+    document.getElementById('orderSupportCompose').hidden = false;
+    document.getElementById('orderSupportBack').hidden = false;
+    document.getElementById('orderSupportSubmit').hidden = false;
+    const label = document.getElementById('orderSupportMessageLabel');
+    const order = orderById(state.pendingSupportOrder);
+    const ref = order ? ('#' + (order.publicOrderId || order.orderNumber || String(order._id).slice(-6).toUpperCase())) : '';
+    if (label) label.textContent = meta.label + (ref ? ' · ' + ref : '') + ' — describe the issue';
+    if (kind === 'cancellation') {
+      const sub = document.getElementById('orderSupportSub');
+      if (sub) sub.textContent = 'Cancelling an accepted order can affect the customer, refunds and settlement. This sends a request for review — it does not cancel the order immediately.';
+    }
+    const ta = document.getElementById('orderSupportMessage'); if (ta) { ta.value = ''; ta.focus(); }
+    const count = document.getElementById('orderSupportCount'); if (count) count.textContent = '0 / 2000';
+  }
+  async function submitOrderSupport() {
+    const kind = state.pendingSupportKind; const meta = SUPPORT_KIND[kind];
+    const orderId = state.pendingSupportOrder;
+    const message = (document.getElementById('orderSupportMessage').value || '').trim();
+    if (!meta || !orderId) return;
+    if (!message) { showToast('error', 'Please describe the issue.'); return; }
+    if (message.length > 2000) { showToast('error', 'Message is too long.'); return; }
+    const order = orderById(orderId);
+    const ref = order ? (order.publicOrderId || order.orderNumber || String(order._id).slice(-6).toUpperCase()) : '';
+    const subject = meta.subject + (ref ? ' · #' + ref : '');
+    const btn = document.getElementById('orderSupportSubmit'); if (btn) btn.disabled = true;
+    try {
+      await apiFetch('/support', { method: 'POST', body: JSON.stringify({ subject: subject, category: meta.category, message: message, orderId: orderId }), headers: { 'Content-Type': 'application/json' } });
+      showToast('success', 'Support request sent to Eatswada.');
+      closeModal('orderSupportSheet');
+      state.pendingSupportOrder = null; state.pendingSupportKind = null;
+    } catch (err) { showToast('error', err.message || 'Could not send the support request.'); }
+    finally { if (btn) btn.disabled = false; }
+  }
+
   async function loadEarnings(){
     if(!el.earningsCards||!el.earningsOrders)return; const period=el.earningsPeriod?.value||'30d';
     el.earningsCards.innerHTML='<div class="earnings-card"><div class="earnings-label">Loading</div><div class="earnings-value">…</div></div>'.repeat(4);
@@ -1452,7 +1985,73 @@
     }catch(err){ el.earningsCards.innerHTML='<div class="state-panel" style="grid-column:1/-1"><h3>Error loading</h3><p>'+escapeHtml(err.message||'Try again.')+'</p></div>'; el.earningsOrders.innerHTML='<tr><td colspan="6" style="padding:24px;text-align:center;">Could not load earnings.</td></tr>'; }
   }
 
-  /* ── Vendor reviews ───────────────────────────────────────────── */
+  /* ── Vendor reviews & complaints ─────────────────────────────────
+     Reviews come from the verified GET /reviews contract. Complaints are only
+     shown when the backend actually returns them (caps.complaints); otherwise
+     the tab states the gap honestly instead of inventing counts. */
+  function reviewReplyText(r) {
+    const reply = r && r.vendorReply;
+    if (!reply) return '';
+    return typeof reply === 'string' ? reply : (reply.message || reply.text || '');
+  }
+  function reviewReplyAt(r) {
+    const reply = r && r.vendorReply;
+    if (!reply || typeof reply === 'string') return r && (r.vendorReplyAt || r.repliedAt) || '';
+    return reply.createdAt || reply.repliedAt || reply.at || r.vendorReplyAt || '';
+  }
+  function reviewItemRatings(r) {
+    const raw = r && (r.itemRatings || r.items || r.dishRatings);
+    return Array.isArray(raw) ? raw.filter(Boolean) : [];
+  }
+  function reviewPhotos(r) {
+    const raw = r && (r.photos || r.images || r.attachments);
+    if (!Array.isArray(raw)) return [];
+    return raw.map(p => (typeof p === 'string' ? p : (p && (p.url || p.secure_url || p.secureUrl)) || '')).filter(Boolean);
+  }
+  function reviewMatches(r, q, filter) {
+    if (filter && filter !== 'all') {
+      if (filter === 'replied' && !reviewReplyText(r)) return false;
+      if (filter === 'unreplied' && reviewReplyText(r)) return false;
+      if (/^[1-5]$/.test(filter) && Math.max(1, Math.min(5, Number(r.score || r.rating || 0))) !== Number(filter)) return false;
+    }
+    if (!q) return true;
+    const hay = [
+      (r.user && r.user.name), (r.customer && r.customer.name), r.comment,
+      r.orderNumber, r.publicOrderId, reviewReplyText(r),
+      reviewItemRatings(r).map(i => i.name || i.itemName).join(' ')
+    ].filter(Boolean).join(' ').toLowerCase();
+    return hay.indexOf(q) !== -1;
+  }
+
+  function reviewCardHtml(r) {
+    const rid = r._id || r.id;
+    const name = (r.user && r.user.name) || (r.customer && r.customer.name) || 'Customer';
+    const score = Math.max(1, Math.min(5, Number(r.score || r.rating || 0)));
+    const stars = '★'.repeat(score) + '☆'.repeat(5 - score);
+    const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+    const comment = r.comment ? escapeHtml(r.comment) : '<span style="color:var(--ink-faint)">No written comment.</span>';
+    const replyText = reviewReplyText(r);
+    const replyAt = reviewReplyAt(r);
+    const replyHtml = replyText ? '<div class="rv-reply"><strong>Your reply</strong><p>' + escapeHtml(replyText) + '</p>' + (replyAt ? '<time>' + escapeHtml(new Date(replyAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })) + '</time>' : '') + '</div>' : '';
+    const replyBtn = (rid && !replyText) ? '<div class="inline-actions"><button class="btn ghost" type="button" data-review-reply="' + escapeHtml(String(rid)) + '">Reply</button></div>' : '';
+    const orderRef = r.orderNumber || r.publicOrderId;
+    const orderRefHtml = orderRef ? '<div class="rv-order-ref">Order #' + escapeHtml(String(orderRef)) + '</div>' : '';
+    const itemRatings = reviewItemRatings(r);
+    const itemHtml = itemRatings.length ? '<div class="rv-order-ref">' + itemRatings.map(i => {
+      const nm = i.name || i.itemName || i.title || 'Item';
+      const sc = Number(i.score || i.rating || 0);
+      return escapeHtml(nm) + (Number.isFinite(sc) && sc > 0 ? ' ' + sc + '★' : '');
+    }).join(' · ') + '</div>' : '';
+    const photos = reviewPhotos(r);
+    const photosHtml = photos.length ? '<div class="rv-photos">' + photos.map(u => '<img src="' + escapeHtml(u) + '" alt="Customer photo" loading="lazy" onerror="this.style.display=&quot;none&quot;" data-review-photo="' + escapeHtml(u) + '" />').join('') + '</div>' : '';
+    return '<article class="rv-card">' +
+      '<div class="rv-head"><div><strong>' + escapeHtml(name) + '</strong><div class="rv-stars">' + stars + '</div></div>' +
+      '<time class="rv-time">' + escapeHtml(date) + '</time></div>' +
+      orderRefHtml + itemHtml +
+      '<p class="rv-body">' + comment + '</p>' + photosHtml + replyHtml + replyBtn +
+      '</article>';
+  }
+
   async function loadReviews() {
     const scoreEl = document.getElementById('vendor-review-score');
     const countEl = document.getElementById('vendor-review-count');
@@ -1463,38 +2062,44 @@
       const res = await apiFetch('/reviews?page=1&limit=50');
       const summary = res?.summary || {};
       const reviews = Array.isArray(res?.data) ? res.data : [];
+      state.reviews = reviews;
       const rating = Number(summary.rating);
       scoreEl.textContent = Number.isFinite(rating) && rating > 0 ? rating.toFixed(1) + ' ★' : '—';
       countEl.textContent = `${Number(summary.ratingCount || 0)} ratings · ${Number(summary.reviewCount ?? res?.total ?? reviews.length)} reviews`;
-      if (!reviews.length) {
-        listEl.innerHTML = '<div class="state-panel"><h3>No customer reviews yet</h3><p>Reviews from completed orders will appear here.</p></div>';
-        return;
-      }
-      listEl.innerHTML = reviews.map(r => {
-        const rid = r._id || r.id;
-        const name = (r.user && r.user.name) || (r.customer && r.customer.name) || 'Customer';
-        const score = Math.max(1, Math.min(5, Number(r.score || 0)));
-        const stars = '★'.repeat(score) + '☆'.repeat(5-score);
-        const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '';
-        const comment = r.comment ? escapeHtml(r.comment) : '<span style="color:var(--ink-faint)">No written comment.</span>';
-        const reply = r.vendorReply;
-        const replyText = reply ? (typeof reply === 'string' ? reply : (reply.message || reply.text || '')) : '';
-        const replyHtml = replyText ? '<div style="margin-top:10px;padding:10px 12px;background:var(--green-soft);border-radius:10px;"><strong style="font-size:11px;color:var(--green-dark);text-transform:uppercase;letter-spacing:.04em;">Your reply</strong><p style="margin:4px 0 0;font-size:13px;color:var(--ink);line-height:1.5;">' + escapeHtml(replyText) + '</p></div>' : '';
-        const replyBtn = (rid && !replyText) ? '<div class="inline-actions"><button class="btn ghost" type="button" data-review-reply="' + escapeHtml(String(rid)) + '">Reply</button></div>' : '';
-        return '<article style="padding:18px 20px;border-bottom:1px solid var(--border-soft);">' +
-          '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">' +
-            '<div><strong>' + escapeHtml(name) + '</strong><div style="color:#f59e0b;letter-spacing:1px;margin-top:4px;">' + stars + '</div></div>' +
-            '<time style="font-size:12px;color:var(--ink-faint);white-space:nowrap;">' + escapeHtml(date) + '</time>' +
-          '</div>' +
-          '<p style="margin-top:10px;line-height:1.55;color:var(--ink-soft);">' + comment + '</p>' +
-          replyHtml + replyBtn +
-        '</article>';
-      }).join('');
+      renderReviewsList();
     } catch (err) {
       scoreEl.textContent = '—';
       countEl.textContent = 'Could not load reviews';
       renderRetry(listEl, err.message || 'Could not load reviews.', loadReviews);
     }
+  }
+
+  function renderReviewsList() {
+    const listEl = document.getElementById('vendor-reviews-list'); if (!listEl) return;
+    if (state.rvTab === 'complaints') {
+      if (!caps.complaints) {
+        listEl.innerHTML = '<div class="state-panel"><h3>Complaints are not available yet</h3><p>The backend does not expose a complaint record for vendors in this build, so nothing is shown rather than an invented list.</p></div>';
+        return;
+      }
+    }
+    const q = (state.rvSearch || '').trim().toLowerCase();
+    const filter = state.rvFilter || 'all';
+    const rows = (state.reviews || []).filter(r => reviewMatches(r, q, filter));
+    if (!(state.reviews || []).length) {
+      listEl.innerHTML = '<div class="state-panel"><h3>No customer reviews yet</h3><p>Reviews from completed orders will appear here.</p></div>';
+      return;
+    }
+    if (!rows.length) {
+      listEl.innerHTML = '<div class="state-panel"><h3>No matches</h3><p>No reviews match the current search or filter.</p></div>';
+      return;
+    }
+    listEl.innerHTML = rows.map(reviewCardHtml).join('');
+  }
+
+  function setReviewTab(tab) {
+    state.rvTab = tab === 'complaints' ? 'complaints' : 'reviews';
+    document.querySelectorAll('.rv-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.rvTab === state.rvTab)));
+    renderReviewsList();
   }
 
   /* ── Overview (home) ──────────────────────────────────────── */
@@ -1625,10 +2230,13 @@
     state.activeSection = name;
     el.sectionTabs.forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.section === name)));
     el.sections.forEach(sec => sec.hidden = sec.id !== 'section-' + name);
+    const orderSearchWrap = document.getElementById('orderSearchWrap');
+    if (orderSearchWrap) orderSearchWrap.hidden = name !== 'orders';
     if (['store', 'inventory', 'analytics', 'support', 'settings'].indexOf(name) >= 0) {
       el.sectionTabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.section === 'more')));
     }
     if (name === 'home') loadOverview();
+    if (name === 'orders') { renderActiveTab(); if (state.activeTab !== 'history') startPrepTimer(); }
     if (name === 'menu' && !state.menuLoaded) loadMenu();
     if (name === 'earnings') { loadEarnings(); loadFinance(); }
     if (name === 'reviews') loadReviews();
@@ -1698,6 +2306,7 @@
     let items = state.menuItems;
     if (q) items = items.filter(i => String(i.name || '').toLowerCase().includes(q) || String(i.category || '').toLowerCase().includes(q));
     el.menuCount.textContent = state.menuItems.length ? (state.menuItems.length + ' items') : '';
+    renderOutletMenuChip();
     el.menuGrid.innerHTML = '';
     if (!state.menuItems.length) { el.menuGrid.appendChild(renderEmpty('menu')); return; }
     if (!items.length) { const d = document.createElement('div'); d.className = 'state-panel'; d.innerHTML = '<h3>No matches</h3><p>No items match your search.</p>'; el.menuGrid.appendChild(d); return; }
@@ -1741,12 +2350,17 @@
   el.ticketRail.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-action]'); if (!btn) return;
     const ticket = btn.closest('.ticket'); const id = ticket.dataset.id; const action = btn.dataset.action;
-    if (action === 'accept') openPrepSheet(id); if (action === 'reject') openRejectModal(id); if (action === 'advance') advanceOrder(id, btn);
+    if (action === 'accept') openPrepSheet(id);
+    else if (action === 'reject') openRejectModal(id);
+    else if (action === 'advance') advanceOrder(id, btn);
+    else if (action === 'kot') printKot(id);
+    else if (action === 'speak') speakOrder(id);
+    else if (action === 'support') openOrderSupport(id);
   });
   el.tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       el.tabs.forEach(t => t.setAttribute('aria-selected', 'false')); tab.setAttribute('aria-selected', 'true');
-      state.activeTab = tab.dataset.tab; if (state.activeTab === 'history') loadHistory(); else renderActiveTab();
+      state.activeTab = tab.dataset.tab; if (state.activeTab === 'history') loadHistory(); else { renderActiveTab(); startPrepTimer(); }
     });
   });
   el.sectionTabs.forEach(tab => tab.addEventListener('click', () => switchSection(tab.dataset.section)));
@@ -1949,6 +2563,7 @@
   }
   function renderInventory() {
     const list = document.getElementById('invList'); if (!list) return;
+    renderRestock();
     const stats = document.getElementById('invStats');
     const items = state.menuItems || [];
     const inStock = items.filter(i => i.inStock).length;
@@ -1986,6 +2601,70 @@
     v2.bulkBusy = false;
     showToast(fail ? 'error' : 'success', ok + ' updated' + (fail ? ', ' + fail + ' failed' : '') + '.');
     renderInventory(); renderMenuList(); renderAlerts();
+  }
+
+  /* ---- Automatic restocking ----------------------------------------------
+     The scheduling endpoint is not verifiable from this repository, so the
+     controls stay disabled and the panel states the gap. When caps.autoRestock
+     is enabled the vendor selects a delay and the server persists the
+     timestamp; the frontend never re-enables an item on its own and never
+     overrides an item the vendor disabled for another reason. */
+  const RESTOCK_LABEL = { '2h': 'in 2 hours', '4h': 'in 4 hours', next_open: 'at the next opening period', manual: 'manually' };
+  function renderRestock() {
+    const sub = document.getElementById('restockSub');
+    const gap = document.getElementById('restockGap');
+    const delay = document.getElementById('restockDelay');
+    const scheduleBtn = document.getElementById('restockScheduleBtn');
+    const cancelBtn = document.getElementById('restockCancelBtn');
+    const scheduledBox = document.getElementById('restockScheduled');
+    if (!sub || !gap) return;
+    const scheduledAt = state.restockScheduledAt;
+    if (!caps.autoRestock) {
+      sub.textContent = 'Bring out-of-stock items back after a delay. Applies only to items you marked unavailable.';
+      gap.textContent = 'Not available yet: the backend does not expose an automatic restock scheduler for vendors, so no schedule can be saved.';
+      if (delay) delay.disabled = true;
+      if (scheduleBtn) scheduleBtn.disabled = true;
+      if (cancelBtn) cancelBtn.disabled = true;
+      if (scheduledBox) scheduledBox.hidden = true;
+      return;
+    }
+    if (delay) delay.disabled = false;
+    if (scheduleBtn) scheduleBtn.disabled = false;
+    gap.textContent = 'Scheduled restocks are validated on the server and respect your operating hours. Items you disabled for another reason are never re-enabled automatically.';
+    if (scheduledAt && scheduledBox) {
+      scheduledBox.hidden = false;
+      scheduledBox.innerHTML = 'Next restock <strong>' + escapeHtml(new Date(scheduledAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })) + '</strong>';
+      if (cancelBtn) cancelBtn.disabled = false;
+    } else if (scheduledBox) {
+      scheduledBox.hidden = true;
+      if (cancelBtn) cancelBtn.disabled = true;
+    }
+  }
+  async function scheduleRestock() {
+    if (!caps.autoRestock) { showToast('error', 'Automatic restocking is not available yet.'); return; }
+    const option = (document.getElementById('restockDelay') || {}).value;
+    const label = RESTOCK_LABEL[option] || option;
+    if (!confirm('Schedule a restock of out-of-stock items ' + label + '? Items you disabled for another reason will not be re-enabled.')) return;
+    const btn = document.getElementById('restockScheduleBtn'); if (btn) btn.disabled = true;
+    try {
+      const res = await apiFetch('/menu/restock', { method: 'POST', body: JSON.stringify({ option: option }), headers: { 'Content-Type': 'application/json' } });
+      const at = (res && res.data && (res.data.scheduledAt || res.data.restockAt)) || (res && (res.scheduledAt || res.restockAt));
+      state.restockScheduledAt = at || null;
+      showToast('success', 'Restock scheduled.');
+      renderRestock();
+    } catch (err) { showToast('error', err.message || 'Could not schedule the restock.'); }
+    finally { if (btn) btn.disabled = false; }
+  }
+  async function cancelRestock() {
+    if (!caps.autoRestock) return;
+    const btn = document.getElementById('restockCancelBtn'); if (btn) btn.disabled = true;
+    try {
+      await apiFetch('/menu/restock', { method: 'DELETE' });
+      state.restockScheduledAt = null;
+      showToast('success', 'Restock schedule cancelled.');
+      renderRestock();
+    } catch (err) { showToast('error', err.message || 'Could not cancel the restock.'); }
+    finally { renderRestock(); }
   }
 
   /* ---- Analytics ---- */
@@ -2170,6 +2849,14 @@
   }
 
   /* ---- Review replies ---- */
+  /* Photo viewer: shows the image only. Access control stays on the backend;
+     a public URL is never treated as proof of authorisation. */
+  function openPhotoViewer(url) {
+    if (!url) return;
+    const img = document.getElementById('photoViewerImg');
+    if (img) img.src = url;
+    openModal('photoViewerSheet');
+  }
   function openReviewReply(id) {
     v2.pendingReviewId = id;
     document.getElementById('reviewReplyInput').value = '';
@@ -2177,13 +2864,18 @@
     openModal('reviewReplySheet');
   }
   async function submitReviewReply() {
+    if (state.reviewReplyBusy) return;                 // guard against duplicate taps / retries
     const msg = document.getElementById('reviewReplyInput').value.trim();
     if (msg.length < 1 || msg.length > 500) { showToast('error', 'Reply must be 1–500 characters.'); return; }
     const id = v2.pendingReviewId;
-    const btn = document.getElementById('reviewReplySubmit'); btn.disabled = true;
-    try { await apiFetch('/reviews/' + id + '/reply', { method: 'POST', body: JSON.stringify({ message: msg }), headers: { 'Content-Type': 'application/json' } }); showToast('success', 'Reply posted.'); closeModal('reviewReplySheet'); await loadReviews(); }
+    const btn = document.getElementById('reviewReplySubmit');
+    state.reviewReplyBusy = true; if (btn) btn.disabled = true;
+    try {
+      await apiFetch('/reviews/' + id + '/reply', { method: 'POST', body: JSON.stringify({ message: msg }), headers: { 'Content-Type': 'application/json' } });
+      showToast('success', 'Reply posted.'); closeModal('reviewReplySheet'); await loadReviews();
+    }
     catch (err) { showToast('error', err.message || 'Could not post reply.'); }
-    finally { btn.disabled = false; }
+    finally { state.reviewReplyBusy = false; if (btn) btn.disabled = false; }
   }
 
   /* ---- Alerts & activity (derived from real backend data only) ---- */
@@ -2226,6 +2918,29 @@
 
   /* ---- V2 event wiring ---- */
   document.getElementById('topMoreBtn')?.addEventListener('click', openMoreSheet);
+  document.getElementById('headerSettingsBtn')?.addEventListener('click', () => switchSection('settings'));
+  const orderSearchEl = document.getElementById('orderSearch');
+  const orderSearchClearEl = document.getElementById('orderSearchClear');
+  if (orderSearchEl) {
+    orderSearchEl.addEventListener('input', () => {
+      state.orderSearch = orderSearchEl.value || '';
+      if (orderSearchClearEl) orderSearchClearEl.hidden = !state.orderSearch;
+      if (state.activeSection === 'orders' && state.activeTab !== 'history') renderActiveTab();
+    });
+  }
+  orderSearchClearEl?.addEventListener('click', () => {
+    state.orderSearch = ''; if (orderSearchEl) orderSearchEl.value = '';
+    orderSearchClearEl.hidden = true;
+    if (state.activeSection === 'orders' && state.activeTab !== 'history') renderActiveTab();
+  });
+  document.getElementById('orderSupportOptions')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-support-kind]'); if (b) chooseOrderSupportKind(b.dataset.supportKind);
+  });
+  document.getElementById('orderSupportBack')?.addEventListener('click', () => { if (state.pendingSupportOrder) openOrderSupport(state.pendingSupportOrder); });
+  document.getElementById('orderSupportCancel')?.addEventListener('click', () => closeModal('orderSupportSheet'));
+  document.getElementById('orderSupportSubmit')?.addEventListener('click', submitOrderSupport);
+  document.getElementById('orderSupportMessage')?.addEventListener('input', (e) => { const c = document.getElementById('orderSupportCount'); if (c) c.textContent = e.target.value.length + ' / 2000'; });
+  document.getElementById('orderSupportSheet')?.addEventListener('click', (e) => { if (e.target.id === 'orderSupportSheet') closeModal('orderSupportSheet'); });
   document.getElementById('moreClose')?.addEventListener('click', closeMoreSheet);
   document.getElementById('moreSheet')?.addEventListener('click', (e) => { if (e.target.id === 'moreSheet') closeMoreSheet(); });
   document.querySelectorAll('[data-more]').forEach(b => b.addEventListener('click', () => { closeMoreSheet(); switchSection(b.dataset.more); }));
@@ -2253,6 +2968,8 @@
   document.getElementById('invClear')?.addEventListener('click', () => { v2.inventorySelected.clear(); renderInventory(); });
   document.getElementById('invMakeAvailable')?.addEventListener('click', () => applyBulkAvailability(true));
   document.getElementById('invMakeUnavailable')?.addEventListener('click', () => applyBulkAvailability(false));
+  document.getElementById('restockScheduleBtn')?.addEventListener('click', scheduleRestock);
+  document.getElementById('restockCancelBtn')?.addEventListener('click', cancelRestock);
   document.getElementById('invList')?.addEventListener('change', (e) => {
     if (e.target.classList.contains('menu-item-toggle')) toggleMenuItemStock(e.target);
     else if (e.target.classList.contains('inv-select')) { const id = e.target.dataset.id; if (e.target.checked) v2.inventorySelected.add(id); else v2.inventorySelected.delete(id); updateBulkButtons(); }
@@ -2274,11 +2991,21 @@
   document.getElementById('supportReplySubmit')?.addEventListener('click', submitSupportReply);
   document.getElementById('supportReplySheet')?.addEventListener('click', (e) => { if (e.target.id === 'supportReplySheet') closeModal('supportReplySheet'); });
 
-  document.getElementById('vendor-reviews-list')?.addEventListener('click', (e) => { const b = e.target.closest('[data-review-reply]'); if (b) openReviewReply(b.dataset.reviewReply); });
+  document.getElementById('vendor-reviews-list')?.addEventListener('click', (e) => {
+    const replyBtn = e.target.closest('[data-review-reply]');
+    if (replyBtn) { openReviewReply(replyBtn.dataset.reviewReply); return; }
+    const photo = e.target.closest('[data-review-photo]');
+    if (photo) openPhotoViewer(photo.dataset.reviewPhoto);
+  });
+  document.querySelectorAll('.rv-tab').forEach(b => b.addEventListener('click', () => setReviewTab(b.dataset.rvTab)));
+  document.getElementById('rvSearch')?.addEventListener('input', (e) => { state.rvSearch = e.target.value || ''; renderReviewsList(); });
+  document.getElementById('rvFilter')?.addEventListener('change', (e) => { state.rvFilter = e.target.value || 'all'; renderReviewsList(); });
   document.getElementById('reviewReplyCancel')?.addEventListener('click', () => closeModal('reviewReplySheet'));
   document.getElementById('reviewReplySubmit')?.addEventListener('click', submitReviewReply);
   document.getElementById('reviewReplyInput')?.addEventListener('input', (e) => { const c = document.getElementById('reviewReplyCount'); if (c) c.textContent = e.target.value.length + ' / 500'; });
   document.getElementById('reviewReplySheet')?.addEventListener('click', (e) => { if (e.target.id === 'reviewReplySheet') closeModal('reviewReplySheet'); });
+  document.getElementById('photoViewerClose')?.addEventListener('click', () => closeModal('photoViewerSheet'));
+  document.getElementById('photoViewerSheet')?.addEventListener('click', (e) => { if (e.target.id === 'photoViewerSheet') closeModal('photoViewerSheet'); });
 
   document.getElementById('settingsLogoutBtn')?.addEventListener('click', logout);
 

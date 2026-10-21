@@ -4,13 +4,15 @@
   "private": true,
   "description": "Android packaging for Eatswada Vendor",
   "scripts": {
-    "android:prepare": "node scripts/prepare-www.mjs"
+    "android:prepare": "node scripts/prepare-www.mjs",
+    "test": "node --test tests/contract.test.mjs tests/dom.smoke.test.mjs"
   },
   "devDependencies": {
     "@capacitor/android": "8.5.2",
     "@capacitor/cli": "8.5.2",
     "@capacitor/core": "8.5.2",
     "@capacitor/push-notifications": "8.0.0",
-    "@capacitor/local-notifications": "8.0.0"
+    "@capacitor/local-notifications": "8.0.0",
+    "jsdom": "30.1.3"
   }
 }
