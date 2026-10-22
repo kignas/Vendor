@@ -182,23 +182,12 @@
 
   .ticket-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
   .ticket-no { font-size: 16px; font-weight: 800; }
-  .ticket-time { font-size: 12px; font-weight: 700; color: var(--ink-soft); }
-  .ticket.status-placed .ticket-time { color: var(--warning); }
   .ticket.status-placed .ticket-response-window { margin-top: 4px; font-size: 11px; font-weight: 800; color: var(--warning); font-variant-numeric: tabular-nums; }
   .ticket.status-placed .ticket-response-window.expired { color: var(--danger); }
 
   .ticket-items { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
   .ticket-items li { display: flex; gap: 8px; font-size: 14px; font-weight: 600; color: var(--ink); }
   .ticket-items .qty { font-weight: 800; color: var(--green); min-width: 24px; }
-
-  .ticket-customer {
-    background: var(--page); border: 1px solid var(--border-soft); border-radius: var(--r-md);
-    padding: 12px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px;
-  }
-  .ticket-customer-head { display: flex; align-items: center; justify-content: space-between; }
-  .ticket-customer-label { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--ink-faint); text-transform: uppercase; }
-  .ticket-customer strong { font-size: 14px; font-weight: 700; }
-  .ticket-customer span { font-size: 13px; color: var(--ink-soft); line-height: 1.4; }
 
   .ticket-note {
     background: var(--warning-soft); border-radius: var(--r-md); padding: 10px 12px; margin-bottom: 14px;
@@ -262,14 +251,17 @@
   
   /* Mobile-first table cards */
   .earnings-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  @media (max-width: 600px) {
+  @container (max-width: 600px) {
     .earnings-table thead { display: none; }
     .earnings-table tbody { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
     .earnings-table tr { display: flex; flex-direction: column; border: 1px solid var(--border-soft); border-radius: var(--r-md); padding: 12px; gap: 6px; background: var(--page); }
     .earnings-table td { display: flex; justify-content: space-between; padding: 0; border: none; }
     .earnings-table td::before { content: attr(data-label); color: var(--ink-soft); font-weight: 700; font-size: 11px; text-transform: uppercase; }
   }
-  @media (min-width: 601px) {
+  /* Container queries, not viewport queries: the shell is always a phone
+     column, so these respond to the shell width, never to a wide desktop
+     viewport. */
+  @container (min-width: 601px) {
     .earnings-table-wrap { overflow-x: auto; padding: 0 16px 16px; }
     .earnings-table th, .earnings-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-soft); white-space: nowrap; }
     .earnings-table th { font-size: 11px; text-transform: uppercase; color: var(--ink-soft); font-weight: 800; }
@@ -292,7 +284,7 @@
     border: 1px solid var(--border); border-radius: var(--r-sm); padding: 8px 10px; background: var(--page); text-align: center;
   }
   .hours-times input[type="time"]:disabled { opacity: 0.5; }
-  @media (min-width: 480px) {
+  @container (min-width: 480px) {
     .hours-row { flex-direction: row; align-items: center; }
     .hours-day-wrap { width: 140px; }
     .hours-times { flex: 1; justify-content: flex-end; }
@@ -454,7 +446,7 @@
   .more-row small { color:var(--ink-soft); font-size:11px; line-height:1.35; }
   .more-row > b { color:var(--ink-faint); font-size:22px; font-weight:500; }
   .more-row:active { background:var(--page); }
-  @media (max-width:360px) { .section-tab { font-size:10px; } .section-tab svg { width:19px;height:19px; } }
+  @container (max-width:360px) { .section-tab { font-size:10px; } .section-tab svg { width:19px;height:19px; } }
 
 
   /* Vendor Home — clear command-centre hierarchy */
@@ -498,7 +490,7 @@
   .home-action.primary .home-action-icon { background:#e6f5ed; color:#16845b; }
   .home-action:active { background:var(--page); }
   .home-account #ov-docs { padding:10px 11px; border-radius:11px; background:var(--page); line-height:1.55; }
-  @media(max-width:390px) { .home-status-card { align-items:flex-start; flex-direction:column; } .home-status-action { align-self:stretch; } .home-intro h2 { font-size:20px; } }
+  @container (max-width:390px) { .home-status-card { align-items:flex-start; flex-direction:column; } .home-status-action { align-self:stretch; } .home-intro h2 { font-size:20px; } }
 
 </style>
 <link rel="stylesheet" href="./theme.css">
@@ -705,36 +697,46 @@
         </div>
       </div>
 
+      <div class="ledger-card">
+        <div style="font-weight:800;font-size:14px;margin-bottom:4px;">Net payout ledger</div>
+        <div class="earnings-sub" style="margin-bottom:10px;">Per-order net receivable credited to your settlement.</div>
+        <div id="earnings-ledger"><div class="stat-note">Loading ledger…</div></div>
+      </div>
+
 
     </section>
 
     <!-- SECTION: REVIEWS -->
     <section class="dashboard-section" id="section-reviews" hidden>
-      <div class="card" style="padding:20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="card" style="padding:16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
         <div>
-          <div style="font-size:11px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;">Customer rating</div>
-          <div id="vendor-review-score" style="font-size:32px;font-weight:800;margin-top:4px">—</div>
+          <div style="font-size:11px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;">Customer rating</div>
+          <div id="vendor-review-score" style="font-size:30px;font-weight:800;margin-top:4px">—</div>
           <div id="vendor-review-count" style="font-size:13px;color:var(--ink-soft)">Loading…</div>
         </div>
         <button class="refresh-btn" id="vendor-review-refresh">↻ Refresh</button>
       </div>
-      <nav class="rv-tabs" role="tablist" aria-label="Reviews and complaints">
+      <nav class="rv-capsule" role="tablist" aria-label="Reviews and complaints">
+        <button class="rv-tab" role="tab" data-rv-tab="complaints" aria-selected="false">Complaints <span class="rv-count" id="rvComplaintCount">0</span></button>
         <button class="rv-tab" role="tab" data-rv-tab="reviews" aria-selected="true">Reviews</button>
-        <button class="rv-tab" role="tab" data-rv-tab="complaints" aria-selected="false">Complaints</button>
       </nav>
       <div class="rv-toolbar">
-        <input id="rvSearch" type="search" placeholder="Search by customer, text or order…" aria-label="Search reviews" autocomplete="off" />
+        <span class="rv-search">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--ink-faint);flex:none;"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="rvSearch" type="search" placeholder="Search reviews" aria-label="Search reviews" autocomplete="off" />
+        </span>
         <select id="rvFilter" aria-label="Filter reviews">
-          <option value="all">All ratings</option>
-          <option value="5">5 stars</option>
-          <option value="4">4 stars</option>
-          <option value="3">3 stars</option>
-          <option value="2">2 stars</option>
-          <option value="1">1 star</option>
+          <option value="all">All</option>
+          <option value="5">5 ★</option>
+          <option value="4">4 ★</option>
+          <option value="3">3 ★</option>
+          <option value="2">2 ★</option>
+          <option value="1">1 ★</option>
           <option value="replied">Replied</option>
           <option value="unreplied">Awaiting reply</option>
         </select>
       </div>
+      <button class="rv-filter-chip" id="rvFilterChip" type="button" aria-pressed="false">Detailed reviews <span aria-hidden="true">×</span></button>
       <div class="card" style="overflow:hidden;"><div id="vendor-reviews-list"><div class="state-panel">Loading reviews…</div></div></div>
     </section>
 
@@ -892,14 +894,12 @@
   <div class="modal-overlay" id="prepSheet">
     <div class="modal">
       <h3>Accept order</h3>
-      <p>How many minutes to prepare? The customer and rider see this.</p>
+      <p>Pick the kitchen prep time (KPT). The customer and rider see this.</p>
       <div class="prep-chips" id="prepChips">
-        <button class="prep-chip" data-min="10" type="button">10 min</button>
         <button class="prep-chip" data-min="15" type="button">15 min</button>
         <button class="prep-chip selected" data-min="20" type="button">20 min</button>
         <button class="prep-chip" data-min="25" type="button">25 min</button>
         <button class="prep-chip" data-min="30" type="button">30 min</button>
-        <button class="prep-chip" data-min="45" type="button">45 min</button>
       </div>
       <div class="modal-actions">
         <button class="btn ghost" id="prepCancel" type="button">Cancel</button>
@@ -1034,25 +1034,59 @@
     </div>
   </div>
 
-  <!-- Per-order support drawer -->
+  <!-- Per-order support bottom sheet (mobile) -->
   <div class="modal-overlay" id="orderSupportSheet">
     <div class="modal">
-      <h3 id="orderSupportTitle">Order support</h3>
-      <p id="orderSupportSub">Report an issue with this order. Requests are recorded with the Eatswada team.</p>
-      <div class="support-drawer" id="orderSupportOptions">
-        <button class="sd-option" type="button" data-support-kind="delivery"><span class="sd-ico" aria-hidden="true">🛵</span><span><strong>Delivery partner concern</strong><small>Rider delay, behaviour or assignment issue</small></span><b aria-hidden="true">›</b></button>
-        <button class="sd-option" type="button" data-support-kind="order"><span class="sd-ico" aria-hidden="true">🧾</span><span><strong>Order concern</strong><small>Wrong items, packaging or billing question</small></span><b aria-hidden="true">›</b></button>
-        <button class="sd-option danger" type="button" data-support-kind="cancellation"><span class="sd-ico" aria-hidden="true">⚠️</span><span><strong>Request cancellation</strong><small>Ask Eatswada to review cancelling this order</small></span><b aria-hidden="true">›</b></button>
+      <div class="support-sheet">
+        <div class="support-sheet-head">
+          <button type="button" id="orderSupportBack" aria-label="Back">←</button>
+          <strong id="orderSupportTitle">EatSwada Support</strong>
+        </div>
+        <div class="support-bubble" id="orderSupportSub">What help do you need for this order?</div>
+        <div id="orderSupportOptions">
+          <button class="support-row" type="button" data-support-kind="delivery"><span class="sr-ico" aria-hidden="true">🛵</span><span><strong>Delivery partner related concern</strong><small>Rider delay, behaviour or assignment issue</small></span><b aria-hidden="true">›</b></button>
+          <button class="support-row" type="button" data-support-kind="order"><span class="sr-ico" aria-hidden="true">🧾</span><span><strong>Order related concern</strong><small>Wrong items, packaging or billing question</small></span><b aria-hidden="true">›</b></button>
+          <button class="support-row danger" type="button" data-support-kind="cancellation"><span class="sr-ico" aria-hidden="true">⚠️</span><span><strong>Reject the order</strong><small>Ask EatSwada to review cancelling this order</small></span><b aria-hidden="true">›</b></button>
+        </div>
+        <div class="form-field" id="orderSupportCompose" hidden>
+          <label for="orderSupportMessage" id="orderSupportMessageLabel">Describe the issue</label>
+          <textarea id="orderSupportMessage" maxlength="2000" placeholder="Add the details the EatSwada team needs…"></textarea>
+          <div class="stat-note" id="orderSupportCount" style="margin-top:6px;">0 / 2000</div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="orderSupportCancel" type="button">Close</button>
+          <button class="btn accept" id="orderSupportSubmit" type="button" hidden>Submit request</button>
+        </div>
       </div>
-      <div class="form-field" id="orderSupportCompose" hidden>
-        <label for="orderSupportMessage" id="orderSupportMessageLabel">Describe the issue</label>
-        <textarea id="orderSupportMessage" maxlength="2000" placeholder="Add the details the Eatswada team needs…"></textarea>
-        <div class="stat-note" id="orderSupportCount" style="margin-top:6px;">0 / 2000</div>
+    </div>
+  </div>
+
+  <!-- Full-screen mobile review slide-over -->
+  <div class="review-view" id="reviewView" aria-hidden="true">
+    <div class="review-view-head">
+      <button type="button" id="reviewViewBack" aria-label="Back">←</button>
+      <strong>Review</strong>
+    </div>
+    <div class="review-view-body" id="reviewViewBody"></div>
+    <div class="review-reply-bar">
+      <input id="reviewViewReplyInput" type="text" maxlength="500" placeholder="Type your reply" aria-label="Type your reply" />
+      <button id="reviewViewReplySend" type="button" aria-label="Send reply">➤</button>
+    </div>
+  </div>
+
+  <!-- Menu stock: auto turn-on timer bottom sheet -->
+  <div class="modal-overlay" id="restockSheet">
+    <div class="modal">
+      <h3>When should this turn back on?</h3>
+      <p id="restockSheetSub">This item is now out of stock. Choose when EatSwada should turn it back on.</p>
+      <div class="restock-sheet" id="restockSheetOptions">
+        <button class="restock-option" type="button" data-restock="2h"><span class="ro-ico" aria-hidden="true">⏱</span><span><strong>After 2 hours</strong><small>Turn it back on later today</small></span></button>
+        <button class="restock-option" type="button" data-restock="4h"><span class="ro-ico" aria-hidden="true">⏱</span><span><strong>After 4 hours</strong><small>Turn it back on later today</small></span></button>
+        <button class="restock-option" type="button" data-restock="next_open"><span class="ro-ico" aria-hidden="true">🌅</span><span><strong>Next day opening time</strong><small>Back on at your next opening hours</small></span></button>
+        <button class="restock-option" type="button" data-restock="manual"><span class="ro-ico" aria-hidden="true">✋</span><span><strong>I will turn it on manually</strong><small>No automatic restock</small></span></button>
       </div>
       <div class="modal-actions">
-        <button class="btn ghost" id="orderSupportBack" type="button" hidden>Back</button>
-        <button class="btn ghost" id="orderSupportCancel" type="button">Close</button>
-        <button class="btn accept" id="orderSupportSubmit" type="button" hidden>Submit request</button>
+        <button class="btn ghost" id="restockSheetCancel" type="button">Cancel</button>
       </div>
     </div>
   </div>
@@ -1118,7 +1152,9 @@
     orderSearch: '', orderQueryRequest: 0, orderQueryResults: null, prepTimer: null,
     pendingSupportOrder: null, pendingSupportKind: null, capabilities: caps,
     reviews: [], rvTab: 'reviews', rvSearch: '', rvFilter: 'all', reviewReplyBusy: false,
-    restockScheduledAt: null
+    restockScheduledAt: null,
+    extendedPrep: new Set(), pendingReadyUndo: null, kptTimer: null, undoReadyTimer: null,
+    pendingRestockItemId: null, pendingRestockWasInStock: null, reviewViewId: null, rvDetailed: false
   };
 
   const el = {
@@ -1403,117 +1439,237 @@
     const total = firstNumber(order.total, order.grandTotal, order.amount);
     const rows = caps.billBreakdown ? billRows(order) : [];
     let inner = '';
+    let summary;
     if (rows.length) {
-      inner = rows.map(r => '<div class="bill-row' + (r.kind === 'total' ? ' total' : '') + '"><span>' + escapeHtml(r.label) + '</span><span class="' + r.kind + '">' + (r.kind === 'neg' ? '−' : '') + formatMoney(Math.abs(r.value)) + '</span></div>').join('');
+      const net = rows.find(r => r.kind === 'total');
+      inner = '<div class="bill-body">' + rows.map(r => '<div class="bill-row' + (r.kind === 'total' ? ' total' : '') + '"><span>' + escapeHtml(r.label) + '</span><span class="' + r.kind + '">' + (r.kind === 'neg' ? '−' : '') + formatMoney(Math.abs(r.value)) + '</span></div>').join('') +
+        (net ? '<div class="bill-you-get"><span>You Get (Net Restaurant Payout)</span><strong>' + formatMoney(net.value) + '</strong></div>' : '') + '</div>';
+      summary = 'Total bill ' + formatMoney(total || (net ? net.value : 0));
     } else {
-      inner = '<div class="bill-row total"><span>Bill total</span><span>' + formatMoney(total || 0) + '</span></div>' +
-        '<div class="bill-note">A detailed breakdown is not available for this order. Figures come from the Eatswada settlement ledger only when the backend supplies them.</div>';
+      inner = '<div class="bill-body"><div class="bill-row total"><span>Bill total</span><span>' + formatMoney(total || 0) + '</span></div>' +
+        '<div class="bill-note">A detailed breakdown is not available for this order. Figures come from the Eatswada settlement ledger only when the backend supplies them.</div></div>';
+      summary = 'Total bill / Your earnings';
     }
-    return '<details class="bill-details"><summary>Total bill / Your earnings</summary>' + inner + '</details>';
+    return '<details class="bill-details"><summary>' + escapeHtml(summary) + '</summary>' + inner + '</details>';
   }
 
   function prepStripHtml(order) {
     if (!caps.prepCountdown) return '';
     if (order.status !== 'confirmed' && order.status !== 'preparing') return '';
-    const deadline = firstNumber(
-      order.estimatedReadyAt ? new Date(order.estimatedReadyAt).getTime() : null,
-      order.prepReadyAt ? new Date(order.prepReadyAt).getTime() : null,
-      order.readyAt ? new Date(order.readyAt).getTime() : null
-    );
+    const deadline = prepDeadlineOf(order);
     if (deadline === null) return '';
     const started = firstNumber(order.acceptedAt ? new Date(order.acceptedAt).getTime() : null, order.updatedAt ? new Date(order.updatedAt).getTime() : null, order.createdAt ? new Date(order.createdAt).getTime() : null);
     const totalMs = (started !== null && deadline > started) ? (deadline - started) : null;
+    // One-time +5 min prep extension, only while the kitchen is preparing.
+    const extended = state.extendedPrep.has(order._id);
+    const extendChip = order.status === 'preparing'
+      ? '<button class="extend-chip' + (extended ? ' used' : '') + '" type="button" data-action="extend-prep"' + (extended ? ' disabled' : '') + '>' + (extended ? '+5 min added' : '+5 min') + '</button>'
+      : '';
     return '<div class="prep-strip" data-prep-deadline="' + deadline + '"' + (totalMs ? ' data-prep-start="' + started + '"' : '') + '>' +
       '<span class="prep-clock" data-prep-clock>--:--</span>' +
       '<span class="prep-copy"><strong data-prep-title>Preparing</strong><span data-prep-sub>Ready time from the kitchen timer</span>' +
       '<span class="prep-track"><i data-prep-fill style="width:0%"></i></span></span>' +
+      extendChip +
       '</div>';
   }
 
   function riderStatusHtml(order) {
-    if (['waiting_for_rider', 'assigned', 'out_for_delivery'].indexOf(order.status) === -1) return '';
+    const s = order.status;
+    if (['waiting_for_rider', 'assigned', 'out_for_delivery', 'preparing', 'confirmed'].indexOf(s) === -1) return '';
     const eta = firstNumber(order.riderEtaMinutes, order.etaMinutes, order.riderEta);
-    const hasLocation = !!(order.riderLocation || order.rider && (order.rider.lat || order.rider.location));
-    if (order.status === 'waiting_for_rider') {
-      return '<div class="rider-status live"><span class="rs-dot"></span><span>Waiting for rider dispatch</span></div>';
-    }
-    if (order.status === 'assigned') {
-      // An ETA is shown only when the backend supplies both an assignment and a routing figure.
-      const copy = (eta !== null && hasLocation) ? ('Rider assigned · about ' + eta + ' min away') : 'Rider assigned · waiting for rider location';
+    const reached = !!(order.riderArrived || order.riderAtRestaurant || order.riderReached);
+    if (reached) return '<div class="rider-status live"><span class="rs-dot"></span><span>🛵 Rider has reached restaurant</span></div>';
+    if (s === 'waiting_for_rider') return '<div class="rider-status live"><span class="rs-dot"></span><span>Waiting for rider assignment</span></div>';
+    if (s === 'assigned') {
+      const copy = (eta !== null && eta > 0) ? ('🛵 Rider is arriving in ' + Math.round(eta) + ' mins') : '🛵 Rider is on the way';
       return '<div class="rider-status live"><span class="rs-dot"></span><span>' + escapeHtml(copy) + '</span></div>';
     }
-    return '<div class="rider-status"><span class="rs-dot"></span><span>Picked up · out for delivery</span></div>';
+    if (s === 'out_for_delivery') return '<div class="rider-status"><span class="rs-dot"></span><span>Picked up · out for delivery</span></div>';
+    // confirmed / preparing: only claim a rider figure when the backend supplies one.
+    return (eta !== null && eta > 0)
+      ? '<div class="rider-status live"><span class="rs-dot"></span><span>🛵 Rider is arriving in ' + Math.round(eta) + ' mins</span></div>'
+      : '<div class="rider-status live"><span class="rs-dot"></span><span>Waiting for rider assignment</span></div>';
+  }
+
+  /* Prep countdown data is read from the persisted server deadline, never a
+     locally restarted timer. The countdown CTA and the prep strip share it. */
+  function prepDeadlineOf(order) {
+    return firstNumber(
+      order.estimatedReadyAt ? new Date(order.estimatedReadyAt).getTime() : null,
+      order.prepReadyAt ? new Date(order.prepReadyAt).getTime() : null,
+      order.readyAt ? new Date(order.readyAt).getTime() : null
+    );
+  }
+
+  function orderRef(order) {
+    return order.publicOrderId || order.orderNumber || String(order._id || '').slice(-6).toUpperCase();
+  }
+
+  function pickupCodeOf(order) {
+    const raw = order.pickupCode || order.pickupOtp || order.deliveryOtp;
+    return raw === undefined || raw === null || raw === '' ? '' : String(raw);
+  }
+
+  function ordinal(n) {
+    const k = n % 100;
+    if (k >= 11 && k <= 13) return n + 'th';
+    return n + ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
+  }
+
+  function loyaltySubtitle(order) {
+    const count = firstNumber(order.customerOrderCount, order.userOrderCount, order.customer && order.customer.orderCount, order.orderCountWithRestaurant);
+    const name = order.customerName || (order.user && order.user.name) || 'Customer';
+    const first = String(name).trim().split(/\s+/)[0] || 'Customer';
+    if (count !== null && count > 0) return escapeHtml(first) + '\u2019s ' + ordinal(count) + ' order';
+    return escapeHtml(first) + '\u2019s order';
+  }
+
+  function ticketStamp(order) {
+    const when = order.createdAt ? new Date(order.createdAt) : null;
+    if (!when || isNaN(when)) return '';
+    return when.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true });
+  }
+
+  function dietPillHtml(order, items) {
+    const known = (items || []).map(i => dietOf(i)).filter(Boolean);
+    if (!known.length) return '<span class="diet-pill neutral"><span class="dp-mark"></span>Diet not specified</span>';
+    const allVeg = known.every(k => k === 'veg');
+    return allVeg
+      ? '<span class="diet-pill veg"><span class="dp-leaf" aria-hidden="true">🌿</span>VEG ONLY</span>'
+      : '<span class="diet-pill nonveg"><span class="dp-mark"></span>NON-VEG</span>';
+  }
+
+  /* "N orders with you" — shown only when the server sends a reliable figure. */
+  function orderCountChipHtml(order) {
+    const count = firstNumber(order.customerOrderCount, order.userOrderCount, order.customer && order.customer.orderCount, order.orderCountWithRestaurant);
+    if (count === null) return '';
+    return '<span class="outlet-chip">' + count + ' order' + (count === 1 ? '' : 's') + ' with you</span>';
+  }
+
+  function itemRowHtml(i) {
+    const d = dietOf(i);
+    const qty = Number(i && i.quantity) || 1;
+    const name = escapeHtml((i && i.name) || 'Item');
+    return '<li><span class="qty">' + qty + '×</span>' +
+      '<span class="item-body"><span class="item-name">' + name + '</span>' + itemMetaHtml(i) + '</span>' +
+      (d ? dietMarkHtml(d) : '') + '</li>';
+  }
+
+  function ticketToolsHtml() {
+    return '<div class="ticket-head-tools">' +
+      '<button class="icon-btn" type="button" data-action="kot" aria-label="Print KOT" title="Print KOT">🖨️</button>' +
+      '<button class="icon-btn" type="button" data-action="speak" aria-label="Voice readout" title="Voice readout">🔊</button>' +
+      '<button class="icon-btn" type="button" data-action="support" aria-label="Order support" title="Order support">⋮</button>' +
+      '</div>';
+  }
+
+  /* Percentage of prep time already elapsed, for the split-fill CTA. */
+  function kptPct(deadline, order) {
+    const started = firstNumber(order.acceptedAt ? new Date(order.acceptedAt).getTime() : null, order.updatedAt ? new Date(order.updatedAt).getTime() : null, order.createdAt ? new Date(order.createdAt).getTime() : null);
+    if (started === null || !(deadline > started)) return 100;
+    const pct = ((Date.now() - started) / (deadline - started)) * 100;
+    return Math.max(0, Math.min(100, Math.round(pct)));
+  }
+
+  /* Live split-fill countdown on every Preparing card's primary CTA. */
+  function startKptTimer() {
+    if (state.kptTimer) { clearInterval(state.kptTimer); state.kptTimer = null; }
+    const tick = () => {
+      const nodes = document.querySelectorAll('.btn.kpt[data-kpt-deadline]');
+      if (!nodes.length) { clearInterval(state.kptTimer); state.kptTimer = null; return; }
+      nodes.forEach(btn => {
+        const deadline = Number(btn.dataset.kptDeadline || 0);
+        const ticket = btn.closest('.ticket');
+        const order = ticket ? orderById(ticket.dataset.id) : null;
+        const remaining = deadline - Date.now();
+        const label = btn.querySelector('[data-kpt-label]');
+        if (remaining <= 0) {
+          if (label) label.textContent = 'Order Ready (00:00)';
+          btn.style.setProperty('--kpt-pct', '100%');
+          return;
+        }
+        const secs = Math.ceil(remaining / 1000);
+        if (label) label.textContent = 'Order Ready (' + String(Math.floor(secs / 60)).padStart(2, '0') + ':' + String(secs % 60).padStart(2, '0') + ')';
+        if (order) btn.style.setProperty('--kpt-pct', kptPct(deadline, order) + '%');
+      });
+    };
+    tick();
+    state.kptTimer = setInterval(tick, 1000);
   }
 
   function renderTicket(order) {
     const el = document.createElement('article'); el.className = 'ticket status-' + order.status; el.dataset.id = order._id;
     const items = Array.isArray(order.items) ? order.items : [];
-    const itemsToShow = items.slice(0, 4); const extra = items.length - itemsToShow.length;
-    const itemsHtml = itemsToShow.map(i => {
-      const d = dietOf(i);
-      return `<li><span class="qty">${escapeHtml(String(i.quantity ?? 1))}×</span><span>${escapeHtml(i.name)}${itemMetaHtml(i)}</span>${d ? dietMarkHtml(d) : ''}</li>`;
-    }).join('') + (extra > 0 ? `<li style="font-size:13px; color:var(--ink-soft);">+${extra} more item${extra > 1 ? 's' : ''}</li>` : '');
+    const itemsHtml = items.map(itemRowHtml).join('');
+    const detailsLabel = 'Details (' + items.length + ' item' + (items.length === 1 ? '' : 's') + ')';
+    const ref = orderRef(order);
+    const code = pickupCodeOf(order);
+    const total = firstNumber(order.total, order.grandTotal, order.amount);
     let footHtml = '';
-    
+
     const responseDeadline = order.restaurantResponseDeadline ? new Date(order.restaurantResponseDeadline).getTime() : (order.createdAt ? new Date(order.createdAt).getTime() + 5 * 60 * 1000 : 0);
     const responseExpired = order.status === 'placed' && responseDeadline && Date.now() >= responseDeadline;
     if (order.status === 'placed') footHtml = `<div class="ticket-actions"><button class="btn reject" data-action="reject" ${responseExpired ? 'disabled' : ''}>Reject</button><button class="btn accept" data-action="accept" ${responseExpired ? 'disabled' : ''}>Accept</button></div>`;
     else if (order.status === 'confirmed') footHtml = `<button class="btn advance" data-action="advance">Start preparing</button>`;
-    else if (order.status === 'preparing') footHtml = `<button class="btn advance" data-action="advance" aria-label="Mark food ready and start rider dispatch">Mark food ready</button>`;
+    else if (order.status === 'preparing') {
+      const deadline = prepDeadlineOf(order);
+      if (caps.prepCountdown && deadline !== null && deadline > Date.now()) {
+        footHtml = `<button class="btn kpt" type="button" data-action="ready" data-kpt-deadline="${deadline}" style="--kpt-pct:${kptPct(deadline, order)}%"><span data-kpt-label>Order Ready (--:--)</span></button>` +
+          `<p class="kpt-hint">Tap when the food is packed and ready for pickup.</p>`;
+      } else {
+        footHtml = `<button class="btn kpt" type="button" data-action="ready" style="--kpt-pct:100%"><span data-kpt-label>Order Ready</span></button>`;
+      }
+    }
     else if (order.status === 'waiting_for_rider') footHtml = `<span class="badge dispatch" title="Food is marked ready; Eatswada is looking for an available rider.">Food ready · Finding a rider…</span>`;
     else if (order.status === 'assigned') footHtml = `<span class="badge dispatch" title="A rider has been assigned to this order.">Rider assigned</span>`;
     else if (order.status === 'out_for_delivery') footHtml = `<span class="badge dispatch">Picked up · Out for delivery</span>`;
     else if (order.status === 'delivered') footHtml = `<span class="badge delivered">Delivered</span>`;
     else if (order.status === 'cancelled') footHtml = `<span class="badge cancelled">Cancelled</span>`;
 
-    // Dietary summary: honest neutral marker when no item carries dietary data.
-    const anyDiet = items.some(i => dietOf(i));
-    const dietChip = anyDiet ? '' : '<span class="diet-mark neutral">Diet not specified</span>';
-    // Customer order count, only when the server sends a reliable figure.
-    const orderCount = firstNumber(order.customerOrderCount, order.userOrderCount, order.customer && order.customer.orderCount, order.orderCountWithRestaurant);
-    const orderCountChip = orderCount !== null ? '<span class="outlet-chip">' + orderCount + ' order' + (orderCount === 1 ? '' : 's') + ' with you</span>' : '';
+    // Dietary pill, customer loyalty line and timestamp.
+    const dietPill = dietPillHtml(order, items);
+    const loyalty = loyaltySubtitle(order);
+    const stamp = ticketStamp(order);
     // Pickup code: shown only when the backend includes it for this vendor order.
-    const pickupCode = order.pickupCode || order.pickupOtp || order.deliveryOtp;
-    const pickupChip = pickupCode ? '<span class="outlet-chip is-busy" title="Share this code with the rider at handover">Pickup ' + escapeHtml(String(pickupCode)) + '</span>' : '';
-    // Cutlery preference and customer instructions.
+    const pickupHtml = code
+      ? `<button class="pickup-code" type="button" data-action="copy-code" data-code="${escapeHtml(code)}" title="Copy pickup code"><span class="pc-label">PICKUP</span><span class="pc-value">#${escapeHtml(code)}</span><span class="pc-copy" aria-hidden="true">⧉</span></button>`
+      : '';
+    // Cutlery preference and customer instructions -> muted strip.
     const cutlery = order.cutlery || order.cutleryPreference || order.cutleryRequired;
-    const cutleryText = (cutlery === true) ? 'Cutlery requested' : (cutlery === false) ? 'No cutlery' : (typeof cutlery === 'string' && cutlery.trim() ? ('Cutlery: ' + cutlery.trim()) : '');
-    const instructions = order.customerInstructions || order.instructions || order.deliveryInstructions;
-    const itemCount = firstNumber(order.itemCount) !== null ? firstNumber(order.itemCount) : items.reduce((n, i) => n + (Number(i && i.quantity) || 0), 0);
+    const instructions = order.customerInstructions || order.instructions || order.deliveryInstructions || order.restaurantNote;
+    let stripHtml = '';
+    if (cutlery === true) stripHtml = '<div class="ticket-strip"><span class="ts-ico veg" aria-hidden="true">🍴</span><span>Send cutlery</span></div>';
+    else if (cutlery === false) stripHtml = '<div class="ticket-strip"><span class="ts-ico" aria-hidden="true">🍴</span><span>No cutlery needed</span></div>';
+    else if (typeof cutlery === 'string' && cutlery.trim()) stripHtml = '<div class="ticket-strip"><span class="ts-ico veg" aria-hidden="true">🍴</span><span>Cutlery: ' + escapeHtml(cutlery.trim()) + '</span></div>';
+    if (instructions) stripHtml += '<div class="ticket-strip customer-note"><span class="ts-ico" aria-hidden="true">📝</span><span>' + escapeHtml(String(instructions)) + '</span></div>';
 
     el.innerHTML = `
       <header class="ticket-head">
-        <div>
-          <span class="ticket-no">#${escapeHtml(order.publicOrderId || order.orderNumber || String(order._id || '').slice(-6).toUpperCase())}</span>
-          ${order.publicShipmentId || order.shipmentId ? `<div style="font-size:11px; color:var(--ink-soft); margin-top:2px;">Shipment: ${escapeHtml(order.publicShipmentId || order.shipmentId)}</div>` : ''}
-          <div class="ticket-meta-row">${dietChip}${orderCountChip}${pickupChip}${itemCount ? '<span class="outlet-chip">' + itemCount + ' item' + (itemCount === 1 ? '' : 's') + '</span>' : ''}</div>
+        <div class="ticket-head-main">
+          <div class="ticket-meta-row">${pickupHtml}${dietPill}${orderCountChipHtml(order)}</div>
+          <span class="ticket-no">#${escapeHtml(ref)}</span>
+          <div class="ticket-loyalty"><strong>${loyalty}</strong>${stamp ? `<time>${escapeHtml(stamp)}</time>` : ''}</div>
+          ${order.status === 'placed' ? `<div class="ticket-response-window${responseExpired ? ' expired' : ''}" data-response-deadline="${responseDeadline || ''}">${responseExpired ? 'Response window expired · updating…' : 'Respond within 5:00'}</div>` : ''}
         </div>
-        <span class="ticket-time">${timeAgo(order.createdAt)}${order.status === 'placed' ? `<div class="ticket-response-window${responseExpired ? ' expired' : ''}" data-response-deadline="${responseDeadline || ''}">${responseExpired ? 'Response window expired · updating…' : 'Respond within 5:00'}</div>` : ''}</span>
+        ${ticketToolsHtml()}
       </header>
       ${prepStripHtml(order)}
-      <ul class="ticket-items">${itemsHtml}</ul>
-      <div class="ticket-customer">
-        <div class="ticket-customer-head">
-          <span class="ticket-customer-label">Customer</span>
-          ${order.customerPhone ? `<a href="tel:${escapeHtml(order.customerPhone)}" style="color:var(--green-dark); font-weight:800; font-size:13px; text-decoration:none;">☎ Call</a>` : ''}
-        </div>
-        <strong>${escapeHtml(order.customerName || order.user?.name || 'Customer')}</strong>
-        ${formatOrderAddress(order.deliveryAddress) ? `<span>${escapeHtml(formatOrderAddress(order.deliveryAddress))}</span>` : ''}
-      </div>
-      ${order.restaurantNote ? `<div class="ticket-note customer-note"><strong>Customer note</strong><span>${escapeHtml(order.restaurantNote)}</span></div>` : ''}
-      ${(cutleryText || instructions) ? `<div class="ticket-note"><strong>Kitchen instructions</strong>${cutleryText ? `<span>${escapeHtml(cutleryText)}</span>` : ''}${instructions ? `<span>${escapeHtml(String(instructions))}</span>` : ''}</div>` : ''}
+      <details class="ticket-details"${order.status === 'placed' ? ' open' : ''}>
+        <summary>${escapeHtml(detailsLabel)}</summary>
+        <ul class="ticket-items">${itemsHtml || '<li class="extra-item">No items listed</li>'}</ul>
+      </details>
+      ${stripHtml}
       ${riderStatusHtml(order)}
       <footer class="ticket-foot">
-        <span class="ticket-total">${formatMoney(order.total)}</span>
+        <span class="ticket-total">${formatMoney(total)}</span>
         ${footHtml}
       </footer>
       ${billDetailsHtml(order)}
       <div class="ticket-tools">
-        <button class="btn kot" type="button" data-action="kot">🖨 Print KOT</button>
-        <button class="btn ghost" type="button" data-action="speak">🔊 Read order</button>
-        <button class="btn ghost" type="button" data-action="support">⋯ Order help</button>
+        <button class="btn kot" type="button" data-action="kot">🖨️ Print KOT</button>
+        <button class="btn ghost" type="button" data-action="speak">🔊 Voice readout</button>
       </div>
-      ${order.status === 'cancelled' && order.cancelReason ? `<p class="ticket-note" style="margin-top:14px; background:var(--danger-soft);"><strong>Reason</strong><span>${escapeHtml(order.cancelReason)}</span></p>` : ''}
+      ${order.status === 'cancelled' && order.cancelReason ? `<p class="ticket-note" style="margin:0 14px 14px; background:var(--danger-soft);"><strong>Reason</strong><span>${escapeHtml(order.cancelReason)}</span></p>` : ''}
     `;
     return el;
   }
@@ -1692,6 +1848,7 @@
   function clearOrderResponseTimer() {
     if (state.orderResponseTimer) { clearInterval(state.orderResponseTimer); state.orderResponseTimer = null; }
     if (state.prepTimer) { clearInterval(state.prepTimer); state.prepTimer = null; }
+    if (state.kptTimer) { clearInterval(state.kptTimer); state.kptTimer = null; }
   }
 
   /* Prep countdown. The deadline is a persisted server timestamp
@@ -1770,7 +1927,7 @@
       if (isFirstLoad) el.ticketRail.innerHTML = '<div class="skeleton-ticket"></div>';
       const res = await apiFetch('/orders?view=queue'); if (requestId !== state.queueRequest) return;
       state.queue = Array.isArray(res?.data) ? res.data : []; state.consecutivePollErrors = 0; updateCounts();
-      if (state.activeTab !== 'history') { renderActiveTab(); startOrderResponseTimer(); startPrepTimer(); } else { clearOrderResponseTimer(); }
+      if (state.activeTab !== 'history') { renderActiveTab(); startOrderResponseTimer(); startPrepTimer(); startKptTimer(); } else { clearOrderResponseTimer(); }
       el.lastUpdated.textContent = 'Updated just now'; setConnectionState('online');
     } catch (err) {
       if (err.message === 'Your session has expired.') return; state.consecutivePollErrors++;
@@ -1821,6 +1978,73 @@
     if (state.actionBusy.has(id)) return; state.actionBusy.add(id); btn.disabled = true;
     try { await apiFetch('/orders/' + id + '/status', { method: 'PUT' }); showToast('success', 'Order updated'); await loadQueue(false); }
     catch (err) { showToast('error', err.message); btn.disabled = false; } finally { state.actionBusy.delete(id); }
+  }
+
+  /* ── Order Ready + 15-second Undo ──────────────────────────────────────
+     Marking ready calls the ready endpoint, then offers a 15-second undo
+     toast that calls the undo-ready endpoint. Both are single-flight per
+     order, so a double tap cannot fire the request twice. */
+  async function markOrderReady(id, btn) {
+    if (state.actionBusy.has(id)) return;
+    state.actionBusy.add(id); if (btn) btn.disabled = true;
+    try {
+      await apiFetch('/orders/' + id + '/ready', { method: 'PUT' });
+      showToast('success', 'Order marked ready');
+      showUndoReadyToast(id);
+      await loadQueue(false);
+    } catch (err) { showToast('error', err.message); if (btn) btn.disabled = false; }
+    finally { state.actionBusy.delete(id); }
+  }
+
+  function showUndoReadyToast(id) {
+    const toast = document.createElement('div');
+    toast.className = 'toast undo-toast';
+    const label = document.createElement('span');
+    label.textContent = 'Marked ready · ';
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'undo-btn';
+    let remaining = 15;
+    btn.textContent = 'Undo Ready (' + remaining + 's)';
+    const timer = setInterval(() => {
+      remaining--;
+      btn.textContent = remaining > 0 ? ('Undo Ready (' + remaining + 's)') : 'Undo Ready';
+      if (remaining <= 0) { clearInterval(timer); toast.remove(); }
+    }, 1000);
+    btn.addEventListener('click', async () => {
+      clearInterval(timer); btn.disabled = true;
+      try {
+        await apiFetch('/orders/' + id + '/undo-ready', { method: 'PUT' });
+        showToast('success', 'Ready undone');
+        toast.remove(); await loadQueue(false);
+      } catch (err) { btn.disabled = false; showToast('error', err.message); }
+    });
+    toast.appendChild(label); toast.appendChild(btn);
+    el.toastStack.appendChild(toast);
+    state.undoReadyTimer = timer;
+  }
+
+  /* One-time +5 min prep extension for a Preparing order. The chip disables
+     after the first successful call, so the extension cannot be stacked. */
+  async function extendPrep(id, btn) {
+    if (state.actionBusy.has(id) || state.extendedPrep.has(id)) return;
+    state.actionBusy.add(id); if (btn) btn.disabled = true;
+    try {
+      await apiFetch('/orders/' + id + '/extend-prep', { method: 'PUT' });
+      state.extendedPrep.add(id);
+      showToast('success', 'Prep time extended by 5 min');
+      await loadQueue(false);
+    } catch (err) { showToast('error', err.message); if (btn) btn.disabled = false; }
+    finally { state.actionBusy.delete(id); }
+  }
+
+  /* Pickup code copy. Clipboard access is feature-detected; a blocked
+     clipboard falls back to a plain toast rather than a silent failure. */
+  async function copyPickupCode(code) {
+    if (!code) return;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(code); showToast('success', 'Pickup code ' + code + ' copied'); return; }
+    } catch (_) {}
+    showToast('success', 'Pickup code: ' + code);
   }
 
   function money(v){ return '₹' + Number(v||0).toLocaleString('en-IN'); }
@@ -1917,22 +2141,36 @@
      as completed locally; the ticket is only reported as created after the
      server confirms the write. */
   const SUPPORT_KIND = {
-    delivery: { label: 'Delivery partner concern', subject: 'Delivery partner concern', category: 'delivery' },
-    order: { label: 'Order concern', subject: 'Order concern', category: 'order' },
-    cancellation: { label: 'Cancellation request', subject: 'Order cancellation request', category: 'order' }
+    delivery: { label: 'Delivery partner related concern', subject: 'Delivery partner concern', category: 'delivery' },
+    order: { label: 'Order related concern', subject: 'Order concern', category: 'order' },
+    cancellation: { label: 'Reject the order', subject: 'Order cancellation request', category: 'order' }
   };
   function openOrderSupport(id) {
     const order = orderById(id);
     state.pendingSupportOrder = id; state.pendingSupportKind = null;
+    const vendorName = (state.restaurant && state.restaurant.name) || 'there';
+    const ref = order ? ('#' + orderRef(order)) : '#' + String(id || '').slice(-6).toUpperCase();
     const title = document.getElementById('orderSupportTitle');
     const sub = document.getElementById('orderSupportSub');
-    if (title) title.textContent = 'Order help · #' + ((order && (order.publicOrderId || order.orderNumber)) || String(id || '').slice(-6).toUpperCase());
-    if (sub) sub.textContent = 'Report an issue with this order. Requests are recorded with the Eatswada team.';
+    if (title) title.textContent = 'EatSwada Support';
+    if (sub) sub.textContent = 'Hello ' + vendorName + ', What help do you need for order ID - ' + ref + '?';
     document.getElementById('orderSupportOptions').hidden = false;
     document.getElementById('orderSupportCompose').hidden = true;
-    document.getElementById('orderSupportBack').hidden = true;
     document.getElementById('orderSupportSubmit').hidden = true;
     openModal('orderSupportSheet');
+  }
+  /* Back arrow: from the compose step it returns to the option list; from the
+     option list it closes the sheet. */
+  function orderSupportBack() {
+    const compose = document.getElementById('orderSupportCompose');
+    if (compose && !compose.hidden) {
+      state.pendingSupportKind = null;
+      document.getElementById('orderSupportOptions').hidden = false;
+      compose.hidden = true;
+      document.getElementById('orderSupportSubmit').hidden = true;
+      return;
+    }
+    closeModal('orderSupportSheet');
   }
   function chooseOrderSupportKind(kind) {
     const meta = SUPPORT_KIND[kind]; if (!meta) return;
@@ -1982,7 +2220,27 @@
       el.earningsCards.innerHTML=`<div class="earnings-card"><div class="earnings-label">Delivered sales</div><div class="earnings-value">${money(c.deliveredFoodSales)}</div></div><div class="earnings-card"><div class="earnings-label">Commission</div><div class="earnings-value">${money(c.deliveredCommission)}</div></div><div class="earnings-card"><div class="earnings-label">Net Earnings</div><div class="earnings-value" style="color:var(--green-dark);">${money(c.deliveredEarnings)}</div></div><div class="earnings-card"><div class="earnings-label">In progress</div><div class="earnings-value">${money(c.inProgress)}</div></div>`;
       const rows=Array.isArray(ordersRes?.data)?ordersRes.data:[];
       el.earningsOrders.innerHTML=rows.length?rows.map(o=>`<tr><td data-label="Order"><strong>#${escapeHtml(o.orderNumber||String(o.id).slice(-8).toUpperCase())}</strong></td><td data-label="Date">${o.createdAt?new Date(o.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}):'—'}</td><td data-label="Status">${escapeHtml(earningsStatusLabel(o.status))}</td><td class="money" data-label="Sales">${money(o.foodSales)}</td><td class="money" data-label="Comm">${money(o.commission)}</td><td class="money" data-label="Net" style="color:var(--green-dark);"><strong>${money(o.restaurantNetAmount)}</strong></td></tr>`).join(''):'<tr><td colspan="6" style="padding:24px;text-align:center;">No recent earnings.</td></tr>';
-    }catch(err){ el.earningsCards.innerHTML='<div class="state-panel" style="grid-column:1/-1"><h3>Error loading</h3><p>'+escapeHtml(err.message||'Try again.')+'</p></div>'; el.earningsOrders.innerHTML='<tr><td colspan="6" style="padding:24px;text-align:center;">Could not load earnings.</td></tr>'; }
+      renderEarningsLedger(rows);
+    }catch(err){ el.earningsCards.innerHTML='<div class="state-panel" style="grid-column:1/-1"><h3>Error loading</h3><p>'+escapeHtml(err.message||'Try again.')+'</p></div>'; el.earningsOrders.innerHTML='<tr><td colspan="6" style="padding:24px;text-align:center;">Could not load earnings.</td></tr>'; renderEarningsLedger([]); }
+  }
+
+  /* Per-order net payout ledger. Reads only fields the earnings endpoint
+     already returns; an order with no net figure is shown without a number
+     rather than with a guessed one. */
+  function renderEarningsLedger(rows) {
+    const box = document.getElementById('earnings-ledger');
+    if (!box) return;
+    if (!rows || !rows.length) { box.innerHTML = '<div class="stat-note">No completed orders in this period.</div>'; return; }
+    box.innerHTML = rows.map(o => {
+      const net = firstNumber(o.restaurantNetAmount, o.netAmount, o.restaurantNet);
+      const ref = o.orderNumber || (o.id ? String(o.id).slice(-8).toUpperCase() : '');
+      const when = o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '';
+      const sales = firstNumber(o.foodSales, o.sales);
+      const comm = firstNumber(o.commission);
+      const bits = [when, sales !== null ? 'Sales ' + money(sales) : '', comm !== null ? 'Comm −' + money(comm) : ''].filter(Boolean).join(' · ');
+      return '<div class="ledger-row"><div class="lr-main"><div class="lr-title">#' + escapeHtml(ref) + '</div><div class="lr-sub">' + escapeHtml(bits) + '</div></div>' +
+        '<span class="lr-amount">' + (net !== null ? money(net) : '—') + '</span></div>';
+    }).join('');
   }
 
   /* ── Vendor reviews & complaints ─────────────────────────────────
@@ -2023,32 +2281,61 @@
     return hay.indexOf(q) !== -1;
   }
 
+  function reviewScoreOf(r) {
+    return Math.max(1, Math.min(5, Number(r.score || r.rating || 0)));
+  }
+  function reviewScoreClass(score) {
+    return score >= 4 ? 'good' : score >= 3 ? 'mid' : 'bad';
+  }
+  function reviewCustomerCount(r) {
+    return firstNumber(
+      r.user && r.user.orderCount,
+      r.customer && r.customer.orderCount,
+      r.customerOrderCount,
+      r.orderCount
+    );
+  }
+  function reviewDateLabel(r) {
+    if (!r.createdAt) return '';
+    return new Date(r.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  function reviewStarsHtml(score) {
+    return '★'.repeat(score) + '☆'.repeat(5 - score);
+  }
+  function reviewReplyHtml(r) {
+    const replyText = reviewReplyText(r);
+    if (!replyText) return '';
+    const replyAt = reviewReplyAt(r);
+    return '<div class="rv-reply"><strong>You</strong><p>' + escapeHtml(replyText) + '</p>' +
+      (replyAt ? '<time>' + escapeHtml(new Date(replyAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })) + '</time>' : '') + '</div>';
+  }
+  function reviewPhotosHtml(r) {
+    const photos = reviewPhotos(r);
+    if (!photos.length) return '';
+    return '<div class="rv-photos">' + photos.map(u => '<img src="' + escapeHtml(u) + '" alt="Customer photo" loading="lazy" onerror="this.style.display=&quot;none&quot;" data-review-photo="' + escapeHtml(u) + '" />').join('') + '</div>';
+  }
+
   function reviewCardHtml(r) {
     const rid = r._id || r.id;
     const name = (r.user && r.user.name) || (r.customer && r.customer.name) || 'Customer';
-    const score = Math.max(1, Math.min(5, Number(r.score || r.rating || 0)));
-    const stars = '★'.repeat(score) + '☆'.repeat(5 - score);
-    const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+    const initial = escapeHtml(String(name).trim().charAt(0).toUpperCase() || 'C');
+    const score = reviewScoreOf(r);
+    const date = reviewDateLabel(r);
     const comment = r.comment ? escapeHtml(r.comment) : '<span style="color:var(--ink-faint)">No written comment.</span>';
-    const replyText = reviewReplyText(r);
-    const replyAt = reviewReplyAt(r);
-    const replyHtml = replyText ? '<div class="rv-reply"><strong>Your reply</strong><p>' + escapeHtml(replyText) + '</p>' + (replyAt ? '<time>' + escapeHtml(new Date(replyAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })) + '</time>' : '') + '</div>' : '';
-    const replyBtn = (rid && !replyText) ? '<div class="inline-actions"><button class="btn ghost" type="button" data-review-reply="' + escapeHtml(String(rid)) + '">Reply</button></div>' : '';
+    const count = reviewCustomerCount(r);
+    const countHtml = count !== null ? escapeHtml(String(count)) + ' orders with you' : 'Customer';
     const orderRef = r.orderNumber || r.publicOrderId;
-    const orderRefHtml = orderRef ? '<div class="rv-order-ref">Order #' + escapeHtml(String(orderRef)) + '</div>' : '';
-    const itemRatings = reviewItemRatings(r);
-    const itemHtml = itemRatings.length ? '<div class="rv-order-ref">' + itemRatings.map(i => {
-      const nm = i.name || i.itemName || i.title || 'Item';
-      const sc = Number(i.score || i.rating || 0);
-      return escapeHtml(nm) + (Number.isFinite(sc) && sc > 0 ? ' ' + sc + '★' : '');
-    }).join(' · ') + '</div>' : '';
-    const photos = reviewPhotos(r);
-    const photosHtml = photos.length ? '<div class="rv-photos">' + photos.map(u => '<img src="' + escapeHtml(u) + '" alt="Customer photo" loading="lazy" onerror="this.style.display=&quot;none&quot;" data-review-photo="' + escapeHtml(u) + '" />').join('') + '</div>' : '';
-    return '<article class="rv-card">' +
-      '<div class="rv-head"><div><strong>' + escapeHtml(name) + '</strong><div class="rv-stars">' + stars + '</div></div>' +
-      '<time class="rv-time">' + escapeHtml(date) + '</time></div>' +
-      orderRefHtml + itemHtml +
-      '<p class="rv-body">' + comment + '</p>' + photosHtml + replyHtml + replyBtn +
+    const outlet = (state.restaurant && state.restaurant.name) || 'Your outlet';
+    const topRef = orderRef ? ('Order #' + escapeHtml(String(orderRef)) + ' • ' + escapeHtml(outlet) + ' ›') : escapeHtml(outlet);
+    const replyBtn = (rid && !reviewReplyText(r)) ? '<button class="rv-reply-btn" type="button" data-review-reply="' + escapeHtml(String(rid)) + '">Reply</button>' : '';
+    return '<article class="rv-card" data-review-open="' + escapeHtml(String(rid || '')) + '">' +
+      '<div class="rv-card-top"><span class="rv-order">' + topRef + '</span></div>' +
+      '<div class="rv-card-head">' +
+        '<span class="rv-avatar" aria-hidden="true">' + initial + '</span>' +
+        '<span class="rv-who"><strong>' + escapeHtml(name) + '</strong><small>' + countHtml + '</small></span>' +
+        '<span class="rv-score ' + reviewScoreClass(score) + '">' + score + '★' + (date ? ' <small>' + escapeHtml(date) + '</small>' : '') + '</span>' +
+      '</div>' +
+      '<p class="rv-body">' + comment + '</p>' + reviewPhotosHtml(r) + reviewReplyHtml(r) + replyBtn +
       '</article>';
   }
 
@@ -2074,8 +2361,15 @@
     }
   }
 
+  function complaintCount() {
+    if (!caps.complaints) return 0;
+    return (state.reviews || []).filter(r => reviewScoreOf(r) <= 2 || r.complaint || r.isComplaint).length;
+  }
+
   function renderReviewsList() {
     const listEl = document.getElementById('vendor-reviews-list'); if (!listEl) return;
+    const countEl = document.getElementById('rvComplaintCount');
+    if (countEl) countEl.textContent = String(complaintCount());
     if (state.rvTab === 'complaints') {
       if (!caps.complaints) {
         listEl.innerHTML = '<div class="state-panel"><h3>Complaints are not available yet</h3><p>The backend does not expose a complaint record for vendors in this build, so nothing is shown rather than an invented list.</p></div>';
@@ -2084,7 +2378,10 @@
     }
     const q = (state.rvSearch || '').trim().toLowerCase();
     const filter = state.rvFilter || 'all';
-    const rows = (state.reviews || []).filter(r => reviewMatches(r, q, filter));
+    let pool = (state.reviews || []);
+    if (state.rvTab === 'complaints') pool = pool.filter(r => reviewScoreOf(r) <= 2 || r.complaint || r.isComplaint);
+    if (state.rvDetailed) pool = pool.filter(r => reviewItemRatings(r).length);
+    const rows = pool.filter(r => reviewMatches(r, q, filter));
     if (!(state.reviews || []).length) {
       listEl.innerHTML = '<div class="state-panel"><h3>No customer reviews yet</h3><p>Reviews from completed orders will appear here.</p></div>';
       return;
@@ -2100,6 +2397,80 @@
     state.rvTab = tab === 'complaints' ? 'complaints' : 'reviews';
     document.querySelectorAll('.rv-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.rvTab === state.rvTab)));
     renderReviewsList();
+  }
+
+  /* ── Full-screen mobile review slide-over ─────────────────────────────
+     Shows the full review, the customer photo gallery, a dish-by-dish star
+     list, the existing owner reply, and a sticky reply bar that posts to
+     POST /reviews/:id/reply and appends the reply immediately. */
+  function dishRowHtml(item) {
+    const d = dietOf(item);
+    const nm = item.name || item.itemName || item.title || 'Item';
+    const qty = Number(item.quantity) || 1;
+    const sc = Number(item.score || item.rating || 0);
+    const stars = Number.isFinite(sc) && sc > 0 ? (sc + ' ★') : '—';
+    return '<div class="dish-row">' + (d ? dietMarkHtml(d) : '') +
+      '<span class="dish-name">' + qty + ' x ' + escapeHtml(nm) + '</span>' +
+      '<span class="dish-stars">' + stars + '</span></div>';
+  }
+
+  function openReviewView(id) {
+    const r = (state.reviews || []).find(x => String(x._id || x.id) === String(id));
+    if (!r) return;
+    state.reviewViewId = id;
+    const body = document.getElementById('reviewViewBody');
+    const name = (r.user && r.user.name) || (r.customer && r.customer.name) || 'Customer';
+    const initial = escapeHtml(String(name).trim().charAt(0).toUpperCase() || 'C');
+    const score = reviewScoreOf(r);
+    const count = reviewCustomerCount(r);
+    const orderRef = r.orderNumber || r.publicOrderId;
+    const itemRatings = reviewItemRatings(r);
+    const dishHtml = itemRatings.length
+      ? '<div class="dish-ratings"><h4>Dish ratings</h4>' + itemRatings.map(dishRowHtml).join('') + '</div>'
+      : '';
+    const replyBar = document.querySelector('.review-reply-bar');
+    if (body) {
+      body.innerHTML =
+        (orderRef ? '<div class="rv-card-top"><span class="rv-order">Order #' + escapeHtml(String(orderRef)) + '</span></div>' : '') +
+        '<div class="rv-card-head">' +
+          '<span class="rv-avatar" aria-hidden="true">' + initial + '</span>' +
+          '<span class="rv-who"><strong>' + escapeHtml(name) + '</strong><small>' + (count !== null ? escapeHtml(String(count)) + ' orders with you' : 'Customer') + '</small></span>' +
+          '<span class="rv-score ' + reviewScoreClass(score) + '">' + score + '★' + (reviewDateLabel(r) ? ' <small>' + escapeHtml(reviewDateLabel(r)) + '</small>' : '') + '</span>' +
+        '</div>' +
+        '<p class="rv-body">' + (r.comment ? escapeHtml(r.comment) : '<span style="color:var(--ink-faint)">No written comment.</span>') + '</p>' +
+        reviewPhotosHtml(r) + dishHtml + reviewReplyHtml(r);
+    }
+    if (replyBar) replyBar.hidden = !!reviewReplyText(r);
+    const input = document.getElementById('reviewViewReplyInput'); if (input) input.value = '';
+    const send = document.getElementById('reviewViewReplySend'); if (send) send.disabled = false;
+    const view = document.getElementById('reviewView');
+    if (view) { view.classList.add('open'); view.setAttribute('aria-hidden', 'false'); }
+  }
+
+  function closeReviewView() {
+    state.reviewViewId = null;
+    const view = document.getElementById('reviewView');
+    if (view) { view.classList.remove('open'); view.setAttribute('aria-hidden', 'true'); }
+  }
+
+  async function submitReviewViewReply() {
+    if (state.reviewReplyBusy) return;                 // guard against duplicate taps / retries
+    const id = state.reviewViewId;
+    const input = document.getElementById('reviewViewReplyInput');
+    const msg = input ? String(input.value || '').trim() : '';
+    if (!id) return;
+    if (msg.length < 1 || msg.length > 500) { showToast('error', 'Reply must be 1–500 characters.'); return; }
+    const btn = document.getElementById('reviewViewReplySend');
+    state.reviewReplyBusy = true; if (btn) btn.disabled = true;
+    try {
+      await apiFetch('/reviews/' + id + '/reply', { method: 'POST', body: JSON.stringify({ message: msg }), headers: { 'Content-Type': 'application/json' } });
+      const r = (state.reviews || []).find(x => String(x._id || x.id) === String(id));
+      if (r) r.vendorReply = { message: msg, createdAt: new Date().toISOString() };
+      showToast('success', 'Reply posted.');
+      openReviewView(id);                               // re-render with the reply appended
+      renderReviewsList();
+    } catch (err) { showToast('error', err.message || 'Could not post reply.'); }
+    finally { state.reviewReplyBusy = false; if (btn) btn.disabled = false; }
   }
 
   /* ── Overview (home) ──────────────────────────────────────── */
@@ -2236,7 +2607,7 @@
       el.sectionTabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.section === 'more')));
     }
     if (name === 'home') loadOverview();
-    if (name === 'orders') { renderActiveTab(); if (state.activeTab !== 'history') startPrepTimer(); }
+    if (name === 'orders') { renderActiveTab(); if (state.activeTab !== 'history') { startPrepTimer(); startKptTimer(); } }
     if (name === 'menu' && !state.menuLoaded) loadMenu();
     if (name === 'earnings') { loadEarnings(); loadFinance(); }
     if (name === 'reviews') loadReviews();
@@ -2336,7 +2707,45 @@
       showToast('success', desired ? 'Marked in stock.' : 'Marked out of stock.');
       if (state.activeSection === 'inventory') renderInventory(); else renderMenuList();
       renderAlerts();
+      // Turning an item OFF asks when to auto turn it back on. Turning it ON
+      // clears any pending restock prompt for that item.
+      if (!desired) openRestockSheet(id);
+      else if (state.pendingRestockItemId === id) closeRestockSheet();
     } catch (err) { input.checked = !desired; showToast('error', err.message || 'Could not update stock.'); } finally { input.disabled = false; }
+  }
+
+  /* Menu stock: auto turn-on timer bottom sheet.
+     The auto-restock scheduler endpoint is not verifiable from this
+     repository, so choosing a delay records the vendor's intent locally and
+     says plainly that no schedule was saved to the server. Nothing is ever
+     re-enabled behind the vendor's back. */
+  function openRestockSheet(itemId) {
+    state.pendingRestockItemId = itemId;
+    const item = state.menuItems.find(i => i._id === itemId);
+    const sub = document.getElementById('restockSheetSub');
+    if (sub) sub.textContent = (item && item.name ? item.name + ' is now out of stock. ' : 'This item is now out of stock. ') + 'Choose when EatSwada should turn it back on.';
+    openModal('restockSheet');
+  }
+  function closeRestockSheet() {
+    state.pendingRestockItemId = null;
+    closeModal('restockSheet');
+  }
+  async function chooseRestockOption(option) {
+    const id = state.pendingRestockItemId;
+    closeRestockSheet();
+    if (!id) return;
+    if (!caps.autoRestock) {
+      const label = RESTOCK_LABEL[option] || option;
+      showToast('success', option === 'manual' ? 'You will turn it on manually.' : 'Noted: restock ' + label + '. Automatic restocking is not available yet, so nothing was scheduled.');
+      return;
+    }
+    const btn = document.getElementById('restockScheduleBtn');
+    try {
+      await apiFetch('/menu/restock', { method: 'POST', body: JSON.stringify({ option: option, itemId: id }), headers: { 'Content-Type': 'application/json' } });
+      showToast('success', 'Restock scheduled.');
+      renderRestock();
+    } catch (err) { showToast('error', err.message || 'Could not schedule the restock.'); }
+    finally { if (btn) btn.disabled = false; }
   }
 
   el.menuGrid.addEventListener('change', (e) => { if (e.target.classList.contains('menu-item-toggle')) toggleMenuItemStock(e.target); });
@@ -2356,11 +2765,14 @@
     else if (action === 'kot') printKot(id);
     else if (action === 'speak') speakOrder(id);
     else if (action === 'support') openOrderSupport(id);
+    else if (action === 'ready') markOrderReady(id, btn);
+    else if (action === 'extend-prep') extendPrep(id, btn);
+    else if (action === 'copy-code') copyPickupCode(btn.dataset.code);
   });
   el.tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       el.tabs.forEach(t => t.setAttribute('aria-selected', 'false')); tab.setAttribute('aria-selected', 'true');
-      state.activeTab = tab.dataset.tab; if (state.activeTab === 'history') loadHistory(); else { renderActiveTab(); startPrepTimer(); }
+      state.activeTab = tab.dataset.tab; if (state.activeTab === 'history') loadHistory(); else { renderActiveTab(); startPrepTimer(); startKptTimer(); }
     });
   });
   el.sectionTabs.forEach(tab => tab.addEventListener('click', () => switchSection(tab.dataset.section)));
@@ -2936,7 +3348,7 @@
   document.getElementById('orderSupportOptions')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-support-kind]'); if (b) chooseOrderSupportKind(b.dataset.supportKind);
   });
-  document.getElementById('orderSupportBack')?.addEventListener('click', () => { if (state.pendingSupportOrder) openOrderSupport(state.pendingSupportOrder); });
+  document.getElementById('orderSupportBack')?.addEventListener('click', orderSupportBack);
   document.getElementById('orderSupportCancel')?.addEventListener('click', () => closeModal('orderSupportSheet'));
   document.getElementById('orderSupportSubmit')?.addEventListener('click', submitOrderSupport);
   document.getElementById('orderSupportMessage')?.addEventListener('input', (e) => { const c = document.getElementById('orderSupportCount'); if (c) c.textContent = e.target.value.length + ' / 2000'; });
@@ -2970,6 +3382,11 @@
   document.getElementById('invMakeUnavailable')?.addEventListener('click', () => applyBulkAvailability(false));
   document.getElementById('restockScheduleBtn')?.addEventListener('click', scheduleRestock);
   document.getElementById('restockCancelBtn')?.addEventListener('click', cancelRestock);
+  document.getElementById('restockSheetOptions')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-restock]'); if (b) chooseRestockOption(b.dataset.restock);
+  });
+  document.getElementById('restockSheetCancel')?.addEventListener('click', closeRestockSheet);
+  document.getElementById('restockSheet')?.addEventListener('click', (e) => { if (e.target.id === 'restockSheet') closeRestockSheet(); });
   document.getElementById('invList')?.addEventListener('change', (e) => {
     if (e.target.classList.contains('menu-item-toggle')) toggleMenuItemStock(e.target);
     else if (e.target.classList.contains('inv-select')) { const id = e.target.dataset.id; if (e.target.checked) v2.inventorySelected.add(id); else v2.inventorySelected.delete(id); updateBulkButtons(); }
@@ -2995,8 +3412,20 @@
     const replyBtn = e.target.closest('[data-review-reply]');
     if (replyBtn) { openReviewReply(replyBtn.dataset.reviewReply); return; }
     const photo = e.target.closest('[data-review-photo]');
-    if (photo) openPhotoViewer(photo.dataset.reviewPhoto);
+    if (photo) { openPhotoViewer(photo.dataset.reviewPhoto); return; }
+    // Tapping anywhere else on the card opens the full-screen review view.
+    const card = e.target.closest('[data-review-open]');
+    if (card && card.dataset.reviewOpen) openReviewView(card.dataset.reviewOpen);
   });
+  document.getElementById('rvFilterChip')?.addEventListener('click', () => {
+    state.rvDetailed = !state.rvDetailed;
+    const chip = document.getElementById('rvFilterChip');
+    if (chip) { chip.classList.toggle('active', state.rvDetailed); chip.setAttribute('aria-pressed', String(state.rvDetailed)); }
+    renderReviewsList();
+  });
+  document.getElementById('reviewViewBack')?.addEventListener('click', closeReviewView);
+  document.getElementById('reviewViewReplySend')?.addEventListener('click', submitReviewViewReply);
+  document.getElementById('reviewViewReplyInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitReviewViewReply(); } });
   document.querySelectorAll('.rv-tab').forEach(b => b.addEventListener('click', () => setReviewTab(b.dataset.rvTab)));
   document.getElementById('rvSearch')?.addEventListener('input', (e) => { state.rvSearch = e.target.value || ''; renderReviewsList(); });
   document.getElementById('rvFilter')?.addEventListener('change', (e) => { state.rvFilter = e.target.value || 'all'; renderReviewsList(); });
