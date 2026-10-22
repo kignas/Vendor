@@ -521,13 +521,15 @@
         <div style="display:flex;align-items:center;gap:8px;flex:none;">
           <button class="logout-btn" id="bellBtn" type="button" aria-label="Notifications" style="position:relative;">🔔<span id="bellCount" style="display:none;position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border-radius:999px;padding:1px 6px;font-size:10px;font-weight:800;">0</span></button>
           <button class="top-more-btn" id="headerSettingsBtn" type="button" aria-label="Settings" title="Settings"><span aria-hidden="true">⚙</span></button>
-          <button class="top-more-btn" id="topMoreBtn" type="button" aria-label="More information and options" title="More information"><span aria-hidden="true">⋮</span></button>
+          <button class="top-more-btn" id="topMoreBtn" type="button" aria-label="Open menu" title="Open menu"><span aria-hidden="true">☰</span></button>
           <button class="logout-btn" id="logoutBtn" type="button" aria-label="Sign out">Sign out</button>
         </div>
       </div>
       <div class="topbar-actions">
         <div class="topbar-actions-left">
           <span class="connection-pill online" id="connectionPill" aria-live="polite"><span class="connection-dot"></span><span id="connectionLabel">Online</span></span>
+          <button class="online-pill is-on" id="onlinePill" type="button" aria-label="Menu items online" title="Menu items online">Online ›</button>
+          <button class="header-search-btn" id="headerSearchBtn" type="button" aria-label="Search orders" title="Search orders"><span aria-hidden="true">🔍</span></button>
           <button class="status-toggle" id="statusToggle" type="button">
             <span class="dot"></span><span class="label">—</span>
           </button>
@@ -539,6 +541,8 @@
         <button class="clear-btn" id="orderSearchClear" type="button" aria-label="Clear order search" hidden>✕</button>
       </div>
     </header>
+
+    <div class="platform-banner" id="platformBanner" role="status" aria-live="polite" hidden></div>
 
     <nav class="section-rail" role="tablist" aria-label="Dashboard sections">
       <button class="section-tab" role="tab" data-section="home" aria-selected="true" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21v-6h6v6"/></svg><span>Home</span></button>
@@ -621,6 +625,7 @@
         <button class="tab" role="tab" data-tab="preparing" aria-selected="false">Preparing <span class="count" id="countPreparing">0</span></button>
         <button class="tab" role="tab" data-tab="ready" aria-selected="false">Ready <span class="count" id="countReady">0</span></button>
         <button class="tab" role="tab" data-tab="dispatch" aria-selected="false">Out for delivery <span class="count" id="countDispatch">0</span></button>
+        <button class="tab" role="tab" data-tab="scheduled" aria-selected="false">Scheduled <span class="count" id="countScheduled">0</span></button>
         <button class="tab" role="tab" data-tab="history" aria-selected="false">History</button>
       </nav>
 
@@ -651,7 +656,7 @@
     <!-- SECTION: EARNINGS -->
     <section class="dashboard-section" id="section-earnings" hidden>
       <div class="earnings-toolbar">
-        <div><strong>Restaurant earnings</strong><div class="earnings-sub">Based on delivered orders.</div></div>
+        <div><strong>Payments &amp; settlement</strong><div class="earnings-sub">Based on delivered orders.</div></div>
         <select class="earnings-select" id="earnings-period">
           <option value="today">Today</option>
           <option value="7d">Last 7 days</option>
@@ -659,51 +664,93 @@
           <option value="all">All time</option>
         </select>
       </div>
-      <div class="earnings-grid" id="earnings-cards">
-        <div class="earnings-card"><div class="earnings-label">Delivered sales</div><div class="earnings-value">₹—</div></div>
-        <div class="earnings-card"><div class="earnings-label">Commission</div><div class="earnings-value">₹—</div></div>
-        <div class="earnings-card"><div class="earnings-label">Net Earnings</div><div class="earnings-value">₹—</div></div>
-        <div class="earnings-card"><div class="earnings-label">In progress</div><div class="earnings-value">₹—</div></div>
-      </div>
-      <div class="card vendor-payout-card" style="padding:16px;margin:14px 0 16px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-          <div>
-            <div style="font-weight:800;">Weekly payouts</div>
-            <div class="earnings-sub" style="margin-top:4px;">A 7-day payout cycle for eligible completed earnings</div>
+
+      <div class="fin-summary">
+        <div class="fin-card">
+          <div class="fin-label">Unsettled balance (ready for payout)</div>
+          <div class="fin-value" id="fin-unsettled">₹—</div>
+          <button class="btn accept fin-payout-btn" id="payoutRequestBtn" type="button">Request Payout</button>
+        </div>
+        <div class="fin-card">
+          <div class="fin-label">Last bank payout</div>
+          <div class="fin-value" id="fin-last-payout">₹—</div>
+          <div class="fin-meta" id="fin-last-payout-meta">No payout recorded yet.</div>
+          <div class="fin-utr" id="fin-last-utr" hidden>
+            <span class="utr-label">UTR</span><span class="utr-value" id="fin-utr-value">—</span>
+            <button class="utr-copy" id="utrCopyBtn" type="button" aria-label="Copy UTR number" title="Copy UTR number">⧉</button>
           </div>
-          <span class="badge pending">Every 7 days</span>
         </div>
-        <div class="stat-grid" id="financeStats" style="margin-top:14px;"></div>
-        <div class="payout-cycle-note" style="margin-top:12px;padding:12px;border-radius:12px;background:var(--surface-soft, #f5f5f7);font-size:13px;line-height:1.5;">
-          Eligible earnings are reviewed and processed by Eatswada in a 7-day cycle. The payout date can depend on settlement review and bank processing. This is not an instant withdrawal.
-        </div>
-        <div id="financeNote" class="stat-note" style="margin-top:8px;"></div>
-        <div style="margin-top:14px;font-weight:750;font-size:14px;">Payout activity</div>
-        <div id="withdrawList" style="margin-top:8px;"></div>
-        <button class="refresh-btn" id="financeRefresh" type="button" style="margin-top:10px;">↻ Refresh payout details</button>
-      </div>
-
-      <div class="card" style="padding:0; overflow:hidden;">
-        <div style="padding:16px; font-weight:800; border-bottom:1px solid var(--border-soft);">Recent completed</div>
-        <div class="earnings-table-wrap">
-          <table class="earnings-table">
-            <thead>
-              <tr><th>Order</th><th>Date</th><th>Status</th><th class="money">Sales</th><th class="money">Comm</th><th class="money">Net</th></tr>
-            </thead>
-            <tbody id="earnings-orders">
-              <tr><td colspan="6" style="padding:24px;text-align:center;">Loading…</td></tr>
-            </tbody>
-          </table>
+        <div class="fin-card">
+          <div class="fin-label">This week's net earnings</div>
+          <div class="fin-value" id="fin-week-net">₹—</div>
+          <div class="fin-meta" id="fin-week-meta">—</div>
         </div>
       </div>
 
-      <div class="ledger-card">
-        <div style="font-weight:800;font-size:14px;margin-bottom:4px;">Net payout ledger</div>
-        <div class="earnings-sub" style="margin-bottom:10px;">Per-order net receivable credited to your settlement.</div>
-        <div id="earnings-ledger"><div class="stat-note">Loading ledger…</div></div>
+      <nav class="fin-tabs" role="tablist" aria-label="Finance views">
+        <button class="fin-tab" role="tab" data-fin-tab="ledger" aria-selected="true">Order-wise Ledger</button>
+        <button class="fin-tab" role="tab" data-fin-tab="payouts" aria-selected="false">Payout History &amp; Batches</button>
+      </nav>
+
+      <div class="fin-pane" id="fin-pane-ledger">
+        <div class="earnings-grid" id="earnings-cards">
+          <div class="earnings-card"><div class="earnings-label">Delivered sales</div><div class="earnings-value">₹—</div></div>
+          <div class="earnings-card"><div class="earnings-label">Commission</div><div class="earnings-value">₹—</div></div>
+          <div class="earnings-card"><div class="earnings-label">Net Earnings</div><div class="earnings-value">₹—</div></div>
+          <div class="earnings-card"><div class="earnings-label">In progress</div><div class="earnings-value">₹—</div></div>
+        </div>
+
+        <div class="ledger-card">
+          <div style="font-weight:800;font-size:14px;margin-bottom:4px;">Net payout ledger</div>
+          <div class="earnings-sub" style="margin-bottom:10px;">Per-order net receivable credited to your settlement. Tap a row for the full breakdown.</div>
+          <div id="earnings-ledger"><div class="stat-note">Loading ledger…</div></div>
+        </div>
+
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div style="padding:16px; font-weight:800; border-bottom:1px solid var(--border-soft);">Recent completed</div>
+          <div class="earnings-table-wrap">
+            <table class="earnings-table">
+              <thead>
+                <tr><th>Order</th><th>Date</th><th>Status</th><th class="money">Sales</th><th class="money">Comm</th><th class="money">Net</th></tr>
+              </thead>
+              <tbody id="earnings-orders">
+                <tr><td colspan="6" style="padding:24px;text-align:center;">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
+      <div class="fin-pane" id="fin-pane-payouts" hidden>
+        <div class="ledger-card">
+          <div class="fin-head-row">
+            <div>
+              <div style="font-weight:800;font-size:14px;">Settlement batches</div>
+              <div class="earnings-sub" style="margin:2px 0 0;">Weekly payout batches and bank credits.</div>
+            </div>
+            <button class="btn ghost fin-csv-btn" id="payoutCsvBtn" type="button">⬇️ Download CSV Statement</button>
+          </div>
+          <div id="payoutBatches"><div class="stat-note">Loading batches…</div></div>
+        </div>
 
+        <div class="card vendor-payout-card" style="padding:16px;margin:14px 0 16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:800;">Weekly payouts</div>
+              <div class="earnings-sub" style="margin-top:4px;">A 7-day payout cycle for eligible completed earnings</div>
+            </div>
+            <span class="badge pending">Every 7 days</span>
+          </div>
+          <div class="stat-grid" id="financeStats" style="margin-top:14px;"></div>
+          <div class="payout-cycle-note" style="margin-top:12px;padding:12px;border-radius:12px;background:var(--surface-soft, #f5f5f7);font-size:13px;line-height:1.5;">
+            Eligible earnings are reviewed and processed by Eatswada in a 7-day cycle. The payout date can depend on settlement review and bank processing. This is not an instant withdrawal.
+          </div>
+          <div id="financeNote" class="stat-note" style="margin-top:8px;"></div>
+          <div style="margin-top:14px;font-weight:750;font-size:14px;">Payout activity</div>
+          <div id="withdrawList" style="margin-top:8px;"></div>
+          <button class="refresh-btn" id="financeRefresh" type="button" style="margin-top:10px;">↻ Refresh payout details</button>
+        </div>
+      </div>
     </section>
 
     <!-- SECTION: REVIEWS -->
@@ -862,6 +909,15 @@
     <section class="dashboard-section" id="section-settings" hidden>
       <div class="section-title">Account settings</div>
       <div class="section-sub" id="settingsSub">Preferences exposed by the backend for this vendor.</div>
+      <div class="card" style="padding:16px;margin-bottom:16px;">
+        <div style="font-weight:800;margin-bottom:4px;">Kitchen</div>
+        <div class="earnings-sub" style="margin-bottom:8px;">Tune how the kitchen accepts and prepares orders.</div>
+        <div class="switch-row">
+          <div><strong>🔥 Kitchen Rush Mode</strong><span class="hint">+5 mins auto-added to default KPT so busy dine-in hours are handled smoothly</span></div>
+          <label class="switch"><input type="checkbox" id="rushModeToggle" /><span class="track"></span></label>
+        </div>
+        <div class="stat-note" id="rushModeNote">Off. Accepted orders use your selected KPT.</div>
+      </div>
       <div class="card" style="padding:16px;margin-bottom:16px;">
         <div id="settingsBody"><div class="state-panel" style="border:0;box-shadow:none;">Loading settings…</div></div>
       </div>
@@ -1074,6 +1130,55 @@
     </div>
   </div>
 
+  <!-- Full-screen mobile complaint detail slide-over -->
+  <div class="review-view" id="complaintView" aria-hidden="true">
+    <div class="review-view-head">
+      <button type="button" id="complaintViewBack" aria-label="Back">←</button>
+      <strong>Complaint Details</strong>
+    </div>
+    <div class="review-view-body" id="complaintViewBody"></div>
+    <div class="review-view-foot" id="complaintViewFoot"></div>
+  </div>
+
+  <!-- Full-screen mobile settlement breakdown slide-over -->
+  <div class="review-view" id="settlementView" aria-hidden="true">
+    <div class="review-view-head">
+      <button type="button" id="settlementViewBack" aria-label="Back">←</button>
+      <strong>Settlement Breakdown</strong>
+    </div>
+    <div class="review-view-body" id="settlementViewBody"></div>
+  </div>
+
+  <!-- Complaint dispute / reply bottom sheet -->
+  <div class="modal-overlay" id="disputeSheet">
+    <div class="modal">
+      <h3>Dispute / Reply</h3>
+      <p id="disputeSub">Explain why this complaint should be reviewed by the Eatswada admin team.</p>
+      <div class="form-field">
+        <label for="disputeReason">Dispute reason</label>
+        <textarea id="disputeReason" maxlength="1000" placeholder="e.g. Item was packed and verified with pickup code #3253"></textarea>
+        <div class="stat-note" id="disputeCount" style="margin-top:6px;">0 / 1000</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="disputeCancel" type="button">Cancel</button>
+        <button class="btn accept" id="disputeSubmit" type="button">Submit dispute</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payout request bottom sheet -->
+  <div class="modal-overlay" id="payoutSheet">
+    <div class="modal">
+      <h3>Request payout</h3>
+      <p id="payoutSheetSub">Eatswada will review this request and credit your registered bank account.</p>
+      <div class="form-field"><label for="payoutAmount">Amount (₹)</label><input id="payoutAmount" type="number" min="1" step="1" inputmode="numeric" /></div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="payoutCancel" type="button">Cancel</button>
+        <button class="btn accept" id="payoutSubmit" type="button">Request payout</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Menu stock: auto turn-on timer bottom sheet -->
   <div class="modal-overlay" id="restockSheet">
     <div class="modal">
@@ -1153,8 +1258,11 @@
     pendingSupportOrder: null, pendingSupportKind: null, capabilities: caps,
     reviews: [], rvTab: 'reviews', rvSearch: '', rvFilter: 'all', reviewReplyBusy: false,
     restockScheduledAt: null,
-    extendedPrep: new Set(), pendingReadyUndo: null, kptTimer: null, undoReadyTimer: null,
-    pendingRestockItemId: null, pendingRestockWasInStock: null, reviewViewId: null, rvDetailed: false
+    extendedPrep: new Set(), pendingReadyUndo: null, kptTimer: null, undoReadyTimer: null, riderTimer: null,
+    pendingRestockItemId: null, pendingRestockWasInStock: null, reviewViewId: null, rvDetailed: false,
+    platform: null, rushMode: false, menuOnlineCount: null,
+    complaints: [], complaintViewId: null, disputeBusy: false, pendingDisputeId: null,
+    financeTab: 'ledger', payouts: [], payoutBusy: false, earningsRows: []
   };
 
   const el = {
@@ -1164,6 +1272,7 @@
     ticketRail: document.getElementById('ticketRail'), tabs: Array.from(document.querySelectorAll('.tab')),
     countNew: document.getElementById('countNew'), countPreparing: document.getElementById('countPreparing'),
     countReady: document.getElementById('countReady'), countDispatch: document.getElementById('countDispatch'),
+    countScheduled: document.getElementById('countScheduled'),
     lastUpdated: document.getElementById('lastUpdated'), refreshBtn: document.getElementById('refreshBtn'),
     toastStack: document.getElementById('toastStack'), rejectModal: document.getElementById('rejectModal'),
     rejectReasonInput: document.getElementById('rejectReasonInput'), rejectCancelBtn: document.getElementById('rejectCancelBtn'), rejectConfirmBtn: document.getElementById('rejectConfirmBtn'),
@@ -1265,6 +1374,7 @@
   function renderOutletMenuChip() {
     const chip = document.getElementById('outletMenuChip');
     const text = document.getElementById('outletMenuText');
+    renderOnlinePill();
     if (!chip || !text) return;
     if (!state.menuLoaded || !state.menuItems.length) { chip.hidden = true; return; }
     const available = state.menuItems.filter(i => i.inStock).length;
@@ -1410,8 +1520,15 @@
 
   // Authoritative per-order breakdown object, when the backend supplies one.
   function orderBillOf(order) {
-    const b = order.vendorBill || order.settlement || order.billBreakdown || order.bill || order.pricing;
-    return (b && typeof b === 'object' && !Array.isArray(b)) ? b : null;
+    const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+    const nested = [order.vendorBill, order.settlement, order.billBreakdown, order.bill, order.pricing, order.netVendorPayout].find(isObj);
+    if (nested) return nested;
+    // Fall back to top-level order fields when the server flattens the bill.
+    const flat = {};
+    ['itemSubtotal', 'commissionAmount', 'netReceivable', 'restaurantNetAmount'].forEach(k => { if (order[k] !== undefined && order[k] !== null) flat[k] = order[k]; });
+    if (typeof order.netVendorPayout === 'number' && flat.netReceivable === undefined) flat.netReceivable = order.netVendorPayout;
+    if (flat.commissionAmount !== undefined) flat.commission = flat.commissionAmount;
+    return Object.keys(flat).length ? flat : null;
   }
 
   function billRows(order) {
@@ -1435,18 +1552,70 @@
     return rows;
   }
 
+  /* Payment mode. Reads the server's field; when the backend is silent the
+     badge is hidden rather than guessed, so a COD order is never shown as
+     paid online (or the reverse). */
+  function paymentModeOf(order) {
+    const raw = String(
+      order.paymentMode || order.paymentMethod || order.paymentType ||
+      (order.payment && (order.payment.mode || order.payment.method)) || ''
+    ).toLowerCase();
+    if (/cod|cash/.test(raw)) return 'cod';
+    if (/upi|online|prepaid|card|netbanking|paid/.test(raw)) return 'upi';
+    if (order.isPaid === true || order.paid === true || String(order.paymentStatus || '').toLowerCase() === 'paid') return 'upi';
+    if (order.isPaid === false || order.paid === false || String(order.paymentStatus || '').toLowerCase() === 'pending') return 'cod';
+    return null;
+  }
+
+  /* Commission percentage: only shown when the server supplies a rate, or when
+     it can be derived from the authoritative commission and subtotal figures.
+     Never a hardcoded platform percentage. */
+  function commissionPctOf(order) {
+    const b = orderBillOf(order) || {};
+    const direct = firstNumber(b.commissionRate, b.commissionPercent, b.commissionPct, order.commissionRate);
+    if (direct !== null) return direct;
+    const sub = firstNumber(b.itemSubtotal, b.subtotal, b.itemsTotal, b.foodSubtotal);
+    const comm = firstNumber(b.platformCommission, b.commission, b.vendorCommission);
+    if (sub && comm !== null && sub > 0) return Math.round((comm / sub) * 1000) / 10;
+    return null;
+  }
+
   function billDetailsHtml(order) {
     const total = firstNumber(order.total, order.grandTotal, order.amount);
     const rows = caps.billBreakdown ? billRows(order) : [];
+    // Resolved defensively: the payment-mode and commission helpers are
+    // optional here, so the card still renders a correct total if either is
+    // unavailable rather than throwing and blanking the whole order.
+    const mode = typeof paymentModeOf === 'function' ? paymentModeOf(order) : null;
+    const pct = typeof commissionPctOf === 'function' ? commissionPctOf(order) : null;
+    const b = orderBillOf(order) || {};
+    const promo = firstNumber(b.restaurantPromoShare, b.promoShare, b.restaurantDiscount, b.vendorDiscount);
+
+    let payHtml = '';
+    if (mode === 'upi') {
+      payHtml = '<div class="bill-pay-mode upi"><span class="pm-badge">PAID ONLINE (UPI)</span><span class="pm-note">Customer paid EatSwada online.</span></div>';
+    } else if (mode === 'cod') {
+      payHtml = '<div class="bill-pay-mode cod"><span class="pm-badge">CASH ON DELIVERY (COD)</span></div>' +
+        '<div class="bill-cod-note">Settled by EatSwada to your bank ledger — Do not collect cash from the delivery partner.</div>';
+    }
+
     let inner = '';
     let summary;
     if (rows.length) {
       const net = rows.find(r => r.kind === 'total');
-      inner = '<div class="bill-body">' + rows.map(r => '<div class="bill-row' + (r.kind === 'total' ? ' total' : '') + '"><span>' + escapeHtml(r.label) + '</span><span class="' + r.kind + '">' + (r.kind === 'neg' ? '−' : '') + formatMoney(Math.abs(r.value)) + '</span></div>').join('') +
-        (net ? '<div class="bill-you-get"><span>You Get (Net Restaurant Payout)</span><strong>' + formatMoney(net.value) + '</strong></div>' : '') + '</div>';
+      const bodyRows = rows.map(r => {
+        const label = (r.label === 'Platform commission' && pct !== null) ? (r.label + ' (' + pct + '%)') : r.label;
+        return '<div class="bill-row' + (r.kind === 'total' ? ' total' : '') + '"><span>' + escapeHtml(label) + '</span><span class="' + r.kind + '">' + (r.kind === 'neg' ? '−' : '') + formatMoney(Math.abs(r.value)) + '</span></div>';
+      }).join('');
+      // Restaurant promo share is shown only when the server reports it and it
+      // is not already represented by the discount row.
+      const promoRow = (promo !== null && !rows.some(r => /discount/i.test(r.label)))
+        ? '<div class="bill-row neg"><span>Restaurant Promo Share</span><span class="neg">−' + formatMoney(Math.abs(promo)) + '</span></div>' : '';
+      inner = '<div class="bill-body">' + payHtml + bodyRows + promoRow +
+        (net ? '<div class="bill-you-get"><span>You Get (Net Receivable)</span><strong>' + formatMoney(net.value) + '</strong></div>' : '') + '</div>';
       summary = 'Total bill ' + formatMoney(total || (net ? net.value : 0));
     } else {
-      inner = '<div class="bill-body"><div class="bill-row total"><span>Bill total</span><span>' + formatMoney(total || 0) + '</span></div>' +
+      inner = '<div class="bill-body">' + payHtml + '<div class="bill-row total"><span>Bill total</span><span>' + formatMoney(total || 0) + '</span></div>' +
         '<div class="bill-note">A detailed breakdown is not available for this order. Figures come from the Eatswada settlement ledger only when the backend supplies them.</div></div>';
       summary = 'Total bill / Your earnings';
     }
@@ -1461,7 +1630,7 @@
     const started = firstNumber(order.acceptedAt ? new Date(order.acceptedAt).getTime() : null, order.updatedAt ? new Date(order.updatedAt).getTime() : null, order.createdAt ? new Date(order.createdAt).getTime() : null);
     const totalMs = (started !== null && deadline > started) ? (deadline - started) : null;
     // One-time +5 min prep extension, only while the kitchen is preparing.
-    const extended = state.extendedPrep.has(order._id);
+    const extended = !!(order.prepTimeExtended || state.extendedPrep.has(order._id));
     const extendChip = order.status === 'preparing'
       ? '<button class="extend-chip' + (extended ? ' used' : '') + '" type="button" data-action="extend-prep"' + (extended ? ' disabled' : '') + '>' + (extended ? '+5 min added' : '+5 min') + '</button>'
       : '';
@@ -1473,8 +1642,72 @@
       '</div>';
   }
 
+  /* ── Rider dispatch, geofence arrival & handover ──────────────────────
+     Reads only fields the backend sends. When a rider field is absent the
+     card falls back to the order-status copy instead of inventing a name or
+     an ETA. A rider is never called "arriving" without a live status. */
+  function riderStatusOf(order) {
+    return String(order.riderStatus || order.deliveryRiderStatus || order.riderState || '').toLowerCase();
+  }
+  function riderNameOf(order) {
+    const r = order.rider || order.deliveryPartner || order.deliveryBoy || {};
+    return order.riderName || r.name || r.fullName || order.deliveryPartnerName || 'Rider';
+  }
+  function riderPhoneOf(order) {
+    const r = order.rider || order.deliveryPartner || order.deliveryBoy || {};
+    return order.riderPhone || r.phone || r.mobile || order.deliveryPartnerPhone || '';
+  }
+  function msUntil(value) {
+    if (!value) return null;
+    const t = new Date(value).getTime();
+    if (!Number.isFinite(t)) return null;
+    return t - Date.now();
+  }
+  function mmss(ms) {
+    const total = Math.max(0, Math.ceil(Number(ms || 0) / 1000));
+    return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
+  }
+
   function riderStatusHtml(order) {
     const s = order.status;
+    if (['placed', 'cancelled', 'delivered'].indexOf(s) !== -1) return '';
+    const rs = riderStatusOf(order);
+    const name = escapeHtml(riderNameOf(order));
+    const code = pickupCodeOf(order);
+
+    // Geofence: the rider has physically reached the counter.
+    if (rs === 'reached_restaurant' || rs === 'reached' || rs === 'at_restaurant' || rs === 'arrived') {
+      const at = order.reachedRestaurantAt || order.riderReachedAt || order.riderArrivedAt;
+      const waited = msUntil(at);
+      const waitMs = waited === null ? null : Math.max(0, -waited);
+      return '<div class="rider-status reached"' + (at ? ' data-rider-wait="' + new Date(at).getTime() + '"' : '') + '>' +
+        '<span class="rs-ico" aria-hidden="true">📍</span>' +
+        '<span>Rider <strong>' + name + '</strong> has reached counter • Hand over Pickup Code ' +
+        (code ? '#' + escapeHtml(code) : '—') +
+        (waitMs !== null ? '<span class="rs-wait" data-rider-wait-txt> • Waiting ' + mmss(waitMs) + '</span>' : '') +
+        '</span></div>';
+    }
+
+    // Rider assigned / accepted: show the ETA and a one-tap call chip.
+    if (rs === 'assigned' || rs === 'accepted') {
+      const eta = firstNumber(order.riderEtaMinutes, order.etaMinutes, order.riderEta, order.arrivingInMinutes);
+      const phone = riderPhoneOf(order);
+      const call = phone ? '<a class="rider-call" href="tel:' + escapeHtml(String(phone)) + '">📞 Call</a>' : '';
+      return '<div class="rider-status live"><span class="rs-dot"></span><span>🛵 Rider <strong>' + name + '</strong> is arriving' +
+        (eta !== null && eta > 0 ? ' in ~' + Math.round(eta) + ' mins' : ' shortly') + '</span>' + call + '</div>';
+    }
+
+    // Scheduled dispatch: countdown synced to the kitchen prep deadline.
+    if (rs === 'unassigned' || rs === 'searching' || rs === 'pending') {
+      const schedAt = order.scheduledDispatchAt || order.dispatchScheduledAt || order.riderDispatchAt;
+      const remaining = msUntil(schedAt);
+      if (remaining !== null && remaining > 0) {
+        return '<div class="rider-status live" data-rider-dispatch="' + new Date(schedAt).getTime() + '">' +
+          '<span class="rs-dot"></span><span>🛵 Rider dispatch scheduled in <strong data-rider-dispatch-txt>' + mmss(remaining) + '</strong> (synced with your prep time)</span></div>';
+      }
+    }
+
+    // Legacy order-status fallbacks (unchanged behaviour).
     if (['waiting_for_rider', 'assigned', 'out_for_delivery', 'preparing', 'confirmed'].indexOf(s) === -1) return '';
     const eta = firstNumber(order.riderEtaMinutes, order.etaMinutes, order.riderEta);
     const reached = !!(order.riderArrived || order.riderAtRestaurant || order.riderReached);
@@ -1489,6 +1722,28 @@
     return (eta !== null && eta > 0)
       ? '<div class="rider-status live"><span class="rs-dot"></span><span>🛵 Rider is arriving in ' + Math.round(eta) + ' mins</span></div>'
       : '<div class="rider-status live"><span class="rs-dot"></span><span>Waiting for rider assignment</span></div>';
+  }
+
+  /* Live countdowns for scheduled rider dispatch and the counter wait time. */
+  function startRiderTimer() {
+    if (state.riderTimer) { clearInterval(state.riderTimer); state.riderTimer = null; }
+    const tick = () => {
+      const dispatchNodes = document.querySelectorAll('[data-rider-dispatch]');
+      const waitNodes = document.querySelectorAll('[data-rider-wait]');
+      if (!dispatchNodes.length && !waitNodes.length) { clearInterval(state.riderTimer); state.riderTimer = null; return; }
+      dispatchNodes.forEach(node => {
+        const at = Number(node.dataset.riderDispatch || 0);
+        const label = node.querySelector('[data-rider-dispatch-txt]');
+        if (label && at) label.textContent = mmss(at - Date.now());
+      });
+      waitNodes.forEach(node => {
+        const at = Number(node.dataset.riderWait || 0);
+        const label = node.querySelector('[data-rider-wait-txt]');
+        if (label && at) label.textContent = ' • Waiting ' + mmss(Date.now() - at);
+      });
+    };
+    tick();
+    state.riderTimer = setInterval(tick, 1000);
   }
 
   /* Prep countdown data is read from the persisted server deadline, never a
@@ -1635,13 +1890,19 @@
       ? `<button class="pickup-code" type="button" data-action="copy-code" data-code="${escapeHtml(code)}" title="Copy pickup code"><span class="pc-label">PICKUP</span><span class="pc-value">#${escapeHtml(code)}</span><span class="pc-copy" aria-hidden="true">⧉</span></button>`
       : '';
     // Cutlery preference and customer instructions -> muted strip.
-    const cutlery = order.cutlery || order.cutleryPreference || order.cutleryRequired;
+    const cutlery = order.sendCutlery ?? order.cutlery ?? order.cutleryPreference ?? order.cutleryRequired;
     const instructions = order.customerInstructions || order.instructions || order.deliveryInstructions || order.restaurantNote;
     let stripHtml = '';
     if (cutlery === true) stripHtml = '<div class="ticket-strip"><span class="ts-ico veg" aria-hidden="true">🍴</span><span>Send cutlery</span></div>';
     else if (cutlery === false) stripHtml = '<div class="ticket-strip"><span class="ts-ico" aria-hidden="true">🍴</span><span>No cutlery needed</span></div>';
     else if (typeof cutlery === 'string' && cutlery.trim()) stripHtml = '<div class="ticket-strip"><span class="ts-ico veg" aria-hidden="true">🍴</span><span>Cutlery: ' + escapeHtml(cutlery.trim()) + '</span></div>';
     if (instructions) stripHtml += '<div class="ticket-strip customer-note"><span class="ts-ico" aria-hidden="true">📝</span><span>' + escapeHtml(String(instructions)) + '</span></div>';
+    // Scheduled slot: shown only when the backend sends a future delivery slot.
+    const slotAt = scheduledAtOf(order);
+    if (slotAt !== null && slotAt > Date.now()) {
+      const when = new Date(slotAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true });
+      stripHtml += '<div class="ticket-strip schedule-note"><span class="ts-ico" aria-hidden="true">⏰</span><span>Scheduled for ' + escapeHtml(when) + '</span></div>';
+    }
 
     el.innerHTML = `
       <header class="ticket-head">
@@ -1679,20 +1940,52 @@
     preparing: ['Nothing in the kitchen', 'Accepted orders waiting to go out will show up here.'],
     ready: ['No orders waiting for a rider', 'Orders you mark ready appear here until a rider is assigned.'],
     dispatch: ['No orders out for delivery', 'Orders move here once they are handed to a delivery partner.'],
+    scheduled: ['No scheduled orders', 'Orders placed for a later slot or dispatch time will appear here.'],
     history: ['No past orders', 'Delivered and cancelled orders will appear here.'],
     menu: ['No menu items yet', 'Add your first item to start selling.']
   };
 
   function renderEmpty(tab) {
-    const [title, body] = EMPTY_COPY[tab]; const div = document.createElement('div'); div.className = 'state-panel';
+    const [title, body] = EMPTY_COPY[tab] || ['Nothing here', 'Nothing to show right now.']; const div = document.createElement('div'); div.className = 'state-panel';
     div.innerHTML = `<h3>${title}</h3><p>${body}</p>`; return div;
   }
 
+  /* An order is "scheduled" when the backend gives it a future slot or a
+     future dispatch time and it has not started cooking yet. Nothing is
+     assumed from the order status alone. */
+  function scheduledAtOf(order) {
+    return firstNumber(
+      order.scheduledAt ? new Date(order.scheduledAt).getTime() : null,
+      order.scheduledFor ? new Date(order.scheduledFor).getTime() : null,
+      order.deliverySlotAt ? new Date(order.deliverySlotAt).getTime() : null,
+      order.deliverySlot && order.deliverySlot.startAt ? new Date(order.deliverySlot.startAt).getTime() : null
+    );
+  }
+  function isScheduledOrder(order) {
+    if (order.status !== 'placed' && order.status !== 'confirmed') return false;
+    const at = scheduledAtOf(order);
+    return at !== null && at > Date.now();
+  }
+
+  /* Ready tab membership: server flags win. An assigned order stays in
+     Preparing while isFoodReady === false, until the kitchen marks it ready. */
+  function isReadyOrder(o) {
+    if (o.status === 'out_for_delivery' || o.status === 'placed') return false;
+    if (o.isFoodReady === true || o.status === 'ready_for_pickup' || o.status === 'waiting_for_rider') return true;
+    return o.status === 'assigned' && o.isFoodReady !== false;
+  }
+  function isPreparingOrder(o) {
+    if (isReadyOrder(o)) return false;
+    if (isScheduledOrder(o)) return false;
+    return o.status === 'confirmed' || o.status === 'preparing' || (o.status === 'assigned' && o.isFoodReady === false);
+  }
+
   function ordersForTab(tab) {
-    if (tab === 'new') return state.queue.filter(o => o.status === 'placed');
-    if (tab === 'preparing') return state.queue.filter(o => o.status === 'confirmed' || o.status === 'preparing');
-    if (tab === 'ready') return state.queue.filter(o => o.status === 'waiting_for_rider' || o.status === 'assigned');
+    if (tab === 'new') return state.queue.filter(o => o.status === 'placed' && !isScheduledOrder(o));
+    if (tab === 'preparing') return state.queue.filter(isPreparingOrder);
+    if (tab === 'ready') return state.queue.filter(isReadyOrder);
     if (tab === 'dispatch') return state.queue.filter(o => o.status === 'out_for_delivery');
+    if (tab === 'scheduled') return state.queue.filter(isScheduledOrder);
     if (tab === 'history') return state.history;
     return [];
   }
@@ -1733,16 +2026,17 @@
   }
 
   function updateCounts() {
-    const newOrdersCount = state.queue.filter(o => o.status === 'placed').length;
+    const newOrdersCount = state.queue.filter(o => o.status === 'placed' && !isScheduledOrder(o)).length;
     if (state.initialQueueLoaded && newOrdersCount > state.previousNewOrderCount) { Alarm.start(newOrdersCount); }
     else if (Alarm.isActive() && newOrdersCount > state.previousNewOrderCount) { Alarm.start(newOrdersCount); }
     if (newOrdersCount === 0) Alarm.stop();
     state.previousNewOrderCount = newOrdersCount; state.initialQueueLoaded = true;
 
     el.countNew.textContent = newOrdersCount;
-    el.countPreparing.textContent = state.queue.filter(o => o.status === 'confirmed' || o.status === 'preparing').length;
-    if (el.countReady) el.countReady.textContent = state.queue.filter(o => o.status === 'waiting_for_rider' || o.status === 'assigned').length;
+    el.countPreparing.textContent = state.queue.filter(isPreparingOrder).length;
+    if (el.countReady) el.countReady.textContent = state.queue.filter(isReadyOrder).length;
     el.countDispatch.textContent = state.queue.filter(o => o.status === 'out_for_delivery').length;
+    if (el.countScheduled) el.countScheduled.textContent = state.queue.filter(isScheduledOrder).length;
     refreshOverviewCounts();
     renderOutletMenuChip();
   }
@@ -1849,6 +2143,7 @@
     if (state.orderResponseTimer) { clearInterval(state.orderResponseTimer); state.orderResponseTimer = null; }
     if (state.prepTimer) { clearInterval(state.prepTimer); state.prepTimer = null; }
     if (state.kptTimer) { clearInterval(state.kptTimer); state.kptTimer = null; }
+    if (state.riderTimer) { clearInterval(state.riderTimer); state.riderTimer = null; }
   }
 
   /* Prep countdown. The deadline is a persisted server timestamp
@@ -1927,7 +2222,7 @@
       if (isFirstLoad) el.ticketRail.innerHTML = '<div class="skeleton-ticket"></div>';
       const res = await apiFetch('/orders?view=queue'); if (requestId !== state.queueRequest) return;
       state.queue = Array.isArray(res?.data) ? res.data : []; state.consecutivePollErrors = 0; updateCounts();
-      if (state.activeTab !== 'history') { renderActiveTab(); startOrderResponseTimer(); startPrepTimer(); startKptTimer(); } else { clearOrderResponseTimer(); }
+      if (state.activeTab !== 'history') { renderActiveTab(); startOrderResponseTimer(); startPrepTimer(); startKptTimer(); startRiderTimer(); } else { clearOrderResponseTimer(); }
       el.lastUpdated.textContent = 'Updated just now'; setConnectionState('online');
     } catch (err) {
       if (err.message === 'Your session has expired.') return; state.consecutivePollErrors++;
@@ -1953,14 +2248,20 @@
     if (state.actionBusy.has(id)) return; state.actionBusy.add(id);
     const confirmBtn = document.getElementById('prepConfirm'); if (confirmBtn) confirmBtn.disabled = true;
     try {
-      await apiFetch('/orders/' + id + '/accept', { method: 'PUT', body: JSON.stringify({ prepMinutes: prepMinutes || 20 }), headers: { 'Content-Type': 'application/json' } });
+      await apiFetch('/orders/' + id + '/accept', { method: 'PUT', body: JSON.stringify({ prepMinutes: prepMinutes || 20, prepTimeMinutes: prepMinutes || 20 }), headers: { 'Content-Type': 'application/json' } });
       showToast('success', 'Order accepted · ' + (prepMinutes || 20) + ' min'); closePrepSheet(); await loadQueue(false);
     } catch (err) { showToast('error', err.message); } finally { state.actionBusy.delete(id); if (confirmBtn) confirmBtn.disabled = false; }
   }
 
   function openPrepSheet(id) {
-    state.pendingAcceptId = id; state.prepMinutes = 20;
-    document.querySelectorAll('#prepChips .prep-chip').forEach(c => c.classList.toggle('selected', c.dataset.min === '20'));
+    state.pendingAcceptId = id;
+    // Kitchen Rush Mode shifts the default KPT to the next chip when it exists,
+    // so the vendor still sees and confirms the exact minutes sent to the server.
+    const preferred = defaultPrepMinutes();
+    const chips = Array.from(document.querySelectorAll('#prepChips .prep-chip'));
+    const match = chips.find(c => Number(c.dataset.min) === preferred) || chips.find(c => Number(c.dataset.min) === 20) || chips[0];
+    state.prepMinutes = match ? Number(match.dataset.min) : 20;
+    chips.forEach(c => c.classList.toggle('selected', c === match));
     document.getElementById('prepSheet').classList.add('open');
   }
   function closePrepSheet() { state.pendingAcceptId = null; document.getElementById('prepSheet').classList.remove('open'); }
@@ -2219,9 +2520,10 @@
       const c=summaryRes?.data?.current||{};
       el.earningsCards.innerHTML=`<div class="earnings-card"><div class="earnings-label">Delivered sales</div><div class="earnings-value">${money(c.deliveredFoodSales)}</div></div><div class="earnings-card"><div class="earnings-label">Commission</div><div class="earnings-value">${money(c.deliveredCommission)}</div></div><div class="earnings-card"><div class="earnings-label">Net Earnings</div><div class="earnings-value" style="color:var(--green-dark);">${money(c.deliveredEarnings)}</div></div><div class="earnings-card"><div class="earnings-label">In progress</div><div class="earnings-value">${money(c.inProgress)}</div></div>`;
       const rows=Array.isArray(ordersRes?.data)?ordersRes.data:[];
+      state.earningsRows = rows;
       el.earningsOrders.innerHTML=rows.length?rows.map(o=>`<tr><td data-label="Order"><strong>#${escapeHtml(o.orderNumber||String(o.id).slice(-8).toUpperCase())}</strong></td><td data-label="Date">${o.createdAt?new Date(o.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}):'—'}</td><td data-label="Status">${escapeHtml(earningsStatusLabel(o.status))}</td><td class="money" data-label="Sales">${money(o.foodSales)}</td><td class="money" data-label="Comm">${money(o.commission)}</td><td class="money" data-label="Net" style="color:var(--green-dark);"><strong>${money(o.restaurantNetAmount)}</strong></td></tr>`).join(''):'<tr><td colspan="6" style="padding:24px;text-align:center;">No recent earnings.</td></tr>';
       renderEarningsLedger(rows);
-    }catch(err){ el.earningsCards.innerHTML='<div class="state-panel" style="grid-column:1/-1"><h3>Error loading</h3><p>'+escapeHtml(err.message||'Try again.')+'</p></div>'; el.earningsOrders.innerHTML='<tr><td colspan="6" style="padding:24px;text-align:center;">Could not load earnings.</td></tr>'; renderEarningsLedger([]); }
+    }catch(err){ state.earningsRows=[]; el.earningsCards.innerHTML='<div class="state-panel" style="grid-column:1/-1"><h3>Error loading</h3><p>'+escapeHtml(err.message||'Try again.')+'</p></div>'; el.earningsOrders.innerHTML='<tr><td colspan="6" style="padding:24px;text-align:center;">Could not load earnings.</td></tr>'; renderEarningsLedger([]); }
   }
 
   /* Per-order net payout ledger. Reads only fields the earnings endpoint
@@ -2231,22 +2533,30 @@
     const box = document.getElementById('earnings-ledger');
     if (!box) return;
     if (!rows || !rows.length) { box.innerHTML = '<div class="stat-note">No completed orders in this period.</div>'; return; }
-    box.innerHTML = rows.map(o => {
+    box.innerHTML = rows.map((o, i) => {
       const net = firstNumber(o.restaurantNetAmount, o.netAmount, o.restaurantNet);
       const ref = o.orderNumber || (o.id ? String(o.id).slice(-8).toUpperCase() : '');
       const when = o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '';
       const sales = firstNumber(o.foodSales, o.sales);
       const comm = firstNumber(o.commission);
-      const bits = [when, sales !== null ? 'Sales ' + money(sales) : '', comm !== null ? 'Comm −' + money(comm) : ''].filter(Boolean).join(' · ');
-      return '<div class="ledger-row"><div class="lr-main"><div class="lr-title">#' + escapeHtml(ref) + '</div><div class="lr-sub">' + escapeHtml(bits) + '</div></div>' +
-        '<span class="lr-amount">' + (net !== null ? money(net) : '—') + '</span></div>';
+      const adj = firstNumber(o.adjustments, o.adjustment);
+      const mode = paymentModeOf(o);
+      const modeLabel = mode === 'upi' ? 'UPI' : mode === 'cod' ? 'COD' : '';
+      const bits = [when, modeLabel, sales !== null ? 'Gross ' + money(sales) : '', comm !== null ? 'Comm −' + money(comm) : '', (adj !== null && adj !== 0) ? 'Adj −' + money(Math.abs(adj)) : ''].filter(Boolean).join(' · ');
+      return '<button class="ledger-row" type="button" data-ledger-open="' + i + '"><div class="lr-main"><div class="lr-title">#' + escapeHtml(ref) + '</div><div class="lr-sub">' + escapeHtml(bits) + '</div></div>' +
+        '<span class="lr-amount">' + (net !== null ? '+' + money(net) : '—') + '</span></button>';
     }).join('');
+    box.querySelectorAll('[data-ledger-open]').forEach(btn => btn.addEventListener('click', () => {
+      const row = rows[Number(btn.dataset.ledgerOpen)];
+      if (row) openSettlementView(row);
+    }));
   }
 
   /* ── Vendor reviews & complaints ─────────────────────────────────
-     Reviews come from the verified GET /reviews contract. Complaints are only
-     shown when the backend actually returns them (caps.complaints); otherwise
-     the tab states the gap honestly instead of inventing counts. */
+     Reviews come from the verified GET /reviews contract. Complaints come from
+     the backend's own vendor complaint records; if the endpoint is unavailable
+     the tab says so instead of inventing counts. The frozen caps.complaints
+     flag is left false and gates nothing here. */
   function reviewReplyText(r) {
     const reply = r && r.vendorReply;
     if (!reply) return '';
@@ -2354,6 +2664,7 @@
       scoreEl.textContent = Number.isFinite(rating) && rating > 0 ? rating.toFixed(1) + ' ★' : '—';
       countEl.textContent = `${Number(summary.ratingCount || 0)} ratings · ${Number(summary.reviewCount ?? res?.total ?? reviews.length)} reviews`;
       renderReviewsList();
+      loadComplaints();
     } catch (err) {
       scoreEl.textContent = '—';
       countEl.textContent = 'Could not load reviews';
@@ -2362,24 +2673,27 @@
   }
 
   function complaintCount() {
-    if (!caps.complaints) return 0;
-    return (state.reviews || []).filter(r => reviewScoreOf(r) <= 2 || r.complaint || r.isComplaint).length;
+    return (state.complaints || []).length;
   }
 
   function renderReviewsList() {
     const listEl = document.getElementById('vendor-reviews-list'); if (!listEl) return;
     const countEl = document.getElementById('rvComplaintCount');
     if (countEl) countEl.textContent = String(complaintCount());
-    if (state.rvTab === 'complaints') {
-      if (!caps.complaints) {
-        listEl.innerHTML = '<div class="state-panel"><h3>Complaints are not available yet</h3><p>The backend does not expose a complaint record for vendors in this build, so nothing is shown rather than an invented list.</p></div>';
-        return;
-      }
-    }
     const q = (state.rvSearch || '').trim().toLowerCase();
     const filter = state.rvFilter || 'all';
+    if (state.rvTab === 'complaints') {
+      if (!(state.complaints || []).length) {
+        listEl.innerHTML = '<div class="state-panel"><h3>No complaints</h3><p>Customer complaint and refund tickets for your restaurant will appear here.</p></div>';
+        return;
+      }
+      const rows = state.complaints.filter(c => complaintMatches(c, q));
+      listEl.innerHTML = rows.length
+        ? rows.map(complaintCardHtml).join('')
+        : '<div class="state-panel"><h3>No matches</h3><p>No complaints match the current search.</p></div>';
+      return;
+    }
     let pool = (state.reviews || []);
-    if (state.rvTab === 'complaints') pool = pool.filter(r => reviewScoreOf(r) <= 2 || r.complaint || r.isComplaint);
     if (state.rvDetailed) pool = pool.filter(r => reviewItemRatings(r).length);
     const rows = pool.filter(r => reviewMatches(r, q, filter));
     if (!(state.reviews || []).length) {
@@ -2480,7 +2794,7 @@
   function refreshOverviewCounts() {
     const p = document.getElementById('ovPending');
     const a = document.getElementById('ovActive');
-    if (p) p.textContent = String(state.queue.filter(o => o.status === 'placed').length);
+    if (p) p.textContent = String(state.queue.filter(o => o.status === 'placed' && !isScheduledOrder(o)).length);
     if (a) a.textContent = String(state.queue.filter(o => ['confirmed','preparing','waiting_for_rider','assigned','out_for_delivery'].includes(o.status)).length);
   }
   function renderOverviewStatus() {
@@ -2607,15 +2921,15 @@
       el.sectionTabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.section === 'more')));
     }
     if (name === 'home') loadOverview();
-    if (name === 'orders') { renderActiveTab(); if (state.activeTab !== 'history') { startPrepTimer(); startKptTimer(); } }
+    if (name === 'orders') { renderActiveTab(); if (state.activeTab !== 'history') { startPrepTimer(); startKptTimer(); startRiderTimer(); } }
     if (name === 'menu' && !state.menuLoaded) loadMenu();
-    if (name === 'earnings') { loadEarnings(); loadFinance(); }
+    if (name === 'earnings') { loadEarnings(); loadFinance(); if (state.financeTab === 'payouts') loadPayouts(); }
     if (name === 'reviews') loadReviews();
     if (name === 'store') { renderStore(); loadProfile(); }
     if (name === 'inventory') loadInventory();
     if (name === 'analytics') loadAnalytics();
     if (name === 'support') loadSupport();
-    if (name === 'settings') loadSettings();
+    if (name === 'settings') { renderRushMode(); loadSettings(); }
   }
 
   async function menuFetch(path, options = {}) {
@@ -2772,7 +3086,7 @@
   el.tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       el.tabs.forEach(t => t.setAttribute('aria-selected', 'false')); tab.setAttribute('aria-selected', 'true');
-      state.activeTab = tab.dataset.tab; if (state.activeTab === 'history') loadHistory(); else { renderActiveTab(); startPrepTimer(); startKptTimer(); }
+      state.activeTab = tab.dataset.tab; if (state.activeTab === 'history') loadHistory(); else { renderActiveTab(); startPrepTimer(); startKptTimer(); startRiderTimer(); }
     });
   });
   el.sectionTabs.forEach(tab => tab.addEventListener('click', () => switchSection(tab.dataset.section)));
@@ -3129,9 +3443,12 @@
       stats.innerHTML = cells.join('');
       const min = num(d.minWithdrawal != null ? d.minWithdrawal : d.minimumWithdrawal);
       document.getElementById('financeNote').textContent = min !== null ? ('Minimum withdrawal: ' + money(min)) : 'Payouts are processed by Eatswada admin.';
+      renderFinanceSummary();
     } catch (err) {
       stats.innerHTML = '<div class="state-panel" style="grid-column:1/-1"><h3>Finance unavailable</h3><p>' + escapeHtml(err.message || 'Please try again.') + '</p></div>';
       document.getElementById('financeNote').textContent = '';
+      v2.finance = null;
+      renderFinanceSummary();
     }
     await loadWithdrawals();
   }
@@ -3328,9 +3645,437 @@
     box.innerHTML = '<div class="list-card-head">Recent activity</div>' + events.slice(0, 8).map(e => '<div class="list-row"><div class="lr-main"><div class="lr-title" style="font-size:13px;">' + escapeHtml(e.t) + '</div><div class="lr-sub">' + (e.at ? timeAgo(e.at) : '') + '</div></div></div>').join('');
   }
 
+  /* ====================================================================
+     Platform status, Kitchen Rush Mode, complaints console & the payment
+     and settlement console.
+     ==================================================================== */
+
+  /* ---- Platform status banners ---------------------------------------
+     Reads GET /platform/settings. Every field is optional; a missing or
+     failing endpoint leaves the banner hidden, so no status is ever
+     invented. The three flags the request names are honoured verbatim. */
+  function platformFlagsOf(d) {
+    d = d || {};
+    const s = (d.settings && typeof d.settings === 'object') ? d.settings : d;
+    return {
+      maintenance: !!(s.isUnderMaintenance || s.underMaintenance || s.maintenanceMode),
+      shortage: !!(s.isDeliveryPausedShortage || s.deliveryPausedShortage || s.riderShortage),
+      rain: !!(s.isRainSurgeActive || s.rainSurgeActive || s.rainMode)
+    };
+  }
+  function renderPlatformBanner() {
+    const box = document.getElementById('platformBanner');
+    if (!box) return;
+    const f = platformFlagsOf(state.platform);
+    const items = [];
+    if (f.maintenance) items.push({ cls: 'maintenance', ico: '🔧', text: 'Platform Under Maintenance: New customer orders are temporarily paused.' });
+    if (f.shortage) items.push({ cls: 'shortage', ico: '🛵', text: 'High Demand / Delivery Partner Shortage: Rider assignment may take slightly longer.' });
+    if (f.rain) items.push({ cls: 'rain', ico: '🌧️', text: 'Rain Mode Active: +10 mins added to delivery ETAs.' });
+    if (!items.length) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = items.map(i => '<div class="platform-banner-row ' + i.cls + '"><span class="pb-ico" aria-hidden="true">' + i.ico + '</span><span>' + escapeHtml(i.text) + '</span></div>').join('');
+  }
+  async function loadPlatformSettings() {
+    try {
+      const res = await fetchJson(API_ORIGIN + '/api/platform/settings', { headers: authHeaders() });
+      state.platform = (res && (res.data || res.settings)) || res || null;
+    } catch (_) {
+      // Endpoint absent on this build: hide the banner rather than guess.
+      state.platform = null;
+    }
+    renderPlatformBanner();
+  }
+
+  /* ---- Kitchen Rush Mode ---------------------------------------------
+     A local kitchen preference: it adds +5 minutes to the default KPT the
+     vendor sees in the accept sheet. It never silently changes a KPT that
+     was already committed to the customer. */
+  const RUSH_KEY = 'eatswada_vendor_rush_mode';
+  function rushModeOn() { return state.rushMode === true; }
+  function defaultPrepMinutes() { return 20 + (rushModeOn() ? 5 : 0); }
+  function renderRushMode() {
+    const toggle = document.getElementById('rushModeToggle');
+    const note = document.getElementById('rushModeNote');
+    if (toggle) toggle.checked = rushModeOn();
+    if (note) note.textContent = rushModeOn()
+      ? 'On. New accepts default to ' + defaultPrepMinutes() + ' min (20 min + 5 min rush buffer).'
+      : 'Off. Accepted orders use your selected KPT.';
+  }
+  function setRushMode(on) {
+    state.rushMode = !!on;
+    try { localStorage.setItem(RUSH_KEY, state.rushMode ? '1' : '0'); } catch (_) {}
+    renderRushMode();
+    showToast('success', state.rushMode ? 'Kitchen Rush Mode on · +5 min added to default KPT.' : 'Kitchen Rush Mode off.');
+  }
+
+  /* ---- Compact "X/Y online" menu pill --------------------------------- */
+  function renderOnlinePill() {
+    const pill = document.getElementById('onlinePill');
+    if (!pill) return;
+    const items = state.menuItems || [];
+    let label = 'Online ›';
+    let cls = 'is-on';
+    if (items.length) {
+      const online = items.filter(i => i.inStock).length;
+      label = online + '/' + items.length + ' online ›';
+      cls = online === 0 ? 'is-off' : (online === items.length ? 'is-on' : 'is-part');
+    } else if (typeof state.menuOnlineCount === 'number') {
+      label = state.menuOnlineCount + ' online ›';
+    }
+    pill.textContent = label;
+    pill.className = 'online-pill ' + cls;
+  }
+
+  /* ---- Complaints console --------------------------------------------
+     Complaints are read from GET /complaints. When the endpoint is absent
+     the list states the gap honestly and no complaint count is fabricated. */
+  function complaintIdOf(c) { return String((c && (c._id || c.id)) || ''); }
+  function complaintCategoryOf(c) {
+    const raw = String((c && (c.category || c.issueType || c.type || c.reason)) || '').toLowerCase();
+    if (/missing/.test(raw)) return 'Missing item';
+    if (/wrong/.test(raw)) return 'Wrong item';
+    if (/spill|packag/.test(raw)) return 'Spilled / packaging';
+    if (/quality|stale|taste/.test(raw)) return 'Quality issue';
+    return raw ? enumLabel(raw) : 'Complaint';
+  }
+  function complaintPhotosOf(c) {
+    const raw = (c && (c.photos || c.images || c.attachments)) || [];
+    if (!Array.isArray(raw)) return [];
+    return raw.map(p => (typeof p === 'string' ? p : (p && (p.url || p.secure_url || p.secureUrl)) || '')).filter(Boolean);
+  }
+  function complaintPickupPhotoOf(c) {
+    const raw = (c && (c.pickupPhotoUrl || c.riderPickupPhoto || c.pickupPhoto)) || '';
+    return typeof raw === 'string' ? raw : ((raw && (raw.url || raw.secure_url)) || '');
+  }
+  function complaintRefundOf(c) {
+    return firstNumber(c && c.refundAmount, c && c.deductionAmount, c && c.refund, c && c.deduction);
+  }
+  function complaintItemsOf(c) {
+    const raw = (c && (c.items || c.affectedItems)) || [];
+    if (Array.isArray(raw)) return raw.map(i => (typeof i === 'string' ? i : (i && (i.name || i.itemName)) || '')).filter(Boolean);
+    return raw ? [String(raw)] : [];
+  }
+  function complaintDisputeOf(c) {
+    const d = c && (c.vendorDispute || c.dispute);
+    if (!d) return '';
+    return typeof d === 'string' ? d : (d.reason || d.message || d.text || '');
+  }
+  function complaintMatches(c, q) {
+    if (!q) return true;
+    const hay = [
+      complaintCategoryOf(c), c.comment, c.description, c.orderNumber, c.publicOrderId,
+      complaintItemsOf(c).join(' ')
+    ].filter(Boolean).join(' ').toLowerCase();
+    return hay.indexOf(q) !== -1;
+  }
+
+  async function loadComplaints() {
+    try {
+      const res = await apiFetch('/complaints?page=1&limit=50');
+      const rows = Array.isArray(res && res.data) ? res.data : (Array.isArray(res) ? res : []);
+      state.complaints = rows;
+    } catch (_) { state.complaints = []; }
+    renderReviewsList();
+  }
+
+  function complaintCardHtml(c) {
+    const id = complaintIdOf(c);
+    const cat = complaintCategoryOf(c);
+    const refund = complaintRefundOf(c);
+    const items = complaintItemsOf(c);
+    const photos = complaintPhotosOf(c);
+    const orderRef = c.orderNumber || c.publicOrderId;
+    const when = c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '';
+    const photosHtml = photos.length
+      ? '<div class="rv-photos">' + photos.map(u => '<img src="' + escapeHtml(u) + '" alt="Complaint photo" loading="lazy" data-review-photo="' + escapeHtml(u) + '" />').join('') + '</div>'
+      : '';
+    return '<article class="rv-card" data-complaint-open="' + escapeHtml(id) + '">' +
+      '<div class="rv-card-top"><span class="rv-order">' + (orderRef ? 'Order #' + escapeHtml(String(orderRef)) + ' • ' : '') + escapeHtml(cat) + '</span>' + (when ? '<time>' + escapeHtml(when) + '</time>' : '') + '</div>' +
+      '<div class="rv-card-head">' +
+        '<span class="rv-score bad">' + escapeHtml(cat) + '</span>' +
+      '</div>' +
+      (items.length ? '<p class="rv-body">' + escapeHtml(items.join(', ')) + '</p>' : '') +
+      (c.comment || c.description ? '<p class="rv-body">' + escapeHtml(String(c.comment || c.description)) + '</p>' : '') +
+      photosHtml +
+      (refund !== null ? '<div class="complaint-refund">Refund deduction: −' + formatMoney(Math.abs(refund)) + ' from your ledger</div>' : '') +
+      (id ? '<button class="rv-reply-btn" type="button" data-complaint-dispute="' + escapeHtml(id) + '">Dispute / Reply</button>' : '') +
+      '</article>';
+  }
+
+  function openComplaintView(id) {
+    const c = (state.complaints || []).find(x => complaintIdOf(x) === String(id));
+    if (!c) return;
+    state.complaintViewId = id;
+    const body = document.getElementById('complaintViewBody');
+    const foot = document.getElementById('complaintViewFoot');
+    const cat = complaintCategoryOf(c);
+    const items = complaintItemsOf(c);
+    const photos = complaintPhotosOf(c);
+    const pickup = complaintPickupPhotoOf(c);
+    const refund = complaintRefundOf(c);
+    const orderRef = c.orderNumber || c.publicOrderId;
+    const dispute = complaintDisputeOf(c);
+    if (body) {
+      body.innerHTML =
+        (orderRef ? '<div class="rv-card-top"><span class="rv-order">Order #' + escapeHtml(String(orderRef)) + '</span></div>' : '') +
+        '<div class="rv-card-head"><span class="rv-score bad">' + escapeHtml(cat) + '</span></div>' +
+        (items.length ? '<p class="rv-body"><strong>Affected items:</strong> ' + escapeHtml(items.join(', ')) + '</p>' : '') +
+        (c.comment || c.description ? '<p class="rv-body">' + escapeHtml(String(c.comment || c.description)) + '</p>' : '') +
+        '<div class="cmp-photo-compare">' +
+          '<div class="cmp-photo-col"><h5>Customer photo</h5>' + (photos.length ? '<div class="rv-photos">' + photos.map(u => '<img src="' + escapeHtml(u) + '" alt="Customer complaint photo" loading="lazy" data-review-photo="' + escapeHtml(u) + '" />').join('') + '</div>' : '<div class="cmp-photo-empty">No customer photo</div>') + '</div>' +
+          '<div class="cmp-photo-col"><h5>Rider pickup photo</h5>' + (pickup ? '<div class="rv-photos"><img src="' + escapeHtml(pickup) + '" alt="Rider pickup photo" loading="lazy" data-review-photo="' + escapeHtml(pickup) + '" /></div>' : '<div class="cmp-photo-empty">No pickup photo</div>') + '</div>' +
+        '</div>' +
+        (refund !== null ? '<div class="complaint-refund">Refund deduction: −' + formatMoney(Math.abs(refund)) + ' from your ledger</div>' : '') +
+        (dispute ? '<div class="rv-reply"><strong>You</strong><p>' + escapeHtml(dispute) + '</p></div>' : '');
+    }
+    if (foot) {
+      foot.innerHTML = '<button class="btn accept" type="button" data-complaint-dispute="' + escapeHtml(String(id)) + '">Dispute / Reply</button>';
+    }
+    const view = document.getElementById('complaintView');
+    if (view) { view.classList.add('open'); view.setAttribute('aria-hidden', 'false'); }
+  }
+  function closeComplaintView() {
+    state.complaintViewId = null;
+    const view = document.getElementById('complaintView');
+    if (view) { view.classList.remove('open'); view.setAttribute('aria-hidden', 'true'); }
+  }
+
+  function openDisputeSheet(id) {
+    state.pendingDisputeId = id;
+    const ta = document.getElementById('disputeReason');
+    const c = (state.complaints || []).find(x => complaintIdOf(x) === String(id));
+    if (ta) ta.value = complaintDisputeOf(c);
+    const count = document.getElementById('disputeCount'); if (count) count.textContent = (ta ? ta.value.length : 0) + ' / 1000';
+    const sub = document.getElementById('disputeSub');
+    if (sub) sub.textContent = c
+      ? ('Explain why this "' + complaintCategoryOf(c) + '" complaint should be reviewed by the Eatswada admin team.')
+      : 'Explain why this complaint should be reviewed by the Eatswada admin team.';
+    openModal('disputeSheet');
+  }
+  async function submitDispute() {
+    if (state.disputeBusy) return;
+    const id = state.pendingDisputeId;
+    const ta = document.getElementById('disputeReason');
+    const reason = ta ? String(ta.value || '').trim() : '';
+    if (!id) return;
+    if (reason.length < 1 || reason.length > 1000) { showToast('error', 'Dispute reason must be 1–1000 characters.'); return; }
+    const btn = document.getElementById('disputeSubmit');
+    state.disputeBusy = true; if (btn) btn.disabled = true;
+    const c = (state.complaints || []).find(x => complaintIdOf(x) === String(id));
+    try {
+      await apiFetch('/complaints/' + id + '/dispute', { method: 'POST', body: JSON.stringify({ reason: reason }), headers: { 'Content-Type': 'application/json' } });
+      if (c) c.vendorDispute = { reason: reason, createdAt: new Date().toISOString() };
+      showToast('success', 'Dispute submitted to Eatswada.');
+    } catch (err) {
+      // Endpoint may be absent on this build: keep the vendor's input locally so
+      // nothing is lost, and say plainly that the server did not accept it.
+      if (c) c.vendorDispute = { reason: reason, createdAt: new Date().toISOString(), local: true };
+      showToast('error', (err && err.message ? err.message + ' ' : '') + 'Saved on this device; the dispute endpoint is not available yet.');
+    } finally {
+      state.disputeBusy = false; if (btn) btn.disabled = false;
+    }
+    closeModal('disputeSheet');
+    if (state.complaintViewId) openComplaintView(state.complaintViewId);
+    renderReviewsList();
+  }
+
+  /* ---- Payment & settlement console ---------------------------------- */
+
+  /* Money with two decimals, for bank-facing figures (balances, payouts,
+     UTR batches). The generic money() helper stays as-is everywhere else. */
+  function money2(v) {
+    return '₹' + Number(v || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function renderFinanceSummary() {
+    const d = (v2.finance && (v2.finance.data || v2.finance)) || {};
+    const available = firstNumber(d.unsettledBalance, d.availableBalance, d.available, d.withdrawableBalance, d.balance);
+    const lastAmount = firstNumber(d.lastPayoutAmount, d.lastPayout && d.lastPayout.amount);
+    const lastDate = d.lastPayoutAt || d.lastPayoutDate || (d.lastPayout && (d.lastPayout.paidAt || d.lastPayout.createdAt));
+    const lastStatus = (d.lastPayout && d.lastPayout.status) || d.lastPayoutStatus;
+    const utr = d.lastPayoutUtr || d.utrNumber || d.utr || (d.lastPayout && (d.lastPayout.utr || d.lastPayout.utrNumber || d.lastPayout.bankUtr));
+    const weekNet = firstNumber(d.weekNetEarnings, d.thisWeekNet, d.weekNet);
+    const weekOrders = firstNumber(d.weekDeliveredOrders, d.thisWeekOrders, d.weekOrders);
+    const effComm = firstNumber(d.effectiveCommissionPct, d.effectiveCommission);
+    const adjustments = firstNumber(d.complaintAdjustments, d.adjustmentsTotal);
+
+    const un = document.getElementById('fin-unsettled'); if (un) un.textContent = available !== null ? money2(available) : '₹—';
+    const lp = document.getElementById('fin-last-payout'); if (lp) lp.textContent = lastAmount !== null ? money2(lastAmount) : '₹—';
+    const lpm = document.getElementById('fin-last-payout-meta');
+    if (lpm) {
+      const bits = [];
+      if (lastDate) bits.push(new Date(lastDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }));
+      if (lastStatus) bits.push(enumLabel(lastStatus));
+      lpm.textContent = bits.length ? bits.join(' • ') : 'No payout recorded yet.';
+    }
+    const utrBox = document.getElementById('fin-last-utr');
+    const utrVal = document.getElementById('fin-utr-value');
+    if (utrVal) utrVal.textContent = utr ? String(utr) : '—';
+    if (utrBox) utrBox.hidden = !utr;
+    const wn = document.getElementById('fin-week-net'); if (wn) wn.textContent = weekNet !== null ? money2(weekNet) : '₹—';
+    const wm = document.getElementById('fin-week-meta');
+    if (wm) {
+      const bits = [];
+      if (weekOrders !== null) bits.push(weekOrders + ' delivered order' + (weekOrders === 1 ? '' : 's'));
+      if (effComm !== null) bits.push('effective commission ' + effComm + '%');
+      if (adjustments !== null && adjustments !== 0) bits.push('adjustments −' + money(Math.abs(adjustments)));
+      wm.textContent = bits.length ? bits.join(' • ') : 'No delivered orders this week yet.';
+    }
+    v2.lastUtr = utr ? String(utr) : '';
+    const payoutBtn = document.getElementById('payoutRequestBtn');
+    if (payoutBtn) payoutBtn.disabled = available !== null && available <= 0;
+  }
+
+  function renderPayoutBatches() {
+    const box = document.getElementById('payoutBatches');
+    if (!box) return;
+    const rows = Array.isArray(state.payouts) ? state.payouts : [];
+    if (!rows.length) {
+      box.innerHTML = '<div class="stat-note">No settlement batches yet. Batches appear here after the first payout cycle closes.</div>';
+      return;
+    }
+    box.innerHTML = rows.map(b => {
+      const amount = firstNumber(b.netAmount, b.amount, b.net, b.totalAmount);
+      const count = firstNumber(b.ordersCount, b.orderCount, b.orders);
+      const utr = b.utr || b.utrNumber || b.bankUtr || b.reference;
+      const status = String(b.status || 'pending').toLowerCase();
+      const cls = /paid|completed|credited|success/.test(status) ? 'approved' : /reject|fail/.test(status) ? 'rejected' : 'pending';
+      const range = b.dateRange || [b.periodStart, b.periodEnd].filter(Boolean).join(' – ');
+      const batchId = b.batchId || b.batch || b._id || b.id;
+      return '<div class="batch-row">' +
+        '<div class="batch-main">' +
+          '<div class="lr-title">' + (batchId ? 'Batch ' + escapeHtml(String(batchId)) : 'Settlement batch') + '</div>' +
+          '<div class="lr-sub">' + [range, count !== null ? count + ' orders' : '', utr ? 'UTR ' + escapeHtml(String(utr)) : ''].filter(Boolean).join(' • ') + '</div>' +
+        '</div>' +
+        '<div class="batch-right"><span class="lr-amount">' + (amount !== null ? money2(amount) : '—') + '</span>' +
+        '<span class="badge ' + cls + '">' + enumLabel(b.status || 'pending') + '</span></div>' +
+      '</div>';
+    }).join('');
+  }
+
+  async function loadPayouts() {
+    const box = document.getElementById('payoutBatches');
+    if (box) box.innerHTML = '<div class="stat-note">Loading batches…</div>';
+    try {
+      const res = await apiFetch('/settlements/payouts');
+      let rows = Array.isArray(res && res.data) ? res.data : (res && res.data && Array.isArray(res.data.batches) ? res.data.batches : null);
+      if (!rows && Array.isArray(res && res.batches)) rows = res.batches;
+      state.payouts = Array.isArray(rows) ? rows : [];
+    } catch (_) {
+      state.payouts = [];
+    }
+    renderPayoutBatches();
+  }
+
+  function setFinanceTab(tab) {
+    state.financeTab = tab === 'payouts' ? 'payouts' : 'ledger';
+    document.querySelectorAll('.fin-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.finTab === state.financeTab)));
+    const ledger = document.getElementById('fin-pane-ledger');
+    const payouts = document.getElementById('fin-pane-payouts');
+    if (ledger) ledger.hidden = state.financeTab !== 'ledger';
+    if (payouts) payouts.hidden = state.financeTab !== 'payouts';
+    if (state.financeTab === 'payouts') loadPayouts();
+  }
+
+  function openPayoutSheet() {
+    const d = (v2.finance && (v2.finance.data || v2.finance)) || {};
+    const available = firstNumber(d.unsettledBalance, d.availableBalance, d.available, d.withdrawableBalance, d.balance);
+    const input = document.getElementById('payoutAmount');
+    if (input) input.value = available !== null && available > 0 ? String(Math.floor(available)) : '';
+    const sub = document.getElementById('payoutSheetSub');
+    if (sub) sub.textContent = (available !== null ? 'Unsettled balance ' + money2(available) + '. ' : '') + 'Eatswada will review this request and credit your registered bank account.';
+    openModal('payoutSheet');
+  }
+  async function submitPayoutRequest() {
+    if (state.payoutBusy) return;
+    const amount = num(document.getElementById('payoutAmount').value);
+    if (amount === null || amount <= 0) { showToast('error', 'Enter a valid payout amount.'); return; }
+    const btn = document.getElementById('payoutSubmit');
+    state.payoutBusy = true; if (btn) btn.disabled = true;
+    let ok = false;
+    try {
+      await apiFetch('/settlements/payout-request', { method: 'POST', body: JSON.stringify({ amount: amount }), headers: { 'Content-Type': 'application/json' } });
+      ok = true;
+    } catch (e1) {
+      try {
+        await apiFetch('/vendor/payout-request', { method: 'POST', body: JSON.stringify({ amount: amount }), headers: { 'Content-Type': 'application/json' } });
+        ok = true;
+      } catch (e2) { ok = false; }
+    } finally {
+      state.payoutBusy = false; if (btn) btn.disabled = false;
+    }
+    closeModal('payoutSheet');
+    if (ok) { showToast('success', 'Payout request submitted to Eatswada.'); await loadFinance(); }
+    else showToast('error', 'Payout request could not be sent — the settlement endpoint is not available yet. Please contact support.');
+  }
+
+  /* CSV statement export. Built from the ledger rows the server already
+     returned; the file is generated on the device and never uploaded. */
+  function csvCell(v) {
+    const s = (v === null || v === undefined) ? '' : String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function downloadCsv() {
+    const rows = Array.isArray(state.earningsRows) ? state.earningsRows : [];
+    if (!rows.length) { showToast('error', 'No settlement rows to export yet.'); return; }
+    const header = ['Order', 'Date', 'Payment Mode', 'Gross Food Bill', 'Commission', 'Adjustments', 'Net Credited'];
+    const lines = [header.join(',')];
+    rows.forEach(o => {
+      const net = firstNumber(o.restaurantNetAmount, o.netAmount, o.restaurantNet);
+      const mode = paymentModeOf(o);
+      lines.push([
+        o.orderNumber || (o.id ? String(o.id).slice(-8).toUpperCase() : ''),
+        o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+        mode === 'upi' ? 'UPI' : mode === 'cod' ? 'COD' : '',
+        firstNumber(o.foodSales, o.sales) ?? '',
+        firstNumber(o.commission) ?? '',
+        firstNumber(o.adjustments, o.adjustment) ?? '',
+        net ?? ''
+      ].map(csvCell).join(','));
+    });
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'eatswada-settlement-statement.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    showToast('success', 'Settlement statement downloaded.');
+  }
+
+  /* ---- Settlement breakdown slide-over -------------------------------- */
+  function openSettlementView(order) {
+    const body = document.getElementById('settlementViewBody');
+    if (!body || !order) return;
+    const rows = billRows(order);
+    const net = rows.find(r => r.kind === 'total');
+    const mode = paymentModeOf(order);
+    const ref = order.orderNumber || order.publicOrderId || (order.id ? String(order.id).slice(-8).toUpperCase() : '');
+    const when = order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+    body.innerHTML =
+      '<div class="rv-card-top"><span class="rv-order">Order #' + escapeHtml(String(ref)) + '</span>' + (when ? '<time>' + escapeHtml(when) + '</time>' : '') + '</div>' +
+      '<div class="rv-card-head"><span class="rv-score ' + (mode === 'cod' ? 'mid' : 'good') + '">' + (mode === 'upi' ? 'PAID ONLINE (UPI)' : mode === 'cod' ? 'CASH ON DELIVERY (COD)' : 'Payment mode not specified') + '</span></div>' +
+      (rows.length
+        ? '<div class="bill-body" style="padding:0;margin-top:12px;">' + rows.map(r => '<div class="bill-row' + (r.kind === 'total' ? ' total' : '') + '"><span>' + escapeHtml(r.label) + '</span><span class="' + r.kind + '">' + (r.kind === 'neg' ? '−' : '') + formatMoney(Math.abs(r.value)) + '</span></div>').join('') +
+          (net ? '<div class="bill-you-get"><span>You Get (Net Receivable)</span><strong>' + formatMoney(net.value) + '</strong></div>' : '') + '</div>'
+        : '<p class="rv-body">A detailed breakdown is not available for this order.</p>');
+    const view = document.getElementById('settlementView');
+    if (view) { view.classList.add('open'); view.setAttribute('aria-hidden', 'false'); }
+  }
+  function closeSettlementView() {
+    const view = document.getElementById('settlementView');
+    if (view) { view.classList.remove('open'); view.setAttribute('aria-hidden', 'true'); }
+  }
+
   /* ---- V2 event wiring ---- */
   document.getElementById('topMoreBtn')?.addEventListener('click', openMoreSheet);
   document.getElementById('headerSettingsBtn')?.addEventListener('click', () => switchSection('settings'));
+  document.getElementById('headerSearchBtn')?.addEventListener('click', () => {
+    const wrap = document.getElementById('orderSearchWrap');
+    if (state.activeSection !== 'orders') switchSection('orders');
+    if (wrap) { wrap.hidden = false; const i = document.getElementById('orderSearch'); if (i) i.focus(); }
+  });
+  document.getElementById('onlinePill')?.addEventListener('click', () => switchSection('menu'));
+  document.getElementById('rushModeToggle')?.addEventListener('change', (e) => setRushMode(e.target.checked));
   const orderSearchEl = document.getElementById('orderSearch');
   const orderSearchClearEl = document.getElementById('orderSearchClear');
   if (orderSearchEl) {
@@ -3413,9 +4158,37 @@
     if (replyBtn) { openReviewReply(replyBtn.dataset.reviewReply); return; }
     const photo = e.target.closest('[data-review-photo]');
     if (photo) { openPhotoViewer(photo.dataset.reviewPhoto); return; }
+    const disputeBtn = e.target.closest('[data-complaint-dispute]');
+    if (disputeBtn) { openDisputeSheet(disputeBtn.dataset.complaintDispute); return; }
+    const complaintCard = e.target.closest('[data-complaint-open]');
+    if (complaintCard && complaintCard.dataset.complaintOpen) { openComplaintView(complaintCard.dataset.complaintOpen); return; }
     // Tapping anywhere else on the card opens the full-screen review view.
     const card = e.target.closest('[data-review-open]');
     if (card && card.dataset.reviewOpen) openReviewView(card.dataset.reviewOpen);
+  });
+  document.getElementById('complaintViewBack')?.addEventListener('click', closeComplaintView);
+  document.getElementById('complaintView')?.addEventListener('click', (e) => {
+    const disputeBtn = e.target.closest('[data-complaint-dispute]');
+    if (disputeBtn) { openDisputeSheet(disputeBtn.dataset.complaintDispute); return; }
+    const photo = e.target.closest('[data-review-photo]');
+    if (photo) openPhotoViewer(photo.dataset.reviewPhoto);
+  });
+  document.getElementById('settlementViewBack')?.addEventListener('click', closeSettlementView);
+  document.getElementById('disputeCancel')?.addEventListener('click', () => closeModal('disputeSheet'));
+  document.getElementById('disputeSubmit')?.addEventListener('click', submitDispute);
+  document.getElementById('disputeReason')?.addEventListener('input', (e) => { const c = document.getElementById('disputeCount'); if (c) c.textContent = e.target.value.length + ' / 1000'; });
+  document.getElementById('disputeSheet')?.addEventListener('click', (e) => { if (e.target.id === 'disputeSheet') closeModal('disputeSheet'); });
+  document.querySelectorAll('.fin-tab').forEach(b => b.addEventListener('click', () => setFinanceTab(b.dataset.finTab)));
+  document.getElementById('payoutRequestBtn')?.addEventListener('click', openPayoutSheet);
+  document.getElementById('payoutCancel')?.addEventListener('click', () => closeModal('payoutSheet'));
+  document.getElementById('payoutSubmit')?.addEventListener('click', submitPayoutRequest);
+  document.getElementById('payoutSheet')?.addEventListener('click', (e) => { if (e.target.id === 'payoutSheet') closeModal('payoutSheet'); });
+  document.getElementById('payoutCsvBtn')?.addEventListener('click', downloadCsv);
+  document.getElementById('utrCopyBtn')?.addEventListener('click', async () => {
+    const utr = v2.lastUtr;
+    if (!utr) { showToast('error', 'No UTR number available yet.'); return; }
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(utr); showToast('success', 'UTR ' + utr + ' copied'); return; } } catch (_) {}
+    showToast('success', 'UTR: ' + utr);
   });
   document.getElementById('rvFilterChip')?.addEventListener('click', () => {
     state.rvDetailed = !state.rvDetailed;
@@ -3440,10 +4213,14 @@
 
   async function init() {
     if (!localStorage.getItem(TOKEN_KEY)) { location.replace('login.html'); return; }
+    try { state.rushMode = localStorage.getItem(RUSH_KEY) === '1'; } catch (_) {}
+    renderRushMode();
+    renderOnlinePill();
     setConnectionState(navigator.onLine ? 'checking' : 'offline');
     await Promise.all([loadRestaurant(), loadQueue(true)]);
     loadOverview();
     loadNotifications(false);
+    loadPlatformSettings();
     initPush();
     await checkVendorNotifications();
     if (localStorage.getItem(TOKEN_KEY)) startPolling();

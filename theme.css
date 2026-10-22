@@ -678,3 +678,164 @@ body{background:var(--zp-bg-canvas)}
   #kotPrintRoot .kot .kot-foot{text-align:center;font-size:9pt;margin-top:3mm}
   @page{margin:4mm}
 }
+
+/* ==========================================================================
+   Vendor Partner upgrade — stage 3: platform status, rider geofence,
+   payment/settlement console, complaints & header pills.
+   Appended last so every rule below only adds new selectors or tightens an
+   existing one. Still strictly one column, phone-first, max 480px.
+   ========================================================================== */
+
+/* ---- Header pills: X/Y online, search, drawer ---------------------------- */
+.online-pill{
+  border:1px solid transparent;border-radius:var(--zp-radius-pill);cursor:pointer;
+  font:800 12px var(--zp-font);padding:7px 11px;white-space:nowrap;
+  background:var(--zp-green-pill-bg);color:var(--zp-green-veg);
+}
+.online-pill.is-part{background:var(--warning-soft);color:var(--warning)}
+.online-pill.is-off{background:var(--danger-soft);color:var(--zp-danger-red)}
+.header-search-btn{
+  width:38px;height:38px;flex:none;display:grid;place-items:center;
+  border:1px solid var(--zp-border);border-radius:12px;background:var(--zp-surface-card);
+  font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.header-search-btn:active{background:var(--zp-surface-muted);transform:scale(.97)}
+.topbar-actions-left{gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+.topbar-actions-left::-webkit-scrollbar{display:none}
+
+/* ---- Platform status banners -------------------------------------------- */
+.platform-banner{
+  position:sticky;top:0;z-index:90;display:flex;flex-direction:column;gap:1px;
+  max-width:480px;margin:0 auto;
+}
+.platform-banner[hidden]{display:none}
+.platform-banner-row{
+  display:flex;align-items:flex-start;gap:8px;padding:10px 16px;
+  font-size:12.5px;font-weight:700;line-height:1.45;
+}
+.platform-banner-row .pb-ico{flex:none;font-size:14px}
+.platform-banner-row.maintenance{background:#FEF3C7;color:#92400E}
+.platform-banner-row.shortage{background:#E8F0FE;color:#1D4ED8}
+.platform-banner-row.rain{background:#E0E7FF;color:#3730A3}
+
+/* ---- Rider geofence + call chip ---------------------------------------- */
+.rider-status.reached{background:var(--es-green-soft,#DCFCE7);color:var(--es-green-veg,#15803D)}
+.rider-status.reached .rs-ico{flex:none;font-size:14px}
+.rider-status .rs-wait{font-variant-numeric:tabular-nums}
+.rider-call{
+  flex:none;margin-left:auto;text-decoration:none;font:800 12px var(--zp-font);
+  background:var(--zp-action-blue);color:#fff;padding:6px 11px;border-radius:var(--zp-radius-pill);
+}
+.rider-status strong{font-weight:800}
+
+/* ---- UPI / COD handover badge ------------------------------------------ */
+.bill-pay-mode{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.bill-pay-mode .pm-badge{
+  align-self:flex-start;font-size:10.5px;font-weight:800;letter-spacing:.04em;
+  padding:4px 9px;border-radius:var(--zp-radius-pill);
+}
+.bill-pay-mode.upi .pm-badge{background:var(--zp-green-pill-bg);color:var(--zp-green-veg)}
+.bill-pay-mode.cod .pm-badge{background:var(--warning-soft);color:var(--warning)}
+.bill-pay-mode .pm-note{font-size:11px;color:var(--zp-ink-muted)}
+.bill-cod-note{
+  font-size:11.5px;line-height:1.5;color:#92400E;background:#FEF3C7;
+  border-radius:8px;padding:8px 10px;margin-bottom:8px;
+}
+
+/* ---- Finance summary cards -------------------------------------------- */
+.fin-summary{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.fin-card{
+  background:var(--zp-surface-card);border:1px solid var(--zp-border);
+  border-radius:var(--zp-radius-card);padding:16px;
+}
+.fin-label{font-size:11px;font-weight:800;letter-spacing:.02em;color:var(--zp-ink-muted);text-transform:uppercase}
+.fin-value{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-top:6px;color:var(--zp-ink-primary);font-variant-numeric:tabular-nums}
+.fin-meta{font-size:11.5px;color:var(--zp-ink-muted);margin-top:4px}
+.fin-payout-btn{width:100%;margin-top:12px;padding:14px;font-size:14px}
+.fin-utr{display:flex;align-items:center;gap:8px;margin-top:10px;background:var(--zp-surface-muted);
+  border-radius:var(--zp-radius-btn);padding:9px 11px}
+.fin-utr[hidden]{display:none}
+.fin-utr .utr-label{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--zp-ink-muted)}
+.fin-utr .utr-value{flex:1;min-width:0;font-size:12.5px;font-weight:800;color:var(--zp-ink-primary);
+  font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fin-utr .utr-copy{border:0;background:transparent;color:var(--zp-action-blue);font-size:14px;cursor:pointer;padding:0 2px}
+
+/* ---- Finance sub-tabs --------------------------------------------------- */
+.fin-tabs{display:flex;gap:4px;margin:0 0 14px;background:var(--zp-surface-muted);
+  padding:4px;border-radius:var(--zp-radius-pill)}
+.fin-tab{flex:1;border:0;background:transparent;cursor:pointer;border-radius:var(--zp-radius-pill);
+  padding:10px 8px;font:800 12px var(--zp-font);color:var(--zp-ink-secondary);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.fin-tab[aria-selected="true"]{background:var(--zp-surface-card);color:var(--zp-ink-primary);box-shadow:var(--card-shadow)}
+.fin-pane[hidden]{display:none}
+.fin-head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.fin-csv-btn{font-size:11.5px!important;padding:9px 12px!important}
+
+/* ---- Settlement batch rows --------------------------------------------- */
+.batch-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:12px 0;border-bottom:1px solid var(--zp-border)}
+.batch-row:last-child{border-bottom:0}
+.batch-row .batch-main{flex:1;min-width:0}
+.batch-row .batch-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
+
+/* Ledger rows are buttons now: keep the row look and add a press state. */
+.ledger-row{width:100%;text-align:left;border:0;background:transparent;font-family:var(--zp-font);cursor:pointer}
+.ledger-row:active{background:var(--zp-surface-muted)}
+
+/* ---- Complaints --------------------------------------------------------- */
+.complaint-refund{
+  margin-top:10px;padding:9px 11px;border-radius:8px;background:var(--danger-soft);
+  color:var(--zp-danger-red);font-size:12px;font-weight:800;
+}
+.cmp-photo-compare{display:flex;gap:12px;margin-top:14px}
+.cmp-photo-col{flex:1;min-width:0}
+.cmp-photo-col h5{margin:0 0 6px;font-size:10.5px;font-weight:800;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--zp-ink-muted)}
+.cmp-photo-col .rv-photos img{width:100%;height:110px}
+.cmp-photo-empty{font-size:11.5px;color:var(--zp-ink-muted);background:var(--zp-surface-muted);
+  border-radius:8px;padding:14px 10px;text-align:center}
+.review-view-foot{flex:none;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--zp-border);background:var(--zp-surface-card);
+  max-width:480px;margin:0 auto;width:100%}
+.review-view-foot .btn{width:100%;padding:14px;font-size:14px}
+
+/* ---- Narrow-phone guard (360px) ----------------------------------------
+   Nothing may push the shell wider than the viewport. Long ids, UTRs and
+   numbers wrap instead of creating a horizontal scrollbar. */
+@media (max-width:400px){
+  .fin-value{font-size:23px}
+  .fin-tab{font-size:11px;padding:9px 6px}
+  .rv-card-head{gap:8px}
+  .rv-score small{display:none}
+  .ticket-loyalty time{display:none}
+  .platform-banner-row{font-size:12px;padding:9px 14px}
+}
+
+/* ---- Order pipeline rail: capsule pills that scroll inside the shell ----
+   The rail keeps its own horizontal scroll (a standard Zomato Partner
+   pattern) so the extra Scheduled pill never widens the page. No scroll
+   snapping: the last pills must stay reachable by a normal swipe. */
+.tab-rail{
+  overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.tab-rail::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto}
+@media (max-width:400px){
+  .tab{padding:12px 9px;font-size:13px;gap:5px}
+  .tab .count{min-width:18px;height:18px;font-size:10px}
+}
+
+/* ---- Scheduled slot strip on the order card ----------------------------- */
+.ticket-strip.schedule-note{background:var(--zp-reply-bubble);color:#1D4ED8}
+
+/* ---- Zomato Partner capsule pills for the order pipeline rail ---------- */
+.tab-rail{background:transparent;border:0;border-radius:0;padding:4px 16px;gap:8px;margin:-4px -16px 14px}
+.tab{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:9999px;
+  background:#FFFFFF;color:var(--zp-ink-primary,#18181B);border:1px solid var(--zp-border);box-shadow:none;
+  font-size:14px;font-weight:700;white-space:nowrap}
+.tab::after{content:none}
+.tab .count{background:var(--border-soft);color:#18181B;border-radius:50%}
+.tab[aria-selected="true"]{background:#18181B;color:#FFFFFF;border-color:#18181B;box-shadow:none}
+.tab[aria-selected="true"]::after{content:none}
+.tab[aria-selected="true"] .count{background:#FFFFFF;color:#18181B;border-radius:50%}
