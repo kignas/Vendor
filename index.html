@@ -860,7 +860,7 @@
     <!-- SECTION: ANALYTICS -->
     <section class="dashboard-section" id="section-analytics" hidden>
       <div class="earnings-toolbar">
-        <div><strong>Analytics</strong><div class="earnings-sub">Order and sales performance over time.</div></div>
+        <div><strong>Analytics</strong><div class="earnings-sub">Customer traffic, orders and sales performance.</div></div>
         <select class="earnings-select" id="analytics-period">
           <option value="7d" selected>Last 7 days</option>
           <option value="30d">Last 30 days</option>
@@ -869,6 +869,10 @@
         </select>
       </div>
       <div class="stat-grid" id="analytics-stats"></div>
+      <div class="list-card" id="analytics-visits-card" hidden>
+        <div class="list-card-head">Customer menu views</div>
+        <div id="analytics-visits"></div>
+      </div>
       <div class="list-card" id="analytics-daily-card" hidden><div class="list-card-head">Daily totals</div><div id="analytics-daily"></div></div>
       <div class="list-card" id="analytics-top-card" hidden><div class="list-card-head">Top-selling items</div><div id="analytics-top"></div></div>
       <div id="analytics-empty"></div>
@@ -998,7 +1002,7 @@
         </div>
         <div class="more-group"><h4>Business tools</h4>
           <button class="more-row" data-more="inventory" type="button"><span class="mi-ico">📦</span><span><strong>Inventory</strong><small>Stock and item availability</small></span><b>›</b></button>
-          <button class="more-row" data-more="analytics" type="button"><span class="mi-ico">📈</span><span><strong>Analytics</strong><small>Orders and sales trends</small></span><b>›</b></button>
+          <button class="more-row" data-more="analytics" type="button"><span class="mi-ico">📈</span><span><strong>Analytics</strong><small>Customer views, orders and sales</small></span><b>›</b></button>
         </div>
         <div class="more-group"><h4>Customers &amp; help</h4>
           <button class="more-row" data-more="reviews" type="button"><span class="mi-ico">⭐</span><span><strong>Reviews</strong><small>Customer feedback and replies</small></span><b>›</b></button>
@@ -3834,14 +3838,19 @@
        data.statusCounts [{ status, count }]
        data.daily    [{ date, orders, deliveredSales }]
        data.topItems [{ name, quantity, sales }]
-     GET /vendor/analytics/visits (Pillar 8) returns menu-view counts:
-       data.summary { totalViews, uniqueVisitors }
-     Both are restaurant-scoped server-side; the vendor id is never sent. */
+     GET /vendor/analytics/visits (Pillar 8) returns customer menu-view counts:
+       data.summary     { totalViews, uniqueVisitors }
+       data.daily       [{ day, views, uniqueVisitors }]   (Asia/Kolkata day)
+       data.byEventType [{ eventType, count }]  menu_view | restaurant_view
+     Counts are deduplicated server-side to one view per customer per day, so a
+     page refresh cannot inflate them. Both endpoints are restaurant-scoped from
+     the authenticated vendor's token; no restaurant id is ever sent. */
   async function loadAnalytics() {
     const stats = document.getElementById('analytics-stats'); if (!stats) return;
     stats.innerHTML = overviewCard('Loading', '…').repeat(4);
     const dailyCard = document.getElementById('analytics-daily-card'); if (dailyCard) dailyCard.hidden = true;
     const topCard = document.getElementById('analytics-top-card'); if (topCard) topCard.hidden = true;
+    const visitsCard = document.getElementById('analytics-visits-card'); if (visitsCard) visitsCard.hidden = true;
     const period = (document.getElementById('analytics-period') || {}).value || '7d';
     try {
       const [res, visits] = await Promise.all([
@@ -3872,6 +3881,36 @@
     if (vs && num(vs.totalViews) !== null) cells.push(overviewCard('Menu views', String(num(vs.totalViews))));
     if (vs && num(vs.uniqueVisitors) !== null) cells.push(overviewCard('Unique visitors', String(num(vs.uniqueVisitors))));
     stats.innerHTML = cells.length ? cells.join('') : '<div class="state-panel" style="grid-column:1/-1"><h3>No analytics for this period</h3><p>Try another period or check back after more orders.</p></div>';
+
+    // Customer menu-view detail: the daily trend and the view-type split. Both
+    // come straight from GET /vendor/analytics/visits (data.daily,
+    // data.byEventType). When the beacon has recorded nothing yet the endpoint
+    // returns zeros, so we show an honest empty state instead of a blank card.
+    const vd = visitsRes && visitsRes.data;
+    if (vd && vd.summary) {
+      const card = document.getElementById('analytics-visits-card');
+      const host = document.getElementById('analytics-visits');
+      if (card && host) {
+        card.hidden = false;
+        const views = num(vd.summary.totalViews) || 0;
+        const uniques = num(vd.summary.uniqueVisitors) || 0;
+        const rows = Array.isArray(vd.daily) ? vd.daily.filter(r => num(r.views) > 0).slice(-14) : [];
+        const types = Array.isArray(vd.byEventType) ? vd.byEventType : [];
+        const typeLabel = { menu_view: 'Menu opened', restaurant_view: 'Restaurant page' };
+        let html = '<div class="list-row"><div class="lr-main"><div class="lr-title">' + views + ' total views · ' + uniques + ' unique visitors</div>' +
+          '<div class="lr-sub">One view per customer per day is counted, so refreshing the page does not inflate this number.</div></div></div>';
+        if (rows.length) {
+          html += rows.map(r => '<div class="list-row"><div class="lr-main"><div class="lr-title">' + escapeHtml(str(r.day).slice(0, 10)) + '</div>' +
+            '<div class="lr-sub">' + (num(r.views) || 0) + ' views · ' + (num(r.uniqueVisitors) || 0) + ' unique</div></div></div>').join('');
+        }
+        if (types.length) {
+          html += types.map(t => '<div class="list-row"><div class="lr-main"><div class="lr-title">' + escapeHtml(typeLabel[t.eventType] || enumLabel(t.eventType)) + '</div>' +
+            '<div class="lr-sub">' + (num(t.count) || 0) + ' views</div></div></div>').join('');
+        }
+        if (!views) html = '<div class="state-panel" style="border:0;box-shadow:none;"><h3>No menu views yet</h3><p>Views appear here once customers open your restaurant page or menu on the Eatswada customer app.</p></div>';
+        host.innerHTML = html;
+      }
+    }
     const daily = Array.isArray(d.daily) ? d.daily : [];
     if (daily.length) { const card = document.getElementById('analytics-daily-card'); if (card) card.hidden = false; document.getElementById('analytics-daily').innerHTML = daily.map(row => { const day = str(row.date || row.day || row._id).slice(0, 10); const orders = num(row.orders != null ? row.orders : row.count); const amount = num(row.deliveredSales != null ? row.deliveredSales : row.sales); return '<div class="list-row"><div class="lr-main"><div class="lr-title">' + escapeHtml(day) + '</div><div class="lr-sub">' + (orders !== null ? orders + ' orders' : '') + (amount !== null ? (orders !== null ? ' · ' : '') + money(amount) : '') + '</div></div></div>'; }).join(''); }
     const top = Array.isArray(d.topItems) ? d.topItems : [];
