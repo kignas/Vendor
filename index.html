@@ -643,8 +643,12 @@
     <section class="dashboard-section" id="section-menu" hidden>
       <div class="toolbar-row">
         <span id="menuCount">Loading…</span>
-        <button class="btn accept" id="menuAddBtn" type="button" style="padding:8px 12px;font-size:13px;">+ Add item</button>
+        <div class="inline-actions">
+          <button class="btn ghost" id="menuReorderBtn" type="button" style="padding:8px 12px;font-size:13px;" disabled>Reorder</button>
+          <button class="btn accept" id="menuAddBtn" type="button" style="padding:8px 12px;font-size:13px;">+ Add item</button>
+        </div>
       </div>
+      <div class="stat-note" id="menuReorderNote" style="margin:-4px 0 10px;" hidden></div>
       <div class="card" style="padding:10px 12px;margin-bottom:12px;">
         <input id="menuSearch" type="search" placeholder="Search items…" style="width:100%;border:0;background:transparent;font-family:var(--font-body);font-size:14px;font-weight:600;outline:none;" />
       </div>
@@ -1318,7 +1322,23 @@
     menuEdit: false,
     // NOT SUPPORTED: deleteVendorMenuItem exists in the controller but
     // `router.delete('/menu/:id')` is NOT mounted in routes/vendorRoutes.js.
-    menuDelete: false
+    menuDelete: false,
+    // PUT /menu/reorder accepts { items:[{ id, sortOrder }] } and persists the
+    // order (vendorMarketplaceController.reorderVendorMenu).
+    menuReorder: true,
+    // GET /alerts — server-authoritative attention list (menu approval, stock,
+    // orders needing a response). Falls back to local derivation if unavailable.
+    serverAlerts: true,
+    // GET /activity — the VendorActivity audit log (real server events).
+    serverActivity: true,
+    // GET /dashboard — today's summary + pending settlement + alert counts.
+    serverDashboard: true,
+    // GET /capacity — canonical activeStatuses for the "active orders" count.
+    serverCapacity: true,
+    // GET /onboarding/config — settlement schedules, capacity bounds, policies.
+    onboardingConfig: true,
+    // GET /policies — accepted policy version ids + profile policy URLs.
+    policies: true
   });
 
   const state = {
@@ -1335,7 +1355,10 @@
     pendingRestockItemId: null, pendingRestockWasInStock: null, reviewViewId: null, rvDetailed: false,
     platform: null, rushMode: false, menuOnlineCount: null,
     complaints: [], complaintViewId: null, disputeBusy: false, pendingDisputeId: null,
-    financeTab: 'ledger', payouts: [], payoutBusy: false, earningsRows: []
+    financeTab: 'ledger', payouts: [], payoutBusy: false, earningsRows: [],
+    serverAlerts: null, serverActivity: null, onboarding: null, dashboard: null,
+    policies: null, activeStatuses: null,
+    menuReorderMode: false, menuOrder: []
   };
 
   const el = {
@@ -1542,6 +1565,16 @@
 
   function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  // Only http(s) URLs may become links. Anything else (javascript:, data:, …)
+  // returns '' so a server-supplied policy URL can never inject a script.
+  function safeUrl(u) {
+    const s = String(u ?? '').trim();
+    if (!s) return '';
+    try {
+      const parsed = new URL(s, location.href);
+      return (parsed.protocol === 'http:' || parsed.protocol === 'https:') ? s : '';
+    } catch (_) { return ''; }
   }
 
   /* ---- Order card helpers -------------------------------------------------
@@ -2979,11 +3012,42 @@
   function overviewCard(label, value) {
     return '<div class="earnings-card"><div class="earnings-label">' + label + '</div><div class="earnings-value">' + value + '</div></div>';
   }
+  function pendingOrderCount() {
+    const serverPending = Array.isArray(state.serverAlerts)
+      ? state.serverAlerts.filter(x => x && x.type === 'order_action').length
+      : null;
+    return serverPending !== null
+      ? serverPending
+      : state.queue.filter(o => o.status === 'placed' && !isScheduledOrder(o)).length;
+  }
   function refreshOverviewCounts() {
     const p = document.getElementById('ovPending');
     const a = document.getElementById('ovActive');
-    if (p) p.textContent = String(state.queue.filter(o => o.status === 'placed' && !isScheduledOrder(o)).length);
-    if (a) a.textContent = String(state.queue.filter(o => ['confirmed','preparing','waiting_for_rider','assigned','out_for_delivery'].includes(o.status)).length);
+    // Pending = orders that actually need a vendor response. The server's own
+    // /alerts order_action list already excludes unpaid UPI orders (they are not
+    // the vendor's problem), so when we have it we use its count; otherwise we
+    // fall back to placed, non-scheduled orders.
+    if (p) p.textContent = String(pendingOrderCount());
+    if (a) a.textContent = String(state.queue.filter(o => activeStatuses().includes(o.status)).length);
+  }
+  // The statuses the backend counts as "active" come from GET /vendor/capacity
+  // (activeStatuses). The local constant is only a fallback so the count still
+  // renders before the endpoint answers.
+  function activeStatuses() {
+    return Array.isArray(state.activeStatuses) && state.activeStatuses.length
+      ? state.activeStatuses
+      : ['placed', 'confirmed', 'preparing', 'waiting_for_rider', 'assigned', 'out_for_delivery', 'otp_verified'];
+  }
+  async function loadCapacity() {
+    if (!caps.serverCapacity) return;
+    try {
+      const res = await apiFetch('/capacity');
+      const d = (res && res.data) || null;
+      if (d && Array.isArray(d.activeStatuses) && d.activeStatuses.length) {
+        state.activeStatuses = d.activeStatuses;
+        refreshOverviewCounts();
+      }
+    } catch (_) { /* keep the local fallback */ }
   }
   function renderOverviewStatus() {
     const s = document.getElementById('ov-status');
@@ -3014,6 +3078,9 @@
     renderOverviewDocs();
     renderAlerts();
     renderActivity();
+    loadAlerts();
+    loadActivity();
+    loadCapacity();
     cards.innerHTML = overviewCard('Loading', '…').repeat(4);
     try {
       const [today, month] = await Promise.all([
@@ -3022,8 +3089,17 @@
       ]);
       const t = (today && today.data && today.data.current) || {};
       const m = (month && month.data && month.data.current) || {};
-      const pending = state.queue.filter(o => o.status === 'placed').length;
-      const active = state.queue.filter(o => ['confirmed','preparing','waiting_for_rider','assigned','out_for_delivery'].includes(o.status)).length;
+      const pending = pendingOrderCount();
+      const active = state.queue.filter(o => activeStatuses().includes(o.status)).length;
+      // GET /vendor/dashboard adds the pending-settlement figure and the
+      // server's own alert counts. It is optional: if it fails the cards below
+      // still render from the earnings endpoints.
+      let dash = state.dashboard;
+      if (caps.serverDashboard) {
+        try { const d = await apiFetch('/dashboard'); dash = state.dashboard = (d && d.data) || null; }
+        catch (_) { dash = state.dashboard; }
+      }
+      const pendingSettlement = dash && dash.pendingSettlement != null ? dash.pendingSettlement : null;
       cards.innerHTML =
         '<div class="earnings-card"><div class="earnings-label">Pending orders</div><div class="earnings-value" id="ovPending">' + pending + '</div></div>' +
         '<div class="earnings-card"><div class="earnings-label">Active orders</div><div class="earnings-value" id="ovActive">' + active + '</div></div>' +
@@ -3032,7 +3108,9 @@
         overviewCard('30-day sales', money(m.deliveredFoodSales)) +
         overviewCard('30-day earnings', money(m.deliveredEarnings)) +
         overviewCard('Commission (30d)', money(m.deliveredCommission)) +
-        overviewCard('In progress', money(t.inProgress));
+        (pendingSettlement !== null
+          ? overviewCard('Pending settlement', money(pendingSettlement))
+          : overviewCard('In progress', money(t.inProgress)));
     } catch (err) {
       if (err.message === 'Your session has expired.') return;
       cards.innerHTML = '<div class="state-panel" style="grid-column:1/-1"><h3>Couldn\u2019t load overview</h3><p>' + escapeHtml(err.message || 'Please try again.') + '</p></div>';
@@ -3123,7 +3201,7 @@
     if (name === 'menu' && !state.menuLoaded) loadMenu();
     if (name === 'earnings') { loadEarnings(); loadFinance(); if (state.financeTab === 'payouts') loadPayouts(); }
     if (name === 'reviews') loadReviews();
-    if (name === 'store') { renderStore(); loadProfile(); }
+    if (name === 'store') { renderStore(); loadProfile(); loadPolicies(); }
     if (name === 'inventory') loadInventory();
     if (name === 'analytics') loadAnalytics();
     if (name === 'support') loadSupport();
@@ -3148,7 +3226,7 @@
     return '<span class="badge ' + a + '">' + label + '</span>';
   }
 
-  function renderMenuCard(item) {
+  function renderMenuCard(item, idx, total) {
     const card = document.createElement('article');
     card.className = 'menu-card' + (item.inStock ? '' : ' out-of-stock'); card.dataset.id = item._id;
     const img = item.image
@@ -3179,6 +3257,12 @@
     const invBtn = caps.inventoryQty
       ? '<button class="btn ghost" type="button" data-menu-inventory="' + item._id + '" style="padding:6px 10px;font-size:12px;">Stock</button>'
       : '';
+    // Reorder controls are only rendered in reorder mode and only for the
+    // mounted PUT /menu/reorder route.
+    const reorderCtl = (caps.menuReorder && state.menuReorderMode)
+      ? '<button class="btn ghost" type="button" data-menu-up="' + item._id + '" ' + (idx === 0 ? 'disabled' : '') + ' style="padding:6px 8px;font-size:12px;" aria-label="Move up">▲</button>' +
+        '<button class="btn ghost" type="button" data-menu-down="' + item._id + '" ' + (idx === total - 1 ? 'disabled' : '') + ' style="padding:6px 8px;font-size:12px;" aria-label="Move down">▼</button>'
+      : '';
     card.innerHTML = img +
       '<div class="menu-card-body">' +
         '<div class="menu-card-name">' + escapeHtml(item.name) + '</div>' +
@@ -3193,7 +3277,7 @@
           '<span class="menu-card-meta">' + (item.inStock ? 'In stock' : 'Out of stock') + '</span>' +
           qty +
           '<span style="flex:1"></span>' +
-          invBtn + editBtn + delBtn +
+          reorderCtl + invBtn + editBtn + delBtn +
         '</div>' + autoNote +
       '</div>';
     return card;
@@ -3212,10 +3296,71 @@
     if (q) items = items.filter(i => String(i.name || '').toLowerCase().includes(q) || String(i.category || '').toLowerCase().includes(q));
     el.menuCount.textContent = state.menuItems.length ? (state.menuItems.length + ' items') : '';
     renderOutletMenuChip();
+    const reorderBtn = document.getElementById('menuReorderBtn');
+    const note = document.getElementById('menuReorderNote');
+    if (reorderBtn) reorderBtn.disabled = !caps.menuReorder || state.menuItems.length < 2;
+    if (note) {
+      if (state.menuReorderMode) { note.hidden = false; note.textContent = 'Reorder mode: use ▲ / ▼ to set the order customers see, then Save order.'; }
+      else note.hidden = true;
+    }
     el.menuGrid.innerHTML = '';
     if (!state.menuItems.length) { el.menuGrid.appendChild(renderEmpty('menu')); return; }
     if (!items.length) { const d = document.createElement('div'); d.className = 'state-panel'; d.innerHTML = '<h3>No matches</h3><p>No items match your search.</p>'; el.menuGrid.appendChild(d); return; }
-    [...items].sort((a, b) => String(a.category || '').localeCompare(String(b.category || '')) || String(a.name || '').localeCompare(String(b.name || ''))).forEach(item => el.menuGrid.appendChild(renderMenuCard(item)));
+    // The backend returns the menu ordered by sortOrder then createdAt
+    // (vendorController.getVendorMenu). Respect that persisted order instead of
+    // re-sorting by category, so the vendor's saved arrangement is what shows.
+    const ordered = [...items].sort((a, b) => {
+      const ao = Number.isFinite(Number(a.sortOrder)) ? Number(a.sortOrder) : 0;
+      const bo = Number.isFinite(Number(b.sortOrder)) ? Number(b.sortOrder) : 0;
+      if (ao !== bo) return ao - bo;
+      return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+    });
+    ordered.forEach((item, idx) => el.menuGrid.appendChild(renderMenuCard(item, idx, ordered.length)));
+  }
+
+  /* PUT /vendor/menu/reorder — persists a new order for the vendor's own items.
+     Body: { items:[{ id, sortOrder }] } (0-based, unique ids). The backend
+     rejects ids that do not belong to this restaurant, so no ownership check is
+     duplicated here. */
+  async function saveMenuOrder() {
+    const btn = document.getElementById('menuReorderSave'); if (btn) btn.disabled = true;
+    const items = state.menuOrder.map((id, i) => ({ id: id, sortOrder: i }));
+    if (!items.length) { showToast('error', 'Nothing to save.'); if (btn) btn.disabled = false; return; }
+    try {
+      const res = await apiFetch('/menu/reorder', { method: 'PUT', body: JSON.stringify({ items: items }), headers: { 'Content-Type': 'application/json' } });
+      showToast('success', (res && res.message) || 'Menu order saved.');
+      state.menuReorderMode = false;
+      await loadMenu();
+    } catch (err) { showToast('error', err.message || 'Could not save the menu order.'); }
+    finally { if (btn) btn.disabled = false; }
+  }
+  function moveMenuItem(id, dir) {
+    const order = state.menuOrder;
+    const i = order.indexOf(id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= order.length) return;
+    const tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+    renderMenuList();
+  }
+  function toggleMenuReorder() {
+    state.menuReorderMode = !state.menuReorderMode;
+    if (state.menuReorderMode) {
+      state.menuOrder = [...state.menuItems].sort((a, b) => {
+        const ao = Number.isFinite(Number(a.sortOrder)) ? Number(a.sortOrder) : 0;
+        const bo = Number.isFinite(Number(b.sortOrder)) ? Number(b.sortOrder) : 0;
+        return ao - bo || new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+      }).map(i => i._id);
+      const bar = document.getElementById('menuReorderNote');
+      if (bar && !document.getElementById('menuReorderSave')) {
+        bar.insertAdjacentHTML('afterend', '<div class="inline-actions" id="menuReorderBar" style="margin:-4px 0 10px;"><button class="btn accept" id="menuReorderSave" type="button" style="padding:8px 12px;font-size:13px;">Save order</button><button class="btn ghost" id="menuReorderCancel" type="button" style="padding:8px 12px;font-size:13px;">Cancel</button></div>');
+        document.getElementById('menuReorderSave').addEventListener('click', saveMenuOrder);
+        document.getElementById('menuReorderCancel').addEventListener('click', () => { const b = document.getElementById('menuReorderBar'); if (b) b.remove(); state.menuReorderMode = false; renderMenuList(); });
+      }
+    } else {
+      const b = document.getElementById('menuReorderBar'); if (b) b.remove();
+    }
+    const btn = document.getElementById('menuReorderBtn'); if (btn) btn.textContent = state.menuReorderMode ? 'Reordering…' : 'Reorder';
+    renderMenuList();
   }
 
   async function loadMenu() {
@@ -3474,15 +3619,40 @@
       profileRow('Joined', r.createdAt || r.joinedAt ? new Date(r.createdAt || r.joinedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '', true)
     ];
     const canEdit = caps.profileEdit;
+    // GET /vendor/profile embeds the policy document URLs; GET /vendor/policies
+    // returns the accepted policy version identifiers. Both are informational —
+    // no vendor action depends on them — so we render them as links/ids only.
+    const pol = (r.policies && typeof r.policies === 'object') ? r.policies : {};
+    const policyBits = [];
+    if (pol.privacyPolicyUrl) policyBits.push('<a href="' + escapeHtml(safeUrl(pol.privacyPolicyUrl) || '') + '" target="_blank" rel="noopener noreferrer">Privacy policy</a>');
+    if (pol.termsUrl) policyBits.push('<a href="' + escapeHtml(safeUrl(pol.termsUrl) || '') + '" target="_blank" rel="noopener noreferrer">Terms of service</a>');
+    const ver = state.policies && typeof state.policies === 'object' ? state.policies : null;
+    const verBits = ver ? Object.keys(ver).filter(k => k !== 'note' && ver[k]).map(k => enumLabel(k) + ' ' + escapeHtml(str(ver[k]))) : [];
+    const policyBlock = (policyBits.length || verBits.length)
+      ? '<div class="stat-note" style="margin-top:10px;">' +
+          (policyBits.length ? 'Policies: ' + policyBits.join(' · ') + '. ' : '') +
+          (verBits.length ? 'Accepted versions: ' + verBits.join(' · ') + '.' : '') +
+        '</div>'
+      : '';
     body.innerHTML = rows.join('') +
       '<div class="inline-actions" style="margin-top:10px;">' +
         (canEdit ? '<button class="btn accept" id="profileEditBtn" type="button">Edit profile</button>' : '') +
-      '</div>' +
+      '</div>' + policyBlock +
       '<div class="stat-note" style="margin-top:10px;">' + (canEdit
         ? 'You can change your name, phone, cuisine, address, description and cover image. Commission, verification and ranking are managed by Eatswada admin.'
         : 'Profile fields are read-only. The backend exposes no vendor profile-update endpoint, so profile changes are handled by Eatswada admin.') + '</div>';
     const editBtn = document.getElementById('profileEditBtn');
     if (editBtn) editBtn.addEventListener('click', () => openProfileEditor(v2.profile || {}));
+  }
+  /* GET /vendor/policies — accepted policy version identifiers (public read).
+     Rendered on the profile screen; failure is silent and non-blocking. */
+  async function loadPolicies() {
+    if (!caps.policies) return;
+    try {
+      const res = await apiFetch('/policies');
+      state.policies = (res && res.data) || null;
+      if (state.policies) renderProfile(v2.profile || state.restaurant || {});
+    } catch (_) { state.policies = null; }
   }
   function openProfileEditor(r) {
     r = r || {};
@@ -4075,6 +4245,13 @@
   async function loadSettings() {
     const body = document.getElementById('settingsBody'); if (!body) return;
     body.innerHTML = '<div class="state-panel" style="border:0;box-shadow:none;">Loading settings…</div>';
+    // GET /onboarding/config supplies the allowed settlement schedules and the
+    // maxActiveOrders bounds the backend enforces. It is optional; when absent we
+    // fall back to the documented defaults (weekly/monthly, 1–500).
+    if (caps.onboardingConfig && !state.onboarding) {
+      try { const cfg = await apiFetch('/onboarding/config'); state.onboarding = (cfg && cfg.data) || null; }
+      catch (_) { state.onboarding = null; }
+    }
     try {
       const res = await apiFetch('/settings');
       const d = (res && res.data) || res || {};
@@ -4087,16 +4264,21 @@
     const cap = num(d.maxActiveOrders);
     const active = num(d.activeOrders);
     const slots = num(d.availableSlots);
+    // Bounds and schedule list come from the server when available, so the form
+    // can never offer a value the backend would reject.
+    const cfg = state.onboarding || {};
+    const capMin = cfg.maxActiveOrders && num(cfg.maxActiveOrders.min) !== null ? num(cfg.maxActiveOrders.min) : 1;
+    const capMax = cfg.maxActiveOrders && num(cfg.maxActiveOrders.max) !== null ? num(cfg.maxActiveOrders.max) : 500;
+    const schedules = Array.isArray(cfg.settlementSchedules) && cfg.settlementSchedules.length ? cfg.settlementSchedules : ['weekly', 'monthly'];
     const rows = [];
     if (d.deliveryMode) rows.push(profileRow('Delivery mode', d.deliveryMode === 'self_delivery' ? 'Self delivery' : 'Eatswada delivery', true));
     if (d.commissionRate != null) rows.push(profileRow('Commission rate', d.commissionRate + '%', true));
     if (d.commissionPlan) rows.push(profileRow('Commission plan', enumLabel(d.commissionPlan), true));
     if (active !== null && cap !== null) rows.push(profileRow('Active orders right now', active + ' of ' + cap + (slots !== null ? ' · ' + slots + ' slot' + (slots === 1 ? '' : 's') + ' free' : '')));
     body.innerHTML = rows.join('') +
-      '<div class="form-field"><label for="setMaxActive">Maximum active orders</label><input id="setMaxActive" type="number" min="1" max="500" step="1" inputmode="numeric" value="' + (cap !== null ? cap : '') + '" /></div>' +
+      '<div class="form-field"><label for="setMaxActive">Maximum active orders</label><input id="setMaxActive" type="number" min="' + capMin + '" max="' + capMax + '" step="1" inputmode="numeric" value="' + (cap !== null ? cap : '') + '" /></div>' +
       '<div class="form-field"><label for="setSchedule">Payout schedule</label><select id="setSchedule">' +
-        '<option value="weekly"' + (d.settlementSchedule === 'weekly' ? ' selected' : '') + '>Weekly</option>' +
-        '<option value="monthly"' + (d.settlementSchedule === 'monthly' ? ' selected' : '') + '>Monthly</option>' +
+        schedules.map(s => '<option value="' + escapeHtml(s) + '"' + (d.settlementSchedule === s ? ' selected' : '') + '>' + escapeHtml(enumLabel(s)) + '</option>').join('') +
       '</select></div>' +
       '<div class="stat-note">Delivery ownership and commission are set by Eatswada admin.</div>' +
       '<div class="inline-actions" style="margin-top:12px;"><button class="btn accept" id="settingsSaveBtn" type="button">Save settings</button></div>';
@@ -4156,6 +4338,27 @@
   /* ---- Alerts & activity (derived from real backend data only) ---- */
   function renderAlerts() {
     const box = document.getElementById('ov-alerts'); if (!box) return;
+    // Prefer the server's authoritative alert list (GET /vendor/alerts). It is
+    // built from the restaurant's real menu approval state, tracked stock and
+    // orders that still need a response. We only fall back to a locally derived
+    // list when the endpoint has not answered (offline / older backend).
+    const server = state.serverAlerts;
+    if (Array.isArray(server) && server.length) {
+      box.hidden = false;
+      const gotoFor = (type) => {
+        const t = String(type || '');
+        if (t === 'order_action') return 'orders';
+        if (t === 'low_stock' || t === 'out_of_stock') return 'inventory';
+        if (t === 'menu_pending' || t === 'menu_rejected') return 'menu';
+        return 'home';
+      };
+      box.innerHTML = '<div class="list-card-head">Alerts</div>' + server.slice(0, 12).map(a => {
+        const goto = gotoFor(a.type);
+        return '<button class="list-row" type="button" data-goto2="' + goto + '" style="width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border-soft);cursor:pointer;"><div class="lr-main"><div class="lr-title">' + escapeHtml(str(a.title || enumLabel(a.type))) + '</div><div class="lr-sub">' + escapeHtml(str(a.message || '')) + (a.createdAt ? ' · ' + escapeHtml(timeAgo(a.createdAt)) : '') + '</div></div><span style="color:var(--ink-faint);">›</span></button>';
+      }).join('');
+      box.querySelectorAll('[data-goto2]').forEach(b => b.addEventListener('click', () => switchSection(b.dataset.goto2)));
+      return;
+    }
     const alerts = [];
     const status = state.currentStatus;
     if (status && status !== 'open') alerts.push({ t: 'Restaurant is ' + enumLabel(status).toLowerCase(), s: 'Customers may not be able to order right now.', goto: 'store' });
@@ -4172,8 +4375,30 @@
     box.innerHTML = '<div class="list-card-head">Alerts</div>' + alerts.map(a => '<button class="list-row" type="button" data-goto2="' + a.goto + '" style="width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--border-soft);cursor:pointer;"><div class="lr-main"><div class="lr-title">' + escapeHtml(a.t) + '</div><div class="lr-sub">' + escapeHtml(a.s) + '</div></div><span style="color:var(--ink-faint);">›</span></button>').join('');
     box.querySelectorAll('[data-goto2]').forEach(b => b.addEventListener('click', () => switchSection(b.dataset.goto2)));
   }
+  /* GET /vendor/alerts — the server's own attention list. Restaurant-scoped
+     (req.user.restaurantId), so it can only ever describe this restaurant. */
+  async function loadAlerts() {
+    if (!caps.serverAlerts) return;
+    try {
+      const res = await apiFetch('/alerts');
+      state.serverAlerts = Array.isArray(res?.data) ? res.data : null;
+    } catch (_) { state.serverAlerts = null; }
+    renderAlerts();
+    refreshOverviewCounts();
+  }
   function renderActivity() {
     const box = document.getElementById('ov-activity'); if (!box) return;
+    // GET /vendor/activity is the real audit log (VendorActivity rows written by
+    // the backend on menu submission, order actions, etc.). It is more accurate
+    // than reconstructing history from the current order/menu lists, so it wins
+    // when present; the local derivation is only the offline fallback.
+    const server = state.serverActivity;
+    if (Array.isArray(server) && server.length) {
+      box.hidden = false;
+      box.innerHTML = '<div class="list-card-head">Recent activity</div>' + server.slice(0, 8).map(e =>
+        '<div class="list-row"><div class="lr-main"><div class="lr-title" style="font-size:13px;">' + escapeHtml(str(e.message || enumLabel(e.type))) + '</div><div class="lr-sub">' + (e.createdAt ? escapeHtml(timeAgo(e.createdAt)) : '') + '</div></div></div>').join('');
+      return;
+    }
     const events = [];
     const orders = (state.history && state.history.length ? state.history : state.queue) || [];
     orders.slice(0, 6).forEach(o => {
@@ -4189,6 +4414,16 @@
     if (!events.length) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false;
     box.innerHTML = '<div class="list-card-head">Recent activity</div>' + events.slice(0, 8).map(e => '<div class="list-row"><div class="lr-main"><div class="lr-title" style="font-size:13px;">' + escapeHtml(e.t) + '</div><div class="lr-sub">' + (e.at ? timeAgo(e.at) : '') + '</div></div></div>').join('');
+  }
+  /* GET /vendor/activity — the server-side VendorActivity log. Scoped to the
+     vendor's own restaurant; used in place of the locally reconstructed feed. */
+  async function loadActivity() {
+    if (!caps.serverActivity) return;
+    try {
+      const res = await apiFetch('/activity');
+      state.serverActivity = Array.isArray(res?.data) ? res.data : null;
+    } catch (_) { state.serverActivity = null; }
+    renderActivity();
   }
 
   /* ====================================================================
@@ -4672,13 +4907,17 @@
   document.querySelectorAll('[data-more]').forEach(b => b.addEventListener('click', () => { closeMoreSheet(); switchSection(b.dataset.more); }));
 
   document.getElementById('menuAddBtn')?.addEventListener('click', () => openMenuEditor(null));
+  document.getElementById('menuReorderBtn')?.addEventListener('click', toggleMenuReorder);
   document.getElementById('menuSearch')?.addEventListener('input', renderMenuList);
   el.menuGrid.addEventListener('click', (e) => {
     const edit = e.target.closest('[data-menu-edit]'); const del = e.target.closest('[data-menu-del]');
     const inv = e.target.closest('[data-menu-inventory]');
+    const up = e.target.closest('[data-menu-up]'); const down = e.target.closest('[data-menu-down]');
     if (edit) { const it = state.menuItems.find(i => i._id === edit.dataset.menuEdit); if (it) openMenuEditor(it); }
     if (del) deleteMenuItem(del.dataset.menuDel);
     if (inv) openInventorySheet(inv.dataset.menuInventory);
+    if (up) moveMenuItem(up.dataset.menuUp, -1);
+    if (down) moveMenuItem(down.dataset.menuDown, 1);
   });
   document.querySelectorAll('#menuSheet .chip[data-veg]').forEach(c => c.addEventListener('click', () => setVegChip(c.dataset.veg === '1')));
   document.getElementById('menuSheetCancel')?.addEventListener('click', () => closeModal('menuSheet'));
