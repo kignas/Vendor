@@ -28,12 +28,18 @@
 
   window.EATSWADA_CONFIG = {
     API_ORIGIN: API_ORIGIN,
+    API: API,
     ACTIVE_API: ACTIVE_API,
     CONFIG_ERROR: CONFIG_ERROR,
     API_BASE: API ? API + '/vendor' : '',
     AUTH_BASE: API ? API + '/auth' : '',
     APPLICATIONS_BASE: API ? API + '/vendor-applications' : '',
     NOTIFICATIONS_BASE: API ? API + '/notifications' : '',
+    // GET /platform/public-status — the only platform snapshot a non-admin may
+    // read (routes/platformRoutes.js gates /settings behind admin + settings.manage).
+    PLATFORM_BASE: API ? API + '/platform' : '',
+    // GET /settlements/... — admin-only in the backend; the vendor-scoped
+    // equivalents live under /vendor/settlements/* and are the ones used here.
     TOKEN_KEY: 'nearbite_vendor_token',
     USER_KEY: 'nearbite_vendor_user',
     RESTAURANT_KEY: 'nearbite_vendor_restaurant',

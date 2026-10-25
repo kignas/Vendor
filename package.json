@@ -5,7 +5,7 @@
   "description": "Android packaging for Eatswada Vendor",
   "scripts": {
     "android:prepare": "node scripts/prepare-www.mjs",
-    "test": "node --test tests/contract.test.mjs tests/dom.smoke.test.mjs"
+    "test": "node --test tests/contract.test.mjs tests/upgrade-features.test.mjs tests/dom.smoke.test.mjs"
   },
   "devDependencies": {
     "@capacitor/android": "8.5.2",

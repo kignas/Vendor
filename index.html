@@ -1039,8 +1039,10 @@
           <span class="hint" id="miImageHint">No image selected.</span>
         </div>
         <div class="switch-row"><div><strong>In stock</strong><span class="hint">Customers can order this item</span></div><label class="switch"><input type="checkbox" id="miInStock" checked /><span class="track"></span></label></div>
-        <div class="switch-row"><div><strong>Bestseller</strong><span class="hint">Highlight as a popular item</span></div><label class="switch"><input type="checkbox" id="miBestseller" /><span class="track"></span></label></div>
-        <div class="switch-row"><div><strong>Recommended</strong><span class="hint">Show in recommended section</span></div><label class="switch"><input type="checkbox" id="miRecommended" /><span class="track"></span></label></div>
+        <div class="switch-row"><div><strong>Track stock quantity</strong><span class="hint">Reduce the count automatically as orders are accepted</span></div><label class="switch"><input type="checkbox" id="miTrackStock" /><span class="track"></span></label></div>
+        <div class="form-field"><label for="miStockQty">Units available</label><input id="miStockQty" type="number" min="0" step="1" inputmode="numeric" value="0" disabled /></div>
+        <div class="form-field"><label for="miLowStock">Low-stock alert at</label><input id="miLowStock" type="number" min="0" step="1" inputmode="numeric" value="5" disabled /></div>
+        <div class="stat-note">New items are reviewed by Eatswada before they go live. Bestseller and Recommended badges are set by Eatswada admin.</div>
       </div>
       <div class="modal-actions">
         <button class="btn ghost" id="menuSheetCancel" type="button">Cancel</button>
@@ -1055,7 +1057,6 @@
       <h3>Legacy withdrawal request</h3>
       <p id="withdrawSub">Eatswada now follows a 7-day payout cycle for eligible earnings. Contact support if a payout is missing.</p>
       <div class="form-field"><label for="wdAmount">Amount (₹)</label><input id="wdAmount" type="number" min="1" step="1" inputmode="numeric" /></div>
-      <div class="form-field"><label for="wdNote">Note (optional)</label><input id="wdNote" type="text" maxlength="140" /></div>
       <div class="modal-actions">
         <button class="btn ghost" id="withdrawCancel" type="button">Cancel</button>
         <button class="btn accept" id="withdrawSubmit" type="button">Request withdrawal</button>
@@ -1179,6 +1180,56 @@
     </div>
   </div>
 
+  <!-- Per-item stock sheet (PUT /vendor/menu/:id/inventory) -->
+  <div class="modal-overlay" id="invSheet">
+    <div class="modal">
+      <h3 id="invSheetTitle">Update stock</h3>
+      <p id="invSheetSub">Update how many units are left. Quantity is enforced by the server when an order is accepted.</p>
+      <div class="switch-row"><div><strong>Track stock quantity</strong><span class="hint">Reduce the count automatically as orders are accepted</span></div><label class="switch"><input type="checkbox" id="inviTrack" /><span class="track"></span></label></div>
+      <div class="form-field"><label for="inviQty">Units available</label><input id="inviQty" type="number" min="0" step="1" inputmode="numeric" /></div>
+      <div class="form-field"><label for="inviLow">Low-stock alert at</label><input id="inviLow" type="number" min="0" step="1" inputmode="numeric" /></div>
+      <div class="switch-row"><div><strong>Available to order</strong><span class="hint">Switch off to hide the item without changing quantity</span></div><label class="switch"><input type="checkbox" id="inviAvailable" checked /><span class="track"></span></label></div>
+      <div class="list-card-head" style="margin-top:14px;">Recent stock movements</div>
+      <div id="inviHistory" style="max-height:32vh;overflow-y:auto;"><div class="stat-note">Loading stock history…</div></div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="invSheetCancel" type="button">Cancel</button>
+        <button class="btn accept" id="invSheetSave" type="button">Save stock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Self-delivery: verify the customer's delivery PIN -->
+  <div class="modal-overlay" id="otpSheet">
+    <div class="modal">
+      <h3>Verify delivery PIN</h3>
+      <p id="otpSheetSub">Ask the customer for the 4-digit PIN shown on their order. The order is marked delivered only after the PIN is verified.</p>
+      <div class="form-field"><label for="otpInput">4-digit PIN</label><input id="otpInput" type="text" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" /></div>
+      <div class="stat-note" id="otpError" style="color:var(--danger);"></div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="otpCancel" type="button">Cancel</button>
+        <button class="btn accept" id="otpSubmit" type="button">Verify PIN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restaurant profile editor (PUT /vendor/restaurant/profile) -->
+  <div class="modal-overlay" id="profileSheet">
+    <div class="modal">
+      <h3>Edit restaurant profile</h3>
+      <p>Only the fields Eatswada lets a vendor change are shown. Ranking badges, commission and verification are admin-controlled.</p>
+      <div class="form-field"><label for="pfName">Restaurant name</label><input id="pfName" type="text" maxlength="100" /></div>
+      <div class="form-field"><label for="pfPhone">Phone</label><input id="pfPhone" type="text" maxlength="20" /></div>
+      <div class="form-field"><label for="pfCuisine">Cuisine (comma separated)</label><input id="pfCuisine" type="text" maxlength="200" /></div>
+      <div class="form-field"><label for="pfAddress">Address</label><textarea id="pfAddress" maxlength="500"></textarea></div>
+      <div class="form-field"><label for="pfDescription">Description</label><textarea id="pfDescription" maxlength="1000"></textarea></div>
+      <div class="form-field"><label for="pfImage">Cover image URL</label><input id="pfImage" type="url" maxlength="2000" placeholder="https://…" /></div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="profileCancel" type="button">Cancel</button>
+        <button class="btn accept" id="profileSave" type="button">Save profile</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Menu stock: auto turn-on timer bottom sheet -->
   <div class="modal-overlay" id="restockSheet">
     <div class="modal">
@@ -1231,22 +1282,39 @@
   const MENU_API_BASE = API_BASE;
 
   /* Backend capability flags.
-     Every feature below depends on a backend contract that cannot be verified
-     from this repository. They default to OFF, so no unsupported request is
-     ever sent and no unverified figure is ever displayed as confirmed.
-     Enable one only by changing the literal below after the matching backend
-     contract is verified, and update tests/contract.test.mjs in the same change.
-     There is deliberately no URL query-parameter or other runtime override, so a
-     crafted link (?cap=...) cannot turn on an unverified backend request. */
+     Each flag states whether the Eatswada backend actually exposes the route
+     the feature needs. Every flag was verified against the backend source
+     (routes/vendorRoutes.js, controllers/vendorController.js,
+     controllers/vendorMarketplaceController.js) — see VENDOR-API-CONTRACT.md.
+
+     A false flag means NO request is sent and no unverified figure is shown;
+     the UI states the gap instead. There is deliberately no URL
+     query-parameter or other runtime override, so a crafted link (?cap=...)
+     cannot turn on an unverified backend request. */
   const caps = Object.freeze({
-    // Server returns a persisted prep deadline (e.g. order.estimatedReadyAt / prepReadyAt)
+    // order.prepReadyAt / estimatedReadyAt are returned by GET /orders
     prepCountdown: true,
-    // Server returns an authoritative per-order bill breakdown (vendorBill / settlement)
+    // order.commission + order.bill snapshots are returned by GET /orders
     billBreakdown: true,
-    // Server exposes automatic menu restocking scheduling
-    autoRestock: false,
-    // Server exposes complaint records and item-level ratings
-    complaints: false
+    // PUT /menu/:id/toggle-stock accepts { autoTurnOnAt }
+    autoRestock: true,
+    // POST /orders/:id/verify-delivery-otp (self-delivery restaurants only)
+    selfDeliveryOtp: true,
+    // PUT /menu/:id/inventory accepts stockQuantity/trackStock/lowStockThreshold
+    inventoryQty: true,
+    // PUT /restaurant/profile (vendor allow-list: name, address, phone, …)
+    profileEdit: true,
+    // GET /settlements/summary, /settlements/withdrawals, POST /settlements/withdraw
+    settlements: true,
+    // NOT SUPPORTED: the backend mounts no vendor complaint route.
+    // Complaints reach the vendor only through the admin console.
+    complaints: false,
+    // NOT SUPPORTED: updateVendorMenuItem exists in the controller but
+    // `router.put('/menu/:id')` is NOT mounted in routes/vendorRoutes.js.
+    menuEdit: false,
+    // NOT SUPPORTED: deleteVendorMenuItem exists in the controller but
+    // `router.delete('/menu/:id')` is NOT mounted in routes/vendorRoutes.js.
+    menuDelete: false
   });
 
   const state = {
@@ -1255,6 +1323,7 @@
     menuItems: [], menuLoaded: false, previousNewOrderCount: 0, initialQueueLoaded: false,
     queueRequest: 0, historyRequest: 0, menuRequest: 0, actionBusy: new Set(), consecutivePollErrors: 0, orderResponseTimer: null,
     orderSearch: '', orderQueryRequest: 0, orderQueryResults: null, prepTimer: null,
+    historyPage: 1, historyTotalPages: 1, historyTotal: 0,
     pendingSupportOrder: null, pendingSupportKind: null, capabilities: caps,
     reviews: [], rvTab: 'reviews', rvSearch: '', rvFilter: 'all', reviewReplyBusy: false,
     restockScheduledAt: null,
@@ -1765,6 +1834,21 @@
     return raw === undefined || raw === null || raw === '' ? '' : String(raw);
   }
 
+  /* Whether this order is eligible for vendor-side delivery PIN verification.
+     The backend gate is the restaurant's CURRENT deliveryMode:
+     vendorMarketplaceController.verifySelfDeliveryOtp returns 409 unless
+     `restaurant.deliveryMode === 'self_delivery'`. So the current setting is
+     authoritative here — the per-order snapshot is only a fallback for when the
+     restaurant document has not loaded yet. Gating this way means the button is
+     never shown for an order the server would refuse. */
+  function isSelfDeliveryOrder(order) {
+    const r = state.restaurant || {};
+    if (r.deliveryMode === 'self_delivery') return true;
+    if (r.deliveryMode === 'eatswada_rider') return false;
+    if (!order) return false;
+    return order.deliveryModeSnapshot === 'self_delivery';
+  }
+
   function ordinal(n) {
     const k = n % 100;
     if (k >= 11 && k <= 13) return n + 'th';
@@ -1877,7 +1961,16 @@
     }
     else if (order.status === 'waiting_for_rider') footHtml = `<span class="badge dispatch" title="Food is marked ready; Eatswada is looking for an available rider.">Food ready · Finding a rider…</span>`;
     else if (order.status === 'assigned') footHtml = `<span class="badge dispatch" title="A rider has been assigned to this order.">Rider assigned</span>`;
-    else if (order.status === 'out_for_delivery') footHtml = `<span class="badge dispatch">Picked up · Out for delivery</span>`;
+    else if (order.status === 'out_for_delivery') {
+      // Self-delivery restaurants deliver themselves, so the backend expects the
+      // vendor to verify the customer's PIN (POST /orders/:id/verify-delivery-otp)
+      // before the order can be marked delivered. Eatswada-rider orders are
+      // closed by the rider app and must not show this button.
+      footHtml = isSelfDeliveryOrder(order) && caps.selfDeliveryOtp
+        ? `<button class="btn accept" data-action="verify-otp" style="width:100%;">Verify delivery PIN</button>`
+        : `<span class="badge dispatch">Picked up · Out for delivery</span>`;
+    }
+    else if (order.status === 'otp_verified') footHtml = `<button class="btn advance" data-action="advance">Mark delivered</button>`;
     else if (order.status === 'delivered') footHtml = `<span class="badge delivered">Delivered</span>`;
     else if (order.status === 'cancelled') footHtml = `<span class="badge cancelled">Cancelled</span>`;
 
@@ -2023,6 +2116,19 @@
       el.ticketRail.appendChild(renderEmpty(state.activeTab)); return;
     }
     orders.forEach(order => el.ticketRail.appendChild(renderTicket(order)));
+    // History is the only paginated view (see loadHistory). Offer the next page
+    // when the server reports one, so the vendor can reach older orders.
+    if (state.activeTab === 'history' && (state.historyPage || 1) < (state.historyTotalPages || 1)) {
+      const more = document.createElement('button');
+      more.id = 'historyLoadMore'; more.type = 'button'; more.className = 'btn ghost';
+      more.style.marginTop = '12px'; more.style.width = '100%';
+      more.textContent = 'Load older orders';
+      more.addEventListener('click', loadMoreHistory);
+      el.ticketRail.appendChild(more);
+      const note = document.createElement('div'); note.className = 'stat-note'; note.style.textAlign = 'center'; note.style.marginTop = '8px';
+      note.textContent = 'Showing ' + orders.length + ' of ' + (state.historyTotal || orders.length) + ' orders';
+      el.ticketRail.appendChild(note);
+    }
   }
 
   function updateCounts() {
@@ -2232,16 +2338,34 @@
     }
   }
 
-  async function loadHistory() {
+  /* ---- Order history (paginated) ----
+     GET /vendor/orders?view=history&page=N&limit=20 returns
+     { data, currentPage, totalPages, totalOrders }. Only the history view
+     paginates server-side; the live queue is always returned in full so the
+     kitchen never loses an active order behind a page boundary. */
+  async function loadHistory(append) {
     const requestId = ++state.historyRequest;
+    const page = append ? (state.historyPage || 1) + 1 : 1;
     try {
-      el.ticketRail.innerHTML = '<div class="skeleton-ticket"></div>';
-      const res = await apiFetch('/orders?view=history'); if (requestId !== state.historyRequest) return;
-      state.history = Array.isArray(res?.data) ? res.data : []; state.historyLoaded = true; renderActiveTab();
+      if (!append) el.ticketRail.innerHTML = '<div class="skeleton-ticket"></div>';
+      const res = await apiFetch('/orders?view=history&page=' + page + '&limit=20');
+      if (requestId !== state.historyRequest) return;
+      const rows = Array.isArray(res?.data) ? res.data : [];
+      state.history = append ? (state.history || []).concat(rows) : rows;
+      state.historyPage = Number(res && res.currentPage) || page;
+      state.historyTotalPages = Number(res && res.totalPages) || 1;
+      state.historyTotal = Number(res && res.totalOrders) || state.history.length;
+      state.historyLoaded = true;
+      renderActiveTab();
     } catch (err) {
       if (err.message === 'Your session has expired.') return;
-      renderRetry(el.ticketRail, err.message, loadHistory); showToast('error', err.message);
+      if (!append) { renderRetry(el.ticketRail, err.message, () => loadHistory(false)); showToast('error', err.message); }
+      else showToast('error', err.message);
     }
+  }
+  async function loadMoreHistory() {
+    const btn = document.getElementById('historyLoadMore'); if (btn) btn.disabled = true;
+    await loadHistory(true);
   }
 
   async function acceptOrder(id, prepMinutes) {
@@ -2275,9 +2399,26 @@
     catch (err) { showToast('error', err.message); } finally { el.rejectConfirmBtn.disabled = false; }
   }
 
+  /* The vendor route PUT /orders/:id/status maps to vendorController.updateOrderStatus,
+     which derives the next status itself from VENDOR_STATUS_TRANSITIONS
+     (confirmed→preparing, preparing→waiting_for_rider|out_for_delivery,
+     otp_verified→delivered) and ignores the request body. This control is only
+     ever offered for the confirmed→preparing and otp_verified→delivered moves, so
+     we assert the same mapping locally to avoid a pointless round-trip when the
+     order has already moved on. The body is sent only as a hint; the server is
+     authoritative. */
+  const ADVANCE_TARGET = { confirmed: 'preparing', otp_verified: 'delivered' };
   async function advanceOrder(id, btn) {
-    if (state.actionBusy.has(id)) return; state.actionBusy.add(id); btn.disabled = true;
-    try { await apiFetch('/orders/' + id + '/status', { method: 'PUT' }); showToast('success', 'Order updated'); await loadQueue(false); }
+    if (state.actionBusy.has(id)) return;
+    const order = orderById(id);
+    const next = order ? ADVANCE_TARGET[order.status] : null;
+    if (!next) { showToast('error', 'This order cannot be advanced from its current status.'); return; }
+    state.actionBusy.add(id); btn.disabled = true;
+    try {
+      await apiFetch('/orders/' + id + '/status', { method: 'PUT', body: JSON.stringify({ status: next }), headers: { 'Content-Type': 'application/json' } });
+      showToast('success', next === 'delivered' ? 'Order marked delivered' : 'Order updated');
+      await loadQueue(false);
+    }
     catch (err) { showToast('error', err.message); btn.disabled = false; } finally { state.actionBusy.delete(id); }
   }
 
@@ -2336,6 +2477,42 @@
       await loadQueue(false);
     } catch (err) { showToast('error', err.message); if (btn) btn.disabled = false; }
     finally { state.actionBusy.delete(id); }
+  }
+
+  /* ── Self-delivery PIN verification ────────────────────────────────────
+     POST /orders/:id/verify-delivery-otp { otp } is the only vendor route that
+     advances a self-delivery order to `otp_verified`; a follow-up
+     PUT /orders/:id/status then moves it to `delivered`. The PIN is never
+     stored or echoed by the frontend. */
+  function openOtpSheet(id) {
+    state.pendingOtpOrderId = id;
+    const input = document.getElementById('otpInput');
+    if (input) { input.value = ''; input.disabled = false; }
+    const err = document.getElementById('otpError'); if (err) err.textContent = '';
+    openModal('otpSheet');
+    if (input) input.focus();
+  }
+  async function verifyDeliveryOtp() {
+    if (v2.otpBusy) return;
+    const id = state.pendingOtpOrderId;
+    const input = document.getElementById('otpInput');
+    const err = document.getElementById('otpError');
+    const otp = input ? String(input.value || '').trim() : '';
+    if (!id) return;
+    if (!/^\d{4}$/.test(otp)) { if (err) err.textContent = 'Enter the 4-digit PIN.'; return; }
+    const btn = document.getElementById('otpSubmit');
+    v2.otpBusy = true; if (btn) btn.disabled = true;
+    try {
+      await apiFetch('/orders/' + id + '/verify-delivery-otp', { method: 'POST', body: JSON.stringify({ otp: otp }), headers: { 'Content-Type': 'application/json' } });
+      showToast('success', 'PIN verified. Mark the order delivered when handed over.');
+      closeModal('otpSheet');
+      await loadQueue(false);
+    } catch (e) {
+      if (err) err.textContent = (e && e.message) || 'PIN could not be verified.';
+      else showToast('error', (e && e.message) || 'PIN could not be verified.');
+    } finally {
+      v2.otpBusy = false; if (btn) btn.disabled = false;
+    }
   }
 
   /* Pickup code copy. Clipboard access is feature-detected; a blocked
@@ -2673,16 +2850,23 @@
   }
 
   function complaintCount() {
+    if (!caps.complaints) return null;
     return (state.complaints || []).length;
   }
 
   function renderReviewsList() {
     const listEl = document.getElementById('vendor-reviews-list'); if (!listEl) return;
     const countEl = document.getElementById('rvComplaintCount');
-    if (countEl) countEl.textContent = String(complaintCount());
+    if (countEl) { const c = complaintCount(); countEl.textContent = c === null ? '—' : String(c); }
     const q = (state.rvSearch || '').trim().toLowerCase();
     const filter = state.rvFilter || 'all';
     if (state.rvTab === 'complaints') {
+      if (!caps.complaints) {
+        listEl.innerHTML = '<div class="state-panel"><h3>Complaints are handled by Eatswada support</h3>' +
+          '<p>The backend exposes no vendor complaints or dispute endpoint yet, so no complaint records or refund deductions can be shown here. ' +
+          'Raise the issue from <strong>Support</strong> (a ticket is created server-side) and the Eatswada team will review it with you.</p></div>';
+        return;
+      }
       if (!(state.complaints || []).length) {
         listEl.innerHTML = '<div class="state-panel"><h3>No complaints</h3><p>Customer complaint and refund tickets for your restaurant will appear here.</p></div>';
         return;
@@ -2852,13 +3036,23 @@
   }
 
   /* ── Notifications ────────────────────────────────────────── */
+  /* Notification read state.
+     The backend records read state itself: each Notification carries `readAt`
+     and PATCH /notifications/:id/read stamps it (notificationController.markRead).
+     So a notification is "read" when the server says so — the local set is only
+     an optimistic cache for rows we have just marked on this device. This keeps
+     the badge consistent across devices instead of trusting one device's memory. */
   const NOTIF_READ_KEY = 'eatswada_vendor_read_notifications';
   function notifReadSet() { try { return new Set(JSON.parse(localStorage.getItem(NOTIF_READ_KEY) || '[]')); } catch (_) { return new Set(); } }
+  function notifIsRead(n) {
+    if (!n) return true;
+    if (n.readAt) return true;                       // server is the source of truth
+    return notifReadSet().has(String(n._id));        // optimistic local cache
+  }
   function renderNotificationBadge() {
     const badge = document.getElementById('bellCount');
     if (!badge) return;
-    const read = notifReadSet();
-    const unread = (state.notifications || []).filter(n => !read.has(String(n._id))).length;
+    const unread = (state.notifications || []).filter(n => !notifIsRead(n)).length;
     badge.textContent = String(unread);
     badge.style.display = unread > 0 ? 'inline-block' : 'none';
   }
@@ -2959,6 +3153,28 @@
     const veg = item.isVeg === false ? '<span class="badge nonveg">Non-veg</span>' : item.isVeg === true ? '<span class="badge veg">Veg</span>' : '';
     const strike = (item.originalPrice && Number(item.originalPrice) > Number(item.price))
       ? ' <span style="font-size:12px;color:var(--ink-faint);text-decoration:line-through;">' + formatMoney(item.originalPrice) + '</span>' : '';
+    // Stock quantity is shown only when the item actually tracks stock, so the
+    // number can never disagree with what the server enforces.
+    const qty = item.trackStock === true
+      ? '<span class="menu-card-meta">' + Number(item.stockQuantity || 0) + ' in stock</span>'
+      : '';
+    const autoAt = item.autoTurnOnAt ? new Date(item.autoTurnOnAt) : null;
+    const autoNote = (autoAt && !isNaN(autoAt) && autoAt.getTime() > Date.now())
+      ? '<div class="stat-note" style="margin-top:4px;">Auto-restock ' + escapeHtml(autoAt.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })) + '</div>'
+      : '';
+    // Edit / Delete are only offered when the backend route exists. Both
+    // handlers exist in the controller but routes/vendorRoutes.js never mounts
+    // PUT /menu/:id or DELETE /menu/:id, so the buttons are withheld rather
+    // than firing a request that can only 404.
+    const editBtn = caps.menuEdit
+      ? '<button class="btn ghost" type="button" data-menu-edit="' + item._id + '" style="padding:6px 10px;font-size:12px;">Edit</button>'
+      : '';
+    const delBtn = caps.menuDelete
+      ? '<button class="btn ghost" type="button" data-menu-del="' + item._id + '" style="padding:6px 10px;font-size:12px;color:var(--danger);">Delete</button>'
+      : '';
+    const invBtn = caps.inventoryQty
+      ? '<button class="btn ghost" type="button" data-menu-inventory="' + item._id + '" style="padding:6px 10px;font-size:12px;">Stock</button>'
+      : '';
     card.innerHTML = img +
       '<div class="menu-card-body">' +
         '<div class="menu-card-name">' + escapeHtml(item.name) + '</div>' +
@@ -2971,10 +3187,10 @@
             '<span class="track"></span>' +
           '</label>' +
           '<span class="menu-card-meta">' + (item.inStock ? 'In stock' : 'Out of stock') + '</span>' +
+          qty +
           '<span style="flex:1"></span>' +
-          '<button class="btn ghost" type="button" data-menu-edit="' + item._id + '" style="padding:6px 10px;font-size:12px;">Edit</button>' +
-          '<button class="btn ghost" type="button" data-menu-del="' + item._id + '" style="padding:6px 10px;font-size:12px;color:var(--danger);">Delete</button>' +
-        '</div>' +
+          invBtn + editBtn + delBtn +
+        '</div>' + autoNote +
       '</div>';
     return card;
   }
@@ -3015,10 +3231,19 @@
     const id = input.dataset.id;
     const desired = input.checked;
     try {
-      await menuFetch('/menu/' + id + '/toggle-stock', { method: 'PUT' });
+      // Send the desired state explicitly instead of relying on the server to
+      // flip whatever it currently holds, so a stale card cannot invert it.
+      const res = await menuFetch('/menu/' + id + '/toggle-stock', {
+        method: 'PUT',
+        body: JSON.stringify({ inStock: desired }),
+        headers: { 'Content-Type': 'application/json' }
+      });
       const item = state.menuItems.find(i => i._id === id);
-      if (item) item.inStock = desired;
-      showToast('success', desired ? 'Marked in stock.' : 'Marked out of stock.');
+      if (item) {
+        if (res && res.data) Object.assign(item, res.data);
+        else item.inStock = desired;
+      }
+      showToast('success', (res && res.message) || (desired ? 'Marked in stock.' : 'Marked out of stock.'));
       if (state.activeSection === 'inventory') renderInventory(); else renderMenuList();
       renderAlerts();
       // Turning an item OFF asks when to auto turn it back on. Turning it ON
@@ -3029,10 +3254,41 @@
   }
 
   /* Menu stock: auto turn-on timer bottom sheet.
-     The auto-restock scheduler endpoint is not verifiable from this
-     repository, so choosing a delay records the vendor's intent locally and
-     says plainly that no schedule was saved to the server. Nothing is ever
-     re-enabled behind the vendor's back. */
+     PUT /menu/:id/toggle-stock accepts `autoTurnOnAt` (an ISO timestamp in the
+     future, at most 30 days ahead, or null for manual restock) and the server
+     persists it; menuStockScheduler restores the item at that time. The
+     frontend only computes the timestamp the vendor chose — it never re-enables
+     an item on its own. */
+  const RESTOCK_LABEL = { '2h': 'in 2 hours', '4h': 'in 4 hours', next_open: 'at the next opening period', manual: 'manually' };
+
+  /* Next scheduled opening strictly after `now`, derived from the restaurant's
+     own weekly openingHours. Returns null when no usable schedule exists. */
+  function nextOpeningAt(now) {
+    const oh = (state.restaurant && state.restaurant.openingHours) || null;
+    if (!oh) return null;
+    const base = now || new Date();
+    for (let offset = 0; offset <= 7; offset++) {
+      const dayIndex = (base.getDay() + offset) % 7;
+      const key = DAYS[(dayIndex + 6) % 7]; // DAYS is Monday-first; JS getDay() is Sunday-first
+      const day = oh[key];
+      if (!day || day.closed === true || !/^([01]\d|2[0-3]):[0-5]\d$/.test(String(day.opensAt || ''))) continue;
+      const [h, m] = String(day.opensAt).split(':').map(Number);
+      const candidate = new Date(base);
+      candidate.setDate(base.getDate() + offset);
+      candidate.setHours(h, m, 0, 0);
+      if (candidate.getTime() > base.getTime()) return candidate;
+    }
+    return null;
+  }
+
+  function restockTimestampFor(option) {
+    const now = Date.now();
+    if (option === '2h') return new Date(now + 2 * 3600000);
+    if (option === '4h') return new Date(now + 4 * 3600000);
+    if (option === 'next_open') return nextOpeningAt(new Date(now)) || new Date(now + 12 * 3600000);
+    return null;
+  }
+
   function openRestockSheet(itemId) {
     state.pendingRestockItemId = itemId;
     const item = state.menuItems.find(i => i._id === itemId);
@@ -3050,16 +3306,22 @@
     if (!id) return;
     if (!caps.autoRestock) {
       const label = RESTOCK_LABEL[option] || option;
-      showToast('success', option === 'manual' ? 'You will turn it on manually.' : 'Noted: restock ' + label + '. Automatic restocking is not available yet, so nothing was scheduled.');
+      showToast('success', option === 'manual' ? 'You will turn it on manually.' : 'Noted: restock ' + label + '. Automatic restocking is not available on this backend, so nothing was scheduled.');
       return;
     }
-    const btn = document.getElementById('restockScheduleBtn');
+    const at = restockTimestampFor(option);
     try {
-      await apiFetch('/menu/restock', { method: 'POST', body: JSON.stringify({ option: option, itemId: id }), headers: { 'Content-Type': 'application/json' } });
-      showToast('success', 'Restock scheduled.');
+      const res = await menuFetch('/menu/' + id + '/toggle-stock', {
+        method: 'PUT',
+        body: JSON.stringify({ inStock: false, autoTurnOnAt: at ? at.toISOString() : null }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const item = state.menuItems.find(i => i._id === id);
+      if (item && res && res.data) Object.assign(item, res.data);
+      showToast('success', (res && res.message) || (at ? 'Restock scheduled.' : 'You will turn it on manually.'));
       renderRestock();
+      if (state.activeSection === 'inventory') renderInventory(); else renderMenuList();
     } catch (err) { showToast('error', err.message || 'Could not schedule the restock.'); }
-    finally { if (btn) btn.disabled = false; }
   }
 
   el.menuGrid.addEventListener('change', (e) => { if (e.target.classList.contains('menu-item-toggle')) toggleMenuItemStock(e.target); });
@@ -3081,6 +3343,7 @@
     else if (action === 'support') openOrderSupport(id);
     else if (action === 'ready') markOrderReady(id, btn);
     else if (action === 'extend-prep') extendPrep(id, btn);
+    else if (action === 'verify-otp') openOtpSheet(id);
     else if (action === 'copy-code') copyPickupCode(btn.dataset.code);
   });
   el.tabs.forEach(tab => {
@@ -3146,10 +3409,12 @@
 
   const v2 = {
     profile: null, analyticsPeriod: '7d',
-    finance: null, withdrawals: [], availableBalance: null,
+    finance: null, withdrawals: [], availableBalance: null, eligibleBalance: null,
     support: [],
     inventorySelected: new Set(), editingMenuId: null, menuImageUrl: '',
-    pendingReviewId: null, pendingSupportId: null, bulkBusy: false
+    pendingReviewId: null, pendingSupportId: null, bulkBusy: false,
+    pendingInventoryItemId: null, inventoryBusy: false, stockHistory: [], stockHistoryItemId: null,
+    capacity: null, otpBusy: false, pendingOtpOrderId: null, profileEditing: false
   };
 
   function str(v) { return (v === null || v === undefined) ? '' : String(v); }
@@ -3162,7 +3427,13 @@
   function openMoreSheet() { openModal('moreSheet'); }
   function closeMoreSheet() { closeModal('moreSheet'); }
 
-  /* ---- Restaurant profile (read-only; no vendor update endpoint) ---- */
+  /* ---- Restaurant profile ----
+     GET /vendor/profile returns the vendor-scoped restaurant document.
+     PUT /vendor/restaurant/profile maps to restaurantController.updateRestaurant,
+     which allows a vendor to change only: name, address, phone, contactNumber,
+     image, images, cuisine, cuisineDisplay, description, estimatedDeliveryMin,
+     availability and isOpen. Commission, verification and ranking stay
+     admin-only and are shown read-only. */
   async function loadProfile() {
     const body = document.getElementById('profileBody'); if (!body) return;
     body.innerHTML = '<div class="state-panel" style="border:0;box-shadow:none;">Loading profile…</div>';
@@ -3188,36 +3459,111 @@
       profileRow('Business type', enumLabel(r.businessType || '')),
       profileRow('Cuisine', cuisine),
       profileRow('Description', r.description),
-      profileRow('Phone', r.phone),
-      profileRow('Address', r.address),
+      profileRow('Phone', r.phone || r.contactNumber),
+      profileRow('Address', typeof r.address === 'string' ? r.address : formatOrderAddress(r.address)),
       profileRow('FSSAI number', r.fssaiLicenseNumber),
       profileRow('FSSAI verification', enumLabel(r.fssaiVerificationStatus || 'pending')),
       profileRow('Approval status', enumLabel(r.approvalStatus || '')),
-      profileRow('Delivery mode', r.deliveryMode === 'self' ? 'Self delivery' : r.deliveryMode ? 'Eatswada delivery' : ''),
+      profileRow('Delivery mode', r.deliveryMode === 'self_delivery' ? 'Self delivery' : r.deliveryMode === 'eatswada_rider' ? 'Eatswada delivery' : ''),
       profileRow('Commission rate', r.commissionRate != null ? (r.commissionRate + '%') : '', true),
-      profileRow('Settlement schedule', enumLabel(r.settlementSchedule || ''), true)
+      profileRow('Settlement schedule', enumLabel(r.settlementSchedule || ''), true),
+      profileRow('Joined', r.createdAt || r.joinedAt ? new Date(r.createdAt || r.joinedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '', true)
     ];
-    body.innerHTML = rows.join('') + '<div class="stat-note" style="margin-top:10px;">Profile fields are read-only. The backend exposes no vendor profile-update endpoint (PUT /api/vendor/profile → 404), so profile changes are handled by Eatswada admin.</div>';
+    const canEdit = caps.profileEdit;
+    body.innerHTML = rows.join('') +
+      '<div class="inline-actions" style="margin-top:10px;">' +
+        (canEdit ? '<button class="btn accept" id="profileEditBtn" type="button">Edit profile</button>' : '') +
+      '</div>' +
+      '<div class="stat-note" style="margin-top:10px;">' + (canEdit
+        ? 'You can change your name, phone, cuisine, address, description and cover image. Commission, verification and ranking are managed by Eatswada admin.'
+        : 'Profile fields are read-only. The backend exposes no vendor profile-update endpoint, so profile changes are handled by Eatswada admin.') + '</div>';
+    const editBtn = document.getElementById('profileEditBtn');
+    if (editBtn) editBtn.addEventListener('click', () => openProfileEditor(v2.profile || {}));
+  }
+  function openProfileEditor(r) {
+    r = r || {};
+    const set = (id, v) => { const n = document.getElementById(id); if (n) n.value = v == null ? '' : String(v); };
+    set('pfName', r.name);
+    set('pfPhone', r.phone || r.contactNumber);
+    set('pfCuisine', Array.isArray(r.cuisine) ? r.cuisine.join(', ') : r.cuisine);
+    set('pfAddress', typeof r.address === 'string' ? r.address : formatOrderAddress(r.address));
+    set('pfDescription', r.description);
+    set('pfImage', r.image);
+    openModal('profileSheet');
+  }
+  async function saveProfile() {
+    if (v2.profileBusy) return;
+    const name = document.getElementById('pfName').value.trim();
+    if (!name) { showToast('error', 'Restaurant name is required.'); return; }
+    const cuisineRaw = document.getElementById('pfCuisine').value.trim();
+    // Only the vendor allow-list is sent; the server drops anything else anyway.
+    const payload = {
+      name: name,
+      phone: document.getElementById('pfPhone').value.trim(),
+      cuisine: cuisineRaw ? cuisineRaw.split(',').map(s => s.trim()).filter(Boolean) : [],
+      address: document.getElementById('pfAddress').value.trim(),
+      description: document.getElementById('pfDescription').value.trim(),
+      image: document.getElementById('pfImage').value.trim()
+    };
+    const btn = document.getElementById('profileSave');
+    v2.profileBusy = true; if (btn) btn.disabled = true;
+    try {
+      const res = await apiFetch('/restaurant/profile', { method: 'PUT', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
+      const updated = (res && res.data) || null;
+      if (updated) { v2.profile = updated; if (state.restaurant) Object.assign(state.restaurant, updated); }
+      showToast('success', 'Profile updated.');
+      closeModal('profileSheet');
+      await loadProfile();
+      renderOutletHeader();
+    } catch (err) { showToast('error', err.message || 'Could not update the profile.'); }
+    finally { v2.profileBusy = false; if (btn) btn.disabled = false; }
   }
 
-  /* ---- Menu CRUD ---- */
+  /* ---- Menu editor ----
+     POST /vendor/menu (createVendorMenuItem) is the only mounted write for a
+     menu item's definition. It accepts name, description, price,
+     originalPrice, image, isVeg, category, customizations, sortOrder,
+     inStock, trackStock, stockQuantity, lowStockThreshold — and always forces
+     isBestseller/isRecommended to false and approvalStatus to 'pending', so a
+     new item needs Eatswada approval before it goes live.
+     Editing an existing item's definition has NO mounted route
+     (`router.put('/menu/:id')` is absent from routes/vendorRoutes.js), so this
+     sheet is create-only and says so. */
   function openMenuEditor(item) {
     v2.editingMenuId = item ? item._id : null;
     v2.menuImageUrl = item && item.image ? item.image : '';
-    document.getElementById('menuSheetTitle').textContent = item ? 'Edit menu item' : 'Add menu item';
-    document.getElementById('menuSheetSub').textContent = item ? 'Editing an approved item may send it back for review on the backend.' : 'New items may require Eatswada approval before going live.';
+    document.getElementById('menuSheetTitle').textContent = item ? 'Stock & details' : 'Add menu item';
+    document.getElementById('menuSheetSub').textContent = item
+      ? 'Name, price and category cannot be changed from the vendor app yet (no update endpoint). Use the Stock button to change quantity or availability.'
+      : 'New items are submitted for Eatswada approval before customers can order them.';
     document.getElementById('miName').value = item ? (item.name || '') : '';
     document.getElementById('miDesc').value = item ? (item.description || '') : '';
     document.getElementById('miPrice').value = item && item.price != null ? item.price : '';
     document.getElementById('miOriginal').value = item && item.originalPrice != null ? item.originalPrice : '';
     document.getElementById('miCategory').value = item ? (item.category || '') : '';
     document.getElementById('miInStock').checked = item ? item.inStock !== false : true;
-    document.getElementById('miBestseller').checked = !!(item && item.isBestseller);
-    document.getElementById('miRecommended').checked = !!(item && item.isRecommended);
+    const trackEl = document.getElementById('miTrackStock');
+    if (trackEl) trackEl.checked = !!(item && item.trackStock === true);
+    const qtyEl = document.getElementById('miStockQty');
+    if (qtyEl) qtyEl.value = item && item.trackStock === true ? String(Number(item.stockQuantity || 0)) : '0';
+    const lowEl = document.getElementById('miLowStock');
+    if (lowEl) lowEl.value = item && item.lowStockThreshold != null ? String(item.lowStockThreshold) : '5';
     setVegChip(item ? item.isVeg !== false : true);
     setMenuPreview(v2.menuImageUrl);
     document.getElementById('miImageFile').value = '';
     document.getElementById('miImageHint').textContent = v2.menuImageUrl ? 'Current image.' : 'No image selected.';
+    // Create-only: lock the definition fields when editing an existing item.
+    const locked = !!item;
+    ['miName', 'miDesc', 'miPrice', 'miOriginal', 'miCategory', 'miInStock', 'miTrackStock', 'miStockQty', 'miLowStock', 'miImageFile'].forEach(id => {
+      const n = document.getElementById(id); if (n) n.disabled = locked;
+    });
+    if (!locked) {
+      const t = document.getElementById('miTrackStock');
+      if (t) { const q = document.getElementById('miStockQty'); const l = document.getElementById('miLowStock'); if (q) q.disabled = !t.checked; if (l) l.disabled = !t.checked; }
+    }
+    document.querySelectorAll('#menuSheet .chip[data-veg]').forEach(c => { c.disabled = locked; });
+    const save = document.getElementById('menuSheetSave');
+    if (save) { save.textContent = locked ? 'Close' : 'Submit for approval'; }
     openModal('menuSheet');
   }
   function setVegChip(isVeg) {
@@ -3242,6 +3588,8 @@
     return url;
   }
   async function saveMenuItem() {
+    // Editing is not supported by the backend; the sheet is create-only.
+    if (v2.editingMenuId) { closeModal('menuSheet'); return; }
     const name = document.getElementById('miName').value.trim();
     const price = num(document.getElementById('miPrice').value);
     const category = document.getElementById('miCategory').value.trim();
@@ -3249,6 +3597,10 @@
     if (price === null || price < 0) { showToast('error', 'Enter a valid price.'); return; }
     if (!category) { showToast('error', 'Category is required.'); return; }
     const original = num(document.getElementById('miOriginal').value);
+    const trackStock = document.getElementById('miTrackStock').checked;
+    const stockQuantity = trackStock ? Math.max(0, Math.floor(num(document.getElementById('miStockQty').value) || 0)) : 0;
+    const lowThreshold = num(document.getElementById('miLowStock').value);
+    // Only fields createVendorMenuItem actually reads are sent.
     const payload = {
       name: name,
       description: document.getElementById('miDesc').value.trim(),
@@ -3256,25 +3608,94 @@
       category: category,
       isVeg: selectedVeg(),
       inStock: document.getElementById('miInStock').checked,
-      isBestseller: document.getElementById('miBestseller').checked,
-      isRecommended: document.getElementById('miRecommended').checked
+      trackStock: trackStock,
+      stockQuantity: stockQuantity
     };
+    if (trackStock && lowThreshold !== null && lowThreshold >= 0) payload.lowStockThreshold = Math.floor(lowThreshold);
     if (original !== null && original > 0) payload.originalPrice = original;
     if (v2.menuImageUrl) payload.image = v2.menuImageUrl;
     const btn = document.getElementById('menuSheetSave'); btn.disabled = true;
     try {
-      if (v2.editingMenuId) await apiFetch('/menu/' + v2.editingMenuId, { method: 'PUT', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
-      else await apiFetch('/menu', { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
-      showToast('success', v2.editingMenuId ? 'Item updated.' : 'Item created.');
+      const res = await apiFetch('/menu', { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
+      showToast('success', (res && res.message) || 'Item submitted for approval.');
       closeModal('menuSheet'); await loadMenu();
     } catch (err) { showToast('error', err.message || 'Could not save item.'); }
     finally { btn.disabled = false; }
   }
   async function deleteMenuItem(id) {
-    const item = state.menuItems.find(i => i._id === id);
-    if (!confirm('Delete “' + ((item && item.name) || 'this item') + '”? This cannot be undone.')) return;
-    try { await apiFetch('/menu/' + id, { method: 'DELETE' }); showToast('success', 'Item deleted.'); await loadMenu(); }
-    catch (err) { showToast('error', err.message || 'Could not delete item.'); }
+    // No vendor delete route is mounted; withhold the action instead of 404ing.
+    showToast('error', 'Removing a menu item is not available in the vendor app yet. Ask Eatswada support to remove it.');
+  }
+
+  /* ---- Per-item inventory ----
+     PUT /vendor/menu/:id/inventory accepts manualAvailability/inStock,
+     stockQuantity (non-negative integer), trackStock and lowStockThreshold,
+     and records an InventoryMovement row the vendor can audit.
+     GET /vendor/inventory/history?itemId= returns those movements. */
+  function openInventorySheet(itemId) {
+    const item = state.menuItems.find(i => i._id === itemId);
+    if (!item) return;
+    v2.pendingInventoryItemId = itemId;
+    const title = document.getElementById('invSheetTitle');
+    if (title) title.textContent = item.name;
+    const sub = document.getElementById('invSheetSub');
+    if (sub) sub.textContent = 'Update how many units are left. Quantity is enforced by the server when an order is accepted.';
+    document.getElementById('inviTrack').checked = item.trackStock === true;
+    document.getElementById('inviQty').value = item.trackStock === true ? String(Number(item.stockQuantity || 0)) : '0';
+    document.getElementById('inviLow').value = item.lowStockThreshold != null ? String(item.lowStockThreshold) : '5';
+    document.getElementById('inviAvailable').checked = item.inStock !== false;
+    syncInventorySheetFields();
+    const hist = document.getElementById('inviHistory');
+    if (hist) hist.innerHTML = '<div class="stat-note">Loading stock history…</div>';
+    openModal('invSheet');
+    loadStockHistory(itemId);
+  }
+  function syncInventorySheetFields() {
+    const track = document.getElementById('inviTrack').checked;
+    const qty = document.getElementById('inviQty');
+    const low = document.getElementById('inviLow');
+    if (qty) qty.disabled = !track;
+    if (low) low.disabled = !track;
+  }
+  async function loadStockHistory(itemId) {
+    const hist = document.getElementById('inviHistory');
+    if (!hist) return;
+    try {
+      const res = await apiFetch('/inventory/history?itemId=' + encodeURIComponent(itemId) + '&limit=10');
+      const rows = Array.isArray(res && res.data) ? res.data : [];
+      if (!rows.length) { hist.innerHTML = '<div class="stat-note">No stock movements recorded yet.</div>'; return; }
+      hist.innerHTML = rows.map(m => {
+        const change = Number(m.change || 0);
+        const when = m.createdAt ? new Date(m.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+        return '<div class="list-row" style="padding:8px 0;"><div class="lr-main"><div class="lr-title">' + (change > 0 ? '+' : '') + change + ' → ' + Number(m.after || 0) + '</div><div class="lr-sub">' + escapeHtml(enumLabel(m.reason || '')) + (when ? ' · ' + escapeHtml(when) : '') + '</div></div></div>';
+      }).join('');
+    } catch (err) { hist.innerHTML = '<div class="stat-note">' + escapeHtml(err.message || 'Could not load stock history.') + '</div>'; }
+  }
+  async function saveInventory() {
+    if (v2.inventoryBusy) return;
+    const id = v2.pendingInventoryItemId;
+    if (!id) return;
+    const track = document.getElementById('inviTrack').checked;
+    const qty = Math.floor(num(document.getElementById('inviQty').value) || 0);
+    const low = num(document.getElementById('inviLow').value);
+    const payload = { trackStock: track, manualAvailability: document.getElementById('inviAvailable').checked };
+    if (track) {
+      if (qty < 0) { showToast('error', 'Quantity cannot be negative.'); return; }
+      payload.stockQuantity = qty;
+      if (low !== null && low >= 0) payload.lowStockThreshold = Math.floor(low);
+    }
+    const btn = document.getElementById('invSheetSave');
+    v2.inventoryBusy = true; if (btn) btn.disabled = true;
+    try {
+      const res = await apiFetch('/menu/' + id + '/inventory', { method: 'PUT', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
+      const item = state.menuItems.find(i => i._id === id);
+      if (item && res && res.data) Object.assign(item, res.data);
+      showToast('success', 'Stock updated.');
+      closeModal('invSheet');
+      if (state.activeSection === 'inventory') renderInventory(); else renderMenuList();
+      renderAlerts();
+    } catch (err) { showToast('error', err.message || 'Could not update stock.'); }
+    finally { v2.inventoryBusy = false; if (btn) btn.disabled = false; }
   }
 
   /* ---- Inventory / bulk availability (built on the live menu + toggle-stock endpoints) ---- */
@@ -3316,26 +3737,49 @@
     if (v2.bulkBusy || !v2.inventorySelected.size) return;
     v2.bulkBusy = true; updateBulkButtons();
     const ids = Array.from(v2.inventorySelected);
-    let ok = 0, fail = 0;
-    for (const id of ids) {
-      const item = state.menuItems.find(i => i._id === id);
-      if (!item) continue;
-      if (item.inStock === makeAvailable) { ok++; continue; }
-      try { await apiFetch('/menu/' + id + '/toggle-stock', { method: 'PUT', headers: { 'Content-Type': 'application/json' } }); item.inStock = makeAvailable; ok++; }
-      catch (e) { fail++; }
+    try {
+      // PUT /menu/availability/bulk accepts 1–200 item ids and a boolean
+      // inStock. The server applies it in one atomic updateMany, so a partial
+      // network failure cannot leave half the selection changed.
+      const res = await menuFetch('/menu/availability/bulk', {
+        method: 'PUT',
+        body: JSON.stringify({ itemIds: ids, inStock: makeAvailable }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const modified = res && res.data ? Number(res.data.modifiedCount ?? res.data.matchedCount ?? ids.length) : ids.length;
+      state.menuItems.forEach(i => { if (v2.inventorySelected.has(i._id)) i.inStock = makeAvailable; });
+      v2.inventorySelected.clear();
+      showToast('success', modified + ' item' + (modified === 1 ? '' : 's') + ' updated.');
+    } catch (err) {
+      // Fall back to the per-item endpoint only when the bulk route is absent
+      // (404/405), so a real validation error is surfaced instead of masked.
+      if (err && (err.status === 404 || err.status === 405)) {
+        let ok = 0, fail = 0;
+        for (const id of ids) {
+          const item = state.menuItems.find(i => i._id === id);
+          if (!item) continue;
+          if (item.inStock === makeAvailable) { ok++; continue; }
+          try {
+            await menuFetch('/menu/' + id + '/toggle-stock', { method: 'PUT', body: JSON.stringify({ inStock: makeAvailable }), headers: { 'Content-Type': 'application/json' } });
+            item.inStock = makeAvailable; ok++;
+          } catch (e) { fail++; }
+        }
+        showToast(fail ? 'error' : 'success', ok + ' updated' + (fail ? ', ' + fail + ' failed' : '') + '.');
+      } else {
+        showToast('error', (err && err.message) || 'Could not update availability.');
+      }
+    } finally {
+      v2.bulkBusy = false;
+      renderInventory(); renderMenuList(); renderAlerts();
     }
-    v2.bulkBusy = false;
-    showToast(fail ? 'error' : 'success', ok + ' updated' + (fail ? ', ' + fail + ' failed' : '') + '.');
-    renderInventory(); renderMenuList(); renderAlerts();
   }
 
   /* ---- Automatic restocking ----------------------------------------------
-     The scheduling endpoint is not verifiable from this repository, so the
-     controls stay disabled and the panel states the gap. When caps.autoRestock
-     is enabled the vendor selects a delay and the server persists the
-     timestamp; the frontend never re-enables an item on its own and never
-     overrides an item the vendor disabled for another reason. */
-  const RESTOCK_LABEL = { '2h': 'in 2 hours', '4h': 'in 4 hours', next_open: 'at the next opening period', manual: 'manually' };
+     The backend persists the restock deadline as `autoTurnOnAt` on the menu
+     item itself (PUT /menu/:id/toggle-stock) and menuStockScheduler restores
+     the item at that time. There is no separate schedule/cancel endpoint, so
+     this panel summarises what the items already report and points the vendor
+     at the per-item control. Nothing is ever re-enabled by the frontend. */
   function renderRestock() {
     const sub = document.getElementById('restockSub');
     const gap = document.getElementById('restockGap');
@@ -3344,87 +3788,103 @@
     const cancelBtn = document.getElementById('restockCancelBtn');
     const scheduledBox = document.getElementById('restockScheduled');
     if (!sub || !gap) return;
-    const scheduledAt = state.restockScheduledAt;
-    if (!caps.autoRestock) {
-      sub.textContent = 'Bring out-of-stock items back after a delay. Applies only to items you marked unavailable.';
-      gap.textContent = 'Not available yet: the backend does not expose an automatic restock scheduler for vendors, so no schedule can be saved.';
-      if (delay) delay.disabled = true;
-      if (scheduleBtn) scheduleBtn.disabled = true;
-      if (cancelBtn) cancelBtn.disabled = true;
-      if (scheduledBox) scheduledBox.hidden = true;
-      return;
-    }
-    if (delay) delay.disabled = false;
-    if (scheduleBtn) scheduleBtn.disabled = false;
-    gap.textContent = 'Scheduled restocks are validated on the server and respect your operating hours. Items you disabled for another reason are never re-enabled automatically.';
-    if (scheduledAt && scheduledBox) {
+    // There is no bulk schedule route; the per-item sheet owns the write.
+    if (delay) delay.disabled = true;
+    if (scheduleBtn) scheduleBtn.disabled = true;
+    if (cancelBtn) cancelBtn.disabled = true;
+
+    const scheduled = (state.menuItems || []).filter(i => i.autoTurnOnAt && new Date(i.autoTurnOnAt).getTime() > Date.now());
+    sub.textContent = 'Turn an item back on later from the Menu tab: switch it off, then pick a delay.';
+    gap.textContent = 'Restock times are saved per item on the server (autoTurnOnAt) and applied automatically.';
+    if (scheduled.length && scheduledBox) {
       scheduledBox.hidden = false;
-      scheduledBox.innerHTML = 'Next restock <strong>' + escapeHtml(new Date(scheduledAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })) + '</strong>';
-      if (cancelBtn) cancelBtn.disabled = false;
+      scheduledBox.innerHTML = scheduled.slice(0, 6).map(i =>
+        '<div class="list-row" style="padding:8px 0;"><div class="lr-main"><div class="lr-title">' + escapeHtml(i.name) + '</div><div class="lr-sub">Back on ' +
+        escapeHtml(new Date(i.autoTurnOnAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })) +
+        '</div></div><button class="btn ghost" type="button" data-restock-cancel="' + escapeHtml(i._id) + '" style="padding:6px 10px;font-size:12px;">Cancel</button></div>'
+      ).join('');
+      scheduledBox.querySelectorAll('[data-restock-cancel]').forEach(btn => btn.addEventListener('click', () => cancelScheduledRestock(btn.dataset.restockCancel)));
     } else if (scheduledBox) {
       scheduledBox.hidden = true;
-      if (cancelBtn) cancelBtn.disabled = true;
+      scheduledBox.innerHTML = '';
     }
   }
-  async function scheduleRestock() {
-    if (!caps.autoRestock) { showToast('error', 'Automatic restocking is not available yet.'); return; }
-    const option = (document.getElementById('restockDelay') || {}).value;
-    const label = RESTOCK_LABEL[option] || option;
-    if (!confirm('Schedule a restock of out-of-stock items ' + label + '? Items you disabled for another reason will not be re-enabled.')) return;
-    const btn = document.getElementById('restockScheduleBtn'); if (btn) btn.disabled = true;
+
+  /* Cancelling means: leave the item out of stock with no auto turn-on, which
+     is exactly what toggle-stock does with autoTurnOnAt: null. */
+  async function cancelScheduledRestock(itemId) {
+    if (!itemId || !caps.autoRestock) return;
     try {
-      const res = await apiFetch('/menu/restock', { method: 'POST', body: JSON.stringify({ option: option }), headers: { 'Content-Type': 'application/json' } });
-      const at = (res && res.data && (res.data.scheduledAt || res.data.restockAt)) || (res && (res.scheduledAt || res.restockAt));
-      state.restockScheduledAt = at || null;
-      showToast('success', 'Restock scheduled.');
-      renderRestock();
-    } catch (err) { showToast('error', err.message || 'Could not schedule the restock.'); }
-    finally { if (btn) btn.disabled = false; }
-  }
-  async function cancelRestock() {
-    if (!caps.autoRestock) return;
-    const btn = document.getElementById('restockCancelBtn'); if (btn) btn.disabled = true;
-    try {
-      await apiFetch('/menu/restock', { method: 'DELETE' });
-      state.restockScheduledAt = null;
-      showToast('success', 'Restock schedule cancelled.');
-      renderRestock();
+      const res = await menuFetch('/menu/' + itemId + '/toggle-stock', {
+        method: 'PUT',
+        body: JSON.stringify({ inStock: false, autoTurnOnAt: null }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const item = state.menuItems.find(i => i._id === itemId);
+      if (item && res && res.data) Object.assign(item, res.data);
+      showToast('success', 'Automatic restock cancelled.');
+      renderRestock(); renderMenuList();
     } catch (err) { showToast('error', err.message || 'Could not cancel the restock.'); }
-    finally { renderRestock(); }
   }
 
-  /* ---- Analytics ---- */
+  /* ---- Analytics ----
+     GET /vendor/analytics?period=7d|30d|90d|all returns, per the controller:
+       data.summary  { totalOrders, deliveredOrders, cancelledOrders,
+                       deliveredFoodSales, averageDeliveredOrderValue }
+       data.statusCounts [{ status, count }]
+       data.daily    [{ date, orders, deliveredSales }]
+       data.topItems [{ name, quantity, sales }]
+     GET /vendor/analytics/visits (Pillar 8) returns menu-view counts:
+       data.summary { totalViews, uniqueVisitors }
+     Both are restaurant-scoped server-side; the vendor id is never sent. */
   async function loadAnalytics() {
     const stats = document.getElementById('analytics-stats'); if (!stats) return;
     stats.innerHTML = overviewCard('Loading', '…').repeat(4);
     const dailyCard = document.getElementById('analytics-daily-card'); if (dailyCard) dailyCard.hidden = true;
     const topCard = document.getElementById('analytics-top-card'); if (topCard) topCard.hidden = true;
     const period = (document.getElementById('analytics-period') || {}).value || '7d';
-    try { const res = await apiFetch('/analytics?period=' + encodeURIComponent(period)); renderAnalytics(res); }
+    try {
+      const [res, visits] = await Promise.all([
+        apiFetch('/analytics?period=' + encodeURIComponent(period)),
+        apiFetch('/analytics/visits?period=' + encodeURIComponent(period)).catch(() => null)
+      ]);
+      renderAnalytics(res, visits);
+    }
     catch (err) { stats.innerHTML = '<div class="state-panel" style="grid-column:1/-1"><h3>Couldn’t load analytics</h3><p>' + escapeHtml(err.message || 'Please try again.') + '</p><button class="btn accept" style="margin-top:16px" type="button" id="analyticsRetry">Retry</button></div>'; const rb = document.getElementById('analyticsRetry'); if (rb) rb.addEventListener('click', loadAnalytics); }
   }
-  function renderAnalytics(res) {
+  function renderAnalytics(res, visitsRes) {
     const d = (res && res.data) || res || {};
     const stats = document.getElementById('analytics-stats'); if (!stats) return;
-    const total = num(d.totalOrders != null ? d.totalOrders : (d.total != null ? d.total : d.orderCount));
-    const delivered = num(d.delivered != null ? d.delivered : (d.deliveredOrders != null ? d.deliveredOrders : (d.statusCounts && d.statusCounts.delivered)));
-    const cancelled = num(d.cancelled != null ? d.cancelled : (d.cancelledOrders != null ? d.cancelledOrders : (d.statusCounts && d.statusCounts.cancelled)));
-    const sales = num(d.deliveredFoodSales != null ? d.deliveredFoodSales : (d.foodSales != null ? d.foodSales : d.sales));
-    const avg = num(d.avgOrderValue != null ? d.avgOrderValue : (d.averageOrderValue != null ? d.averageOrderValue : d.avgDeliveredOrderValue));
+    const s = (d.summary && typeof d.summary === 'object') ? d.summary : d;
+    const total = num(s.totalOrders != null ? s.totalOrders : (s.total != null ? s.total : s.orderCount));
+    const delivered = num(s.deliveredOrders != null ? s.deliveredOrders : s.delivered);
+    const cancelled = num(s.cancelledOrders != null ? s.cancelledOrders : s.cancelled);
+    const sales = num(s.deliveredFoodSales != null ? s.deliveredFoodSales : (s.foodSales != null ? s.foodSales : s.sales));
+    const avg = num(s.averageDeliveredOrderValue != null ? s.averageDeliveredOrderValue : (s.avgOrderValue != null ? s.avgOrderValue : s.avgDeliveredOrderValue));
     const cells = [];
     if (total !== null) cells.push(overviewCard('Total orders', String(total)));
     if (delivered !== null) cells.push(overviewCard('Delivered', String(delivered)));
     if (cancelled !== null) cells.push(overviewCard('Cancelled', String(cancelled)));
     if (sales !== null) cells.push(overviewCard('Delivered sales', money(sales)));
     if (avg !== null) cells.push(overviewCard('Avg order value', money(avg)));
+    // Menu views (Pillar 8). Shown only when the endpoint answered.
+    const vs = visitsRes && visitsRes.data && visitsRes.data.summary;
+    if (vs && num(vs.totalViews) !== null) cells.push(overviewCard('Menu views', String(num(vs.totalViews))));
+    if (vs && num(vs.uniqueVisitors) !== null) cells.push(overviewCard('Unique visitors', String(num(vs.uniqueVisitors))));
     stats.innerHTML = cells.length ? cells.join('') : '<div class="state-panel" style="grid-column:1/-1"><h3>No analytics for this period</h3><p>Try another period or check back after more orders.</p></div>';
-    const daily = Array.isArray(d.daily) ? d.daily : Array.isArray(d.dailyTotals) ? d.dailyTotals : [];
-    if (daily.length) { const card = document.getElementById('analytics-daily-card'); if (card) card.hidden = false; document.getElementById('analytics-daily').innerHTML = daily.map(row => { const day = str(row.date || row.day || row._id).slice(0, 10); const orders = num(row.orders != null ? row.orders : (row.count != null ? row.count : row.total)); const amount = num(row.sales != null ? row.sales : (row.deliveredFoodSales != null ? row.deliveredFoodSales : row.amount)); return '<div class="list-row"><div class="lr-main"><div class="lr-title">' + escapeHtml(day) + '</div><div class="lr-sub">' + (orders !== null ? orders + ' orders' : '') + (amount !== null ? (orders !== null ? ' · ' : '') + money(amount) : '') + '</div></div></div>'; }).join(''); }
-    const top = Array.isArray(d.topItems) ? d.topItems : Array.isArray(d.topSellingItems) ? d.topSellingItems : [];
-    if (top.length) { const card = document.getElementById('analytics-top-card'); if (card) card.hidden = false; document.getElementById('analytics-top').innerHTML = top.map((t, i) => { const nm = t.name || t.itemName || t._id || 'Item'; const q = num(t.quantity != null ? t.quantity : (t.qty != null ? t.qty : (t.count != null ? t.count : t.totalSold))); return '<div class="list-row"><div class="lr-main"><div class="lr-title">' + (i + 1) + '. ' + escapeHtml(nm) + '</div><div class="lr-sub">' + (q !== null ? q + ' sold' : '') + '</div></div></div>'; }).join(''); }
+    const daily = Array.isArray(d.daily) ? d.daily : [];
+    if (daily.length) { const card = document.getElementById('analytics-daily-card'); if (card) card.hidden = false; document.getElementById('analytics-daily').innerHTML = daily.map(row => { const day = str(row.date || row.day || row._id).slice(0, 10); const orders = num(row.orders != null ? row.orders : row.count); const amount = num(row.deliveredSales != null ? row.deliveredSales : row.sales); return '<div class="list-row"><div class="lr-main"><div class="lr-title">' + escapeHtml(day) + '</div><div class="lr-sub">' + (orders !== null ? orders + ' orders' : '') + (amount !== null ? (orders !== null ? ' · ' : '') + money(amount) : '') + '</div></div></div>'; }).join(''); }
+    const top = Array.isArray(d.topItems) ? d.topItems : [];
+    if (top.length) { const card = document.getElementById('analytics-top-card'); if (card) card.hidden = false; document.getElementById('analytics-top').innerHTML = top.map((t, i) => { const nm = t.name || t.itemName || t._id || 'Item'; const q = num(t.quantity != null ? t.quantity : t.count); const sales = num(t.sales); return '<div class="list-row"><div class="lr-main"><div class="lr-title">' + (i + 1) + '. ' + escapeHtml(nm) + '</div><div class="lr-sub">' + (q !== null ? q + ' sold' : '') + (sales !== null ? (q !== null ? ' · ' : '') + money(sales) : '') + '</div></div></div>'; }).join(''); }
   }
 
-  /* ---- Settlements & withdrawals ---- */
+  /* ---- Settlements & withdrawals ----
+     Backend contract (routes/vendorRoutes.js → vendorMarketplaceController):
+       GET  /vendor/settlements/summary      → { currency, settlementSchedule,
+            joinDate, eligibleBalance, availableForWithdrawal, activePayoutRequest }
+       GET  /vendor/settlements/withdrawals  → [PayoutRequest]
+       POST /vendor/settlements/withdraw     → { amount? } (blank = full balance)
+     There is no vendor payout-batch endpoint; batch history is admin-side. */
   async function loadFinance() {
     const stats = document.getElementById('financeStats'); if (!stats) return;
     stats.innerHTML = overviewCard('Loading', '…').repeat(2);
@@ -3432,21 +3892,29 @@
       const res = await apiFetch('/settlements/summary');
       const d = (res && res.data) || res || {};
       v2.finance = d;
-      const available = num(d.availableBalance != null ? d.availableBalance : (d.available != null ? d.available : (d.withdrawableBalance != null ? d.withdrawableBalance : d.balance)));
-      const pending = num(d.pendingBalance != null ? d.pendingBalance : (d.pending != null ? d.pending : d.pendingSettlement));
-      const withdrawn = num(d.withdrawnAmount != null ? d.withdrawnAmount : (d.withdrawn != null ? d.withdrawn : d.totalWithdrawn));
-      const pendingWd = num(d.pendingWithdrawalAmount != null ? d.pendingWithdrawalAmount : d.pendingWithdrawal);
-      v2.availableBalance = available;
-      const cells = [overviewCard('Available balance', available !== null ? money(available) : '—'), overviewCard('Pending settlement', pending !== null ? money(pending) : '—')];
-      if (withdrawn !== null) cells.push(overviewCard('Withdrawn', money(withdrawn)));
-      if (pendingWd !== null) cells.push(overviewCard('Pending withdrawal', money(pendingWd)));
+      const eligible = num(d.eligibleBalance);
+      const available = num(d.availableForWithdrawal);
+      const active = d.activePayoutRequest || null;
+      v2.availableBalance = available !== null ? available : eligible;
+      v2.eligibleBalance = eligible;
+      const cells = [
+        overviewCard('Eligible balance', eligible !== null ? money(eligible) : '—'),
+        overviewCard('Available for withdrawal', available !== null ? money(available) : '—')
+      ];
+      if (active) cells.push(overviewCard('Payout in progress', money(active.amount)));
       stats.innerHTML = cells.join('');
-      const min = num(d.minWithdrawal != null ? d.minWithdrawal : d.minimumWithdrawal);
-      document.getElementById('financeNote').textContent = min !== null ? ('Minimum withdrawal: ' + money(min)) : 'Payouts are processed by Eatswada admin.';
+      const note = document.getElementById('financeNote');
+      if (note) {
+        const bits = [];
+        if (d.settlementSchedule) bits.push('Payout schedule: ' + enumLabel(d.settlementSchedule));
+        if (d.joinDate) bits.push('Vendor since ' + new Date(d.joinDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }));
+        if (active) bits.push('A payout request is already in progress.');
+        note.textContent = bits.length ? bits.join(' · ') : 'Payouts are processed by Eatswada admin.';
+      }
       renderFinanceSummary();
     } catch (err) {
       stats.innerHTML = '<div class="state-panel" style="grid-column:1/-1"><h3>Finance unavailable</h3><p>' + escapeHtml(err.message || 'Please try again.') + '</p></div>';
-      document.getElementById('financeNote').textContent = '';
+      const note = document.getElementById('financeNote'); if (note) note.textContent = '';
       v2.finance = null;
       renderFinanceSummary();
     }
@@ -3464,29 +3932,35 @@
       box.innerHTML = rows.map(w => {
         const amt = num(w.amount != null ? w.amount : w.requestedAmount);
         const status = str(w.status).toLowerCase();
-        const cls = /paid|completed|approved|success/.test(status) ? 'approved' : /reject|fail/.test(status) ? 'rejected' : 'pending';
-        const when = w.createdAt || w.requestedAt || w.date;
-        const ref = w.reference || w.transactionReference;
-        return '<div class="list-row" style="padding:12px 0;"><div class="lr-main"><div class="lr-title">' + (amt !== null ? money(amt) : 'Withdrawal') + '</div><div class="lr-sub">' + (when ? new Date(when).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '') + (ref ? ' · Ref ' + escapeHtml(ref) : '') + (w.rejectionReason ? ' · ' + escapeHtml(w.rejectionReason) : '') + '</div></div><span class="badge ' + cls + '">' + enumLabel(w.status || 'pending') + '</span></div>';
+        const cls = /paid|completed|approved|success/.test(status) ? 'approved' : /reject|fail|cancel/.test(status) ? 'rejected' : 'pending';
+        const when = w.requestedAt || w.createdAt || w.date;
+        const ref = w.bankUtr || w.reference || w.transactionReference;
+        return '<div class="list-row" style="padding:12px 0;"><div class="lr-main"><div class="lr-title">' + (amt !== null ? money(amt) : 'Withdrawal') + '</div><div class="lr-sub">' + (when ? new Date(when).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '') + (ref ? ' · Ref ' + escapeHtml(ref) : '') + (w.adminNote ? ' · ' + escapeHtml(w.adminNote) : '') + '</div></div><span class="badge ' + cls + '">' + enumLabel(w.status || 'requested') + '</span></div>';
       }).join('');
       renderAlerts();
     } catch (err) { box.innerHTML = '<div class="stat-note">' + escapeHtml(err.message || 'Could not load withdrawals.') + '</div>'; }
+    // The "last payout" cell is derived from this list, so refresh it now that
+    // the rows are in.
+    renderFinanceSummary();
   }
   function openWithdrawSheet() {
     if (!document.getElementById('withdrawSheet')) return;
     document.getElementById('wdAmount').value = '';
-    document.getElementById('wdNote').value = '';
-    const min = v2.finance && num(v2.finance.minWithdrawal != null ? v2.finance.minWithdrawal : v2.finance.minimumWithdrawal);
     const sub = document.getElementById('withdrawSub');
-    if (sub) sub.textContent = (min !== null ? 'Minimum withdrawal ' + money(min) + '. ' : '') + 'Eatswada admin processes payouts. Your request will be queued for review.';
+    const eligible = v2.eligibleBalance;
+    if (sub) sub.textContent = (eligible !== null ? 'Eligible balance ' + money(eligible) + '. ' : '') + 'Leave the amount blank to withdraw the full eligible balance. Eatswada admin completes the transfer.';
     openModal('withdrawSheet');
   }
   async function submitWithdrawal() {
-    const amount = num(document.getElementById('wdAmount').value);
-    if (amount === null || amount <= 0) { showToast('error', 'Enter a valid amount.'); return; }
-    const note = document.getElementById('wdNote').value.trim();
-    const payload = { amount: amount };
-    if (note) payload.note = note;
+    const raw = document.getElementById('wdAmount').value.trim();
+    // The backend requestVendorWithdrawal reads only `amount` (blank = full
+    // eligible balance). There is no note/reason field, so none is sent.
+    const payload = {};
+    if (raw !== '') {
+      const amount = num(raw);
+      if (amount === null || amount <= 0) { showToast('error', 'Enter a valid amount, or leave it blank for the full balance.'); return; }
+      payload.amount = amount;
+    }
     const btn = document.getElementById('withdrawSubmit'); btn.disabled = true;
     try { await apiFetch('/settlements/withdraw', { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } }); showToast('success', 'Withdrawal requested.'); closeModal('withdrawSheet'); await loadFinance(); }
     catch (err) { showToast('error', err.message || 'Could not request withdrawal.'); }
@@ -3553,26 +4027,59 @@
     finally { btn.disabled = false; }
   }
 
-  /* ---- Settings ---- */
+  /* ---- Operational settings ----
+     GET /vendor/settings returns the vendor's own operational settings
+     (businessType, deliveryMode, commissionPlan/Rate, maxActiveOrders,
+     capacity counters, settlementSchedule, fssai). PUT /vendor/settings
+     accepts ONLY { maxActiveOrders (1–500), settlementSchedule (weekly|monthly) };
+     delivery ownership and commission are admin-controlled and rejected here. */
   async function loadSettings() {
     const body = document.getElementById('settingsBody'); if (!body) return;
     body.innerHTML = '<div class="state-panel" style="border:0;box-shadow:none;">Loading settings…</div>';
-    try { const res = await apiFetch('/settings'); const d = (res && res.data) || res || {}; v2.settings = d; renderSettings(d); }
-    catch (err) { renderRetry(body, err.message || 'Could not load settings.', loadSettings); }
+    try {
+      const res = await apiFetch('/settings');
+      const d = (res && res.data) || res || {};
+      v2.settings = d; renderSettings(d);
+    } catch (err) { renderRetry(body, err.message || 'Could not load settings.', loadSettings); }
   }
   function renderSettings(d) {
     const body = document.getElementById('settingsBody'); if (!body) return;
-    const keys = Object.keys(d || {}).filter(k => typeof d[k] === 'boolean');
-    if (!keys.length) { body.innerHTML = '<div class="stat-note">No editable preferences are exposed by the backend for this account. Business and platform settings are managed by Eatswada admin.</div>'; return; }
-    body.innerHTML = keys.map(k => '<div class="switch-row"><div><strong>' + escapeHtml(enumLabel(k)) + '</strong></div><label class="switch"><input type="checkbox" class="setting-toggle" data-key="' + escapeHtml(k) + '" ' + (d[k] ? 'checked' : '') + '><span class="track"></span></label></div>').join('') +
+    d = d || {};
+    const cap = num(d.maxActiveOrders);
+    const active = num(d.activeOrders);
+    const slots = num(d.availableSlots);
+    const rows = [];
+    if (d.deliveryMode) rows.push(profileRow('Delivery mode', d.deliveryMode === 'self_delivery' ? 'Self delivery' : 'Eatswada delivery', true));
+    if (d.commissionRate != null) rows.push(profileRow('Commission rate', d.commissionRate + '%', true));
+    if (d.commissionPlan) rows.push(profileRow('Commission plan', enumLabel(d.commissionPlan), true));
+    if (active !== null && cap !== null) rows.push(profileRow('Active orders right now', active + ' of ' + cap + (slots !== null ? ' · ' + slots + ' slot' + (slots === 1 ? '' : 's') + ' free' : '')));
+    body.innerHTML = rows.join('') +
+      '<div class="form-field"><label for="setMaxActive">Maximum active orders</label><input id="setMaxActive" type="number" min="1" max="500" step="1" inputmode="numeric" value="' + (cap !== null ? cap : '') + '" /></div>' +
+      '<div class="form-field"><label for="setSchedule">Payout schedule</label><select id="setSchedule">' +
+        '<option value="weekly"' + (d.settlementSchedule === 'weekly' ? ' selected' : '') + '>Weekly</option>' +
+        '<option value="monthly"' + (d.settlementSchedule === 'monthly' ? ' selected' : '') + '>Monthly</option>' +
+      '</select></div>' +
+      '<div class="stat-note">Delivery ownership and commission are set by Eatswada admin.</div>' +
       '<div class="inline-actions" style="margin-top:12px;"><button class="btn accept" id="settingsSaveBtn" type="button">Save settings</button></div>';
     const save = document.getElementById('settingsSaveBtn'); if (save) save.addEventListener('click', saveSettings);
   }
   async function saveSettings() {
+    const capEl = document.getElementById('setMaxActive');
+    const schedEl = document.getElementById('setSchedule');
     const payload = {};
-    document.querySelectorAll('.setting-toggle').forEach(t => { payload[t.dataset.key] = t.checked; });
+    if (capEl && capEl.value.trim() !== '') {
+      const cap = num(capEl.value);
+      if (cap === null || !Number.isInteger(cap) || cap < 1 || cap > 500) { showToast('error', 'Maximum active orders must be a whole number between 1 and 500.'); return; }
+      payload.maxActiveOrders = cap;
+    }
+    if (schedEl && schedEl.value) payload.settlementSchedule = schedEl.value;
+    if (!Object.keys(payload).length) { showToast('error', 'Nothing to save.'); return; }
     const btn = document.getElementById('settingsSaveBtn'); if (btn) btn.disabled = true;
-    try { await apiFetch('/settings', { method: 'PUT', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } }); showToast('success', 'Settings saved.'); }
+    try {
+      const res = await apiFetch('/settings', { method: 'PUT', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
+      showToast('success', (res && res.message) || 'Settings saved.');
+      await loadSettings();
+    }
     catch (err) { showToast('error', err.message || 'Could not save settings.'); }
     finally { if (btn) btn.disabled = false; }
   }
@@ -3651,16 +4158,23 @@
      ==================================================================== */
 
   /* ---- Platform status banners ---------------------------------------
-     Reads GET /platform/settings. Every field is optional; a missing or
-     failing endpoint leaves the banner hidden, so no status is ever
-     invented. The three flags the request names are honoured verbatim. */
+     Reads GET /platform/public-status. This is the only platform snapshot the
+     backend exposes to a non-admin: routes/platformRoutes.js mounts
+     GET /settings behind authorize('admin') + settings.manage, so calling it
+     from the vendor app could only ever 403. /public-status needs no admin
+     role and returns a whitelisted key set, including isCodEnabled — which the
+     vendor needs to know before an order can be paid on delivery.
+     Every field is optional; a missing or failing endpoint leaves the banner
+     hidden, so no status is ever invented. */
   function platformFlagsOf(d) {
     d = d || {};
     const s = (d.settings && typeof d.settings === 'object') ? d.settings : d;
     return {
       maintenance: !!(s.isUnderMaintenance || s.underMaintenance || s.maintenanceMode),
       shortage: !!(s.isDeliveryPausedShortage || s.deliveryPausedShortage || s.riderShortage),
-      rain: !!(s.isRainSurgeActive || s.rainSurgeActive || s.rainMode)
+      rain: !!(s.isRainSurgeActive || s.rainSurgeActive || s.rainMode),
+      codDisabled: s.isCodEnabled === false,
+      codLabel: typeof s.codDisplayLabel === 'string' ? s.codDisplayLabel : ''
     };
   }
   function renderPlatformBanner() {
@@ -3671,13 +4185,14 @@
     if (f.maintenance) items.push({ cls: 'maintenance', ico: '🔧', text: 'Platform Under Maintenance: New customer orders are temporarily paused.' });
     if (f.shortage) items.push({ cls: 'shortage', ico: '🛵', text: 'High Demand / Delivery Partner Shortage: Rider assignment may take slightly longer.' });
     if (f.rain) items.push({ cls: 'rain', ico: '🌧️', text: 'Rain Mode Active: +10 mins added to delivery ETAs.' });
+    if (f.codDisabled) items.push({ cls: 'shortage', ico: '💳', text: 'Cash on Delivery is switched off platform-wide. New COD orders will not be accepted until Eatswada re-enables it.' });
     if (!items.length) { box.hidden = true; box.innerHTML = ''; return; }
     box.hidden = false;
     box.innerHTML = items.map(i => '<div class="platform-banner-row ' + i.cls + '"><span class="pb-ico" aria-hidden="true">' + i.ico + '</span><span>' + escapeHtml(i.text) + '</span></div>').join('');
   }
   async function loadPlatformSettings() {
     try {
-      const res = await fetchJson(API_ORIGIN + '/api/platform/settings', { headers: authHeaders() });
+      const res = await fetchJson(CFG.PLATFORM_BASE + '/public-status', { headers: authHeaders() });
       state.platform = (res && (res.data || res.settings)) || res || null;
     } catch (_) {
       // Endpoint absent on this build: hide the banner rather than guess.
@@ -3770,6 +4285,10 @@
   }
 
   async function loadComplaints() {
+    // The backend mounts no vendor complaint route (grep of routes/*.js shows
+    // none, and the admin-side refund console owns complaint resolution), so no
+    // request is sent and no count is invented. The tab states the gap.
+    if (!caps.complaints) { state.complaints = []; renderReviewsList(); return; }
     try {
       const res = await apiFetch('/complaints?page=1&limit=50');
       const rows = Array.isArray(res && res.data) ? res.data : (Array.isArray(res) ? res : []);
@@ -3854,6 +4373,13 @@
   }
   async function submitDispute() {
     if (state.disputeBusy) return;
+    if (!caps.complaints) {
+      // No vendor dispute endpoint exists; route the vendor to the real,
+      // server-backed support ticket flow instead of pretending to save.
+      closeModal('disputeSheet');
+      showToast('error', 'Complaint disputes are not supported by the backend yet. Use Support to raise a ticket.');
+      return;
+    }
     const id = state.pendingDisputeId;
     const ta = document.getElementById('disputeReason');
     const reason = ta ? String(ta.value || '').trim() : '';
@@ -3889,82 +4415,84 @@
 
   function renderFinanceSummary() {
     const d = (v2.finance && (v2.finance.data || v2.finance)) || {};
-    const available = firstNumber(d.unsettledBalance, d.availableBalance, d.available, d.withdrawableBalance, d.balance);
-    const lastAmount = firstNumber(d.lastPayoutAmount, d.lastPayout && d.lastPayout.amount);
-    const lastDate = d.lastPayoutAt || d.lastPayoutDate || (d.lastPayout && (d.lastPayout.paidAt || d.lastPayout.createdAt));
-    const lastStatus = (d.lastPayout && d.lastPayout.status) || d.lastPayoutStatus;
-    const utr = d.lastPayoutUtr || d.utrNumber || d.utr || (d.lastPayout && (d.lastPayout.utr || d.lastPayout.utrNumber || d.lastPayout.bankUtr));
-    const weekNet = firstNumber(d.weekNetEarnings, d.thisWeekNet, d.weekNet);
-    const weekOrders = firstNumber(d.weekDeliveredOrders, d.thisWeekOrders, d.weekOrders);
-    const effComm = firstNumber(d.effectiveCommissionPct, d.effectiveCommission);
-    const adjustments = firstNumber(d.complaintAdjustments, d.adjustmentsTotal);
+    const eligible = firstNumber(d.eligibleBalance);
+    const available = firstNumber(d.availableForWithdrawal);
+    const active = d.activePayoutRequest || null;
+    const rows = Array.isArray(v2.withdrawals) ? v2.withdrawals : [];
+    const paid = rows.filter(w => String(w.status).toLowerCase() === 'paid');
+    const lastPaid = paid.length ? paid[0] : null;
+    const lastAmount = lastPaid ? firstNumber(lastPaid.amount) : null;
+    const lastDate = lastPaid ? (lastPaid.paidAt || lastPaid.processedAt || lastPaid.createdAt) : null;
+    const utr = lastPaid ? (lastPaid.bankUtr || lastPaid.reference) : '';
 
-    const un = document.getElementById('fin-unsettled'); if (un) un.textContent = available !== null ? money2(available) : '₹—';
+    const un = document.getElementById('fin-unsettled'); if (un) un.textContent = available !== null ? money2(available) : (eligible !== null ? money2(eligible) : '₹—');
     const lp = document.getElementById('fin-last-payout'); if (lp) lp.textContent = lastAmount !== null ? money2(lastAmount) : '₹—';
     const lpm = document.getElementById('fin-last-payout-meta');
     if (lpm) {
       const bits = [];
       if (lastDate) bits.push(new Date(lastDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }));
-      if (lastStatus) bits.push(enumLabel(lastStatus));
-      lpm.textContent = bits.length ? bits.join(' • ') : 'No payout recorded yet.';
+      if (lastPaid && lastPaid.status) bits.push(enumLabel(lastPaid.status));
+      lpm.textContent = bits.length ? bits.join(' • ') : 'No completed payout recorded yet.';
     }
     const utrBox = document.getElementById('fin-last-utr');
     const utrVal = document.getElementById('fin-utr-value');
     if (utrVal) utrVal.textContent = utr ? String(utr) : '—';
     if (utrBox) utrBox.hidden = !utr;
-    const wn = document.getElementById('fin-week-net'); if (wn) wn.textContent = weekNet !== null ? money2(weekNet) : '₹—';
+    const wn = document.getElementById('fin-week-net'); if (wn) wn.textContent = eligible !== null ? money2(eligible) : '₹—';
     const wm = document.getElementById('fin-week-meta');
     if (wm) {
       const bits = [];
-      if (weekOrders !== null) bits.push(weekOrders + ' delivered order' + (weekOrders === 1 ? '' : 's'));
-      if (effComm !== null) bits.push('effective commission ' + effComm + '%');
-      if (adjustments !== null && adjustments !== 0) bits.push('adjustments −' + money(Math.abs(adjustments)));
-      wm.textContent = bits.length ? bits.join(' • ') : 'No delivered orders this week yet.';
+      bits.push(rows.length + ' payout request' + (rows.length === 1 ? '' : 's') + ' on record');
+      if (d.settlementSchedule) bits.push('schedule ' + enumLabel(d.settlementSchedule));
+      if (active) bits.push('one in progress');
+      wm.textContent = bits.join(' • ');
     }
     v2.lastUtr = utr ? String(utr) : '';
     const payoutBtn = document.getElementById('payoutRequestBtn');
-    if (payoutBtn) payoutBtn.disabled = available !== null && available <= 0;
+    if (payoutBtn) payoutBtn.disabled = (available !== null && available <= 0) || !!active;
   }
 
+  /* Payout records are the vendor's own PayoutRequest rows
+     (GET /vendor/settlements/withdrawals). The backend exposes no separate
+     vendor-facing settlement-batch list — batches are created admin-side. */
   function renderPayoutBatches() {
     const box = document.getElementById('payoutBatches');
     if (!box) return;
-    const rows = Array.isArray(state.payouts) ? state.payouts : [];
+    const rows = Array.isArray(v2.withdrawals) ? v2.withdrawals : [];
     if (!rows.length) {
-      box.innerHTML = '<div class="stat-note">No settlement batches yet. Batches appear here after the first payout cycle closes.</div>';
+      box.innerHTML = '<div class="stat-note">No payout requests yet. Request a withdrawal from the Ledger tab and it will appear here.</div>';
       return;
     }
     box.innerHTML = rows.map(b => {
-      const amount = firstNumber(b.netAmount, b.amount, b.net, b.totalAmount);
-      const count = firstNumber(b.ordersCount, b.orderCount, b.orders);
-      const utr = b.utr || b.utrNumber || b.bankUtr || b.reference;
-      const status = String(b.status || 'pending').toLowerCase();
-      const cls = /paid|completed|credited|success/.test(status) ? 'approved' : /reject|fail/.test(status) ? 'rejected' : 'pending';
-      const range = b.dateRange || [b.periodStart, b.periodEnd].filter(Boolean).join(' – ');
-      const batchId = b.batchId || b.batch || b._id || b.id;
+      const amount = firstNumber(b.amount);
+      const status = String(b.status || 'requested').toLowerCase();
+      const cls = /paid|completed|credited|success/.test(status) ? 'approved' : /reject|fail|cancel/.test(status) ? 'rejected' : 'pending';
+      const utr = b.bankUtr || b.reference;
+      const when = b.paidAt || b.processedAt || b.requestedAt || b.createdAt;
+      const id = b._id || b.id;
       return '<div class="batch-row">' +
         '<div class="batch-main">' +
-          '<div class="lr-title">' + (batchId ? 'Batch ' + escapeHtml(String(batchId)) : 'Settlement batch') + '</div>' +
-          '<div class="lr-sub">' + [range, count !== null ? count + ' orders' : '', utr ? 'UTR ' + escapeHtml(String(utr)) : ''].filter(Boolean).join(' • ') + '</div>' +
+          '<div class="lr-title">' + (id ? 'Payout ' + escapeHtml(String(id).slice(-8).toUpperCase()) : 'Payout request') + '</div>' +
+          '<div class="lr-sub">' + [when ? new Date(when).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '', utr ? 'Ref ' + escapeHtml(String(utr)) : '', b.adminNote ? escapeHtml(b.adminNote) : ''].filter(Boolean).join(' • ') + '</div>' +
         '</div>' +
         '<div class="batch-right"><span class="lr-amount">' + (amount !== null ? money2(amount) : '—') + '</span>' +
-        '<span class="badge ' + cls + '">' + enumLabel(b.status || 'pending') + '</span></div>' +
+        '<span class="badge ' + cls + '">' + enumLabel(b.status || 'requested') + '</span></div>' +
       '</div>';
     }).join('');
   }
 
   async function loadPayouts() {
     const box = document.getElementById('payoutBatches');
-    if (box) box.innerHTML = '<div class="stat-note">Loading batches…</div>';
+    if (box) box.innerHTML = '<div class="stat-note">Loading payouts…</div>';
     try {
-      const res = await apiFetch('/settlements/payouts');
-      let rows = Array.isArray(res && res.data) ? res.data : (res && res.data && Array.isArray(res.data.batches) ? res.data.batches : null);
-      if (!rows && Array.isArray(res && res.batches)) rows = res.batches;
-      state.payouts = Array.isArray(rows) ? rows : [];
+      const res = await apiFetch('/settlements/withdrawals');
+      const rows = Array.isArray(res && res.data) ? res.data : (Array.isArray(res) ? res : []);
+      v2.withdrawals = rows;
     } catch (_) {
-      state.payouts = [];
+      v2.withdrawals = v2.withdrawals || [];
     }
     renderPayoutBatches();
+    renderFinanceSummary();
   }
 
   function setFinanceTab(tab) {
@@ -3979,34 +4507,36 @@
 
   function openPayoutSheet() {
     const d = (v2.finance && (v2.finance.data || v2.finance)) || {};
-    const available = firstNumber(d.unsettledBalance, d.availableBalance, d.available, d.withdrawableBalance, d.balance);
+    const available = firstNumber(d.availableForWithdrawal, d.eligibleBalance);
     const input = document.getElementById('payoutAmount');
     if (input) input.value = available !== null && available > 0 ? String(Math.floor(available)) : '';
     const sub = document.getElementById('payoutSheetSub');
-    if (sub) sub.textContent = (available !== null ? 'Unsettled balance ' + money2(available) + '. ' : '') + 'Eatswada will review this request and credit your registered bank account.';
+    if (sub) sub.textContent = (available !== null ? 'Available for withdrawal ' + money2(available) + '. ' : '') + 'Eatswada will review this request and credit your registered bank account.';
     openModal('payoutSheet');
   }
   async function submitPayoutRequest() {
     if (state.payoutBusy) return;
-    const amount = num(document.getElementById('payoutAmount').value);
-    if (amount === null || amount <= 0) { showToast('error', 'Enter a valid payout amount.'); return; }
+    const raw = document.getElementById('payoutAmount').value.trim();
+    const payload = {};
+    if (raw !== '') {
+      const amount = num(raw);
+      if (amount === null || amount <= 0) { showToast('error', 'Enter a valid payout amount.'); return; }
+      payload.amount = amount;
+    }
     const btn = document.getElementById('payoutSubmit');
     state.payoutBusy = true; if (btn) btn.disabled = true;
-    let ok = false;
+    let ok = false, message = '';
     try {
-      await apiFetch('/settlements/payout-request', { method: 'POST', body: JSON.stringify({ amount: amount }), headers: { 'Content-Type': 'application/json' } });
-      ok = true;
-    } catch (e1) {
-      try {
-        await apiFetch('/vendor/payout-request', { method: 'POST', body: JSON.stringify({ amount: amount }), headers: { 'Content-Type': 'application/json' } });
-        ok = true;
-      } catch (e2) { ok = false; }
+      const res = await apiFetch('/settlements/withdraw', { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
+      ok = true; message = (res && res.message) || 'Payout request submitted to Eatswada.';
+    } catch (err) {
+      message = (err && err.message) || 'Payout request could not be sent. Please contact support.';
     } finally {
       state.payoutBusy = false; if (btn) btn.disabled = false;
     }
     closeModal('payoutSheet');
-    if (ok) { showToast('success', 'Payout request submitted to Eatswada.'); await loadFinance(); }
-    else showToast('error', 'Payout request could not be sent — the settlement endpoint is not available yet. Please contact support.');
+    if (ok) { showToast('success', message); await loadFinance(); }
+    else showToast('error', message);
   }
 
   /* CSV statement export. Built from the ledger rows the server already
@@ -4106,13 +4636,20 @@
   document.getElementById('menuSearch')?.addEventListener('input', renderMenuList);
   el.menuGrid.addEventListener('click', (e) => {
     const edit = e.target.closest('[data-menu-edit]'); const del = e.target.closest('[data-menu-del]');
+    const inv = e.target.closest('[data-menu-inventory]');
     if (edit) { const it = state.menuItems.find(i => i._id === edit.dataset.menuEdit); if (it) openMenuEditor(it); }
     if (del) deleteMenuItem(del.dataset.menuDel);
+    if (inv) openInventorySheet(inv.dataset.menuInventory);
   });
   document.querySelectorAll('#menuSheet .chip[data-veg]').forEach(c => c.addEventListener('click', () => setVegChip(c.dataset.veg === '1')));
   document.getElementById('menuSheetCancel')?.addEventListener('click', () => closeModal('menuSheet'));
   document.getElementById('menuSheetSave')?.addEventListener('click', saveMenuItem);
   document.getElementById('menuSheet')?.addEventListener('click', (e) => { if (e.target.id === 'menuSheet') closeModal('menuSheet'); });
+  document.getElementById('miTrackStock')?.addEventListener('change', (e) => {
+    const qty = document.getElementById('miStockQty'); const low = document.getElementById('miLowStock');
+    if (qty) qty.disabled = !e.target.checked;
+    if (low) low.disabled = !e.target.checked;
+  });
   document.getElementById('miImageFile')?.addEventListener('change', async (e) => {
     const file = e.target.files && e.target.files[0]; if (!file) return;
     const hint = document.getElementById('miImageHint'); if (hint) hint.textContent = 'Uploading…';
@@ -4121,12 +4658,22 @@
   });
 
   document.getElementById('invRefresh')?.addEventListener('click', loadInventory);
+  document.getElementById('inviTrack')?.addEventListener('change', syncInventorySheetFields);
+  document.getElementById('invSheetCancel')?.addEventListener('click', () => closeModal('invSheet'));
+  document.getElementById('invSheetSave')?.addEventListener('click', saveInventory);
+  document.getElementById('invSheet')?.addEventListener('click', (e) => { if (e.target.id === 'invSheet') closeModal('invSheet'); });
+  document.getElementById('otpCancel')?.addEventListener('click', () => { state.pendingOtpOrderId = null; closeModal('otpSheet'); });
+  document.getElementById('otpSubmit')?.addEventListener('click', verifyDeliveryOtp);
+  document.getElementById('otpInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); verifyDeliveryOtp(); } });
+  document.getElementById('otpSheet')?.addEventListener('click', (e) => { if (e.target.id === 'otpSheet') { state.pendingOtpOrderId = null; closeModal('otpSheet'); } });
+  document.getElementById('profileCancel')?.addEventListener('click', () => closeModal('profileSheet'));
+  document.getElementById('profileSave')?.addEventListener('click', saveProfile);
+  document.getElementById('profileSheet')?.addEventListener('click', (e) => { if (e.target.id === 'profileSheet') closeModal('profileSheet'); });
   document.getElementById('invSelectAll')?.addEventListener('click', () => { state.menuItems.forEach(i => v2.inventorySelected.add(i._id)); renderInventory(); });
   document.getElementById('invClear')?.addEventListener('click', () => { v2.inventorySelected.clear(); renderInventory(); });
   document.getElementById('invMakeAvailable')?.addEventListener('click', () => applyBulkAvailability(true));
   document.getElementById('invMakeUnavailable')?.addEventListener('click', () => applyBulkAvailability(false));
-  document.getElementById('restockScheduleBtn')?.addEventListener('click', scheduleRestock);
-  document.getElementById('restockCancelBtn')?.addEventListener('click', cancelRestock);
+  document.getElementById('restockScheduleBtn')?.addEventListener('click', () => showToast('success', 'Use the Menu tab: switch an item off, then choose a restock delay.'));
   document.getElementById('restockSheetOptions')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-restock]'); if (b) chooseRestockOption(b.dataset.restock);
   });
