@@ -42,7 +42,7 @@ test('auth, API client and polling integration points are preserved', () => {
   // Existing order endpoints must still be called with the same shapes.
   assert.match(html, /\/orders\/' \+ id \+ '\/accept', \{ method: 'PUT', body: JSON\.stringify\(\{ prepMinutes:/);
   assert.match(html, /\/orders\/' \+ id \+ '\/reject', \{ method: 'PUT', body: JSON\.stringify\(\{ reason \}\)/);
-  assert.match(html, /\/orders\/' \+ id \+ '\/status', \{ method: 'PUT' \}/);
+  assert.match(html, /\/orders\/' \+ id \+ '\/status', \{ method: 'PUT', body: JSON\.stringify\(\{ status: next \}\)/);
 });
 
 test('backend order statuses are not renamed or remapped', () => {
@@ -178,13 +178,18 @@ test('speech text is built from real order fields', () => {
  * 4. Capability gating: unsupported endpoints stay dormant
  * ------------------------------------------------------------------ */
 test('unsupported backend features are capability-gated', () => {
-  // The default flag values in the page must keep these off.
-  assert.match(html, /autoRestock: false/);
+  // The flags whose backend route does NOT exist must default to false, so no
+  // request is ever sent and no unverified figure is displayed.
   assert.match(html, /complaints: false/);
+  assert.match(html, /menuEdit: false/);
+  assert.match(html, /menuDelete: false/);
   // The capability set is closed: only these names may be toggled.
   const capsBlock = html.slice(html.indexOf('const caps = Object.freeze({'), html.indexOf('});', html.indexOf('const caps = Object.freeze({')));
   const names = [...capsBlock.matchAll(/^\s*([a-zA-Z]+):/gm)].map(m => m[1]);
-  assert.deepEqual(names.sort(), ['autoRestock', 'billBreakdown', 'complaints', 'prepCountdown']);
+  assert.deepEqual(names.sort(), [
+    'autoRestock', 'billBreakdown', 'complaints', 'inventoryQty', 'menuDelete',
+    'menuEdit', 'prepCountdown', 'profileEdit', 'selfDeliveryOtp', 'settlements'
+  ].sort());
 });
 
 test('there is no URL query-parameter capability override', () => {
@@ -199,27 +204,127 @@ test('there is no URL query-parameter capability override', () => {
 test('capability flags are immutable at runtime', () => {
   const src = html.slice(html.indexOf('const caps = Object.freeze({'), html.indexOf('});', html.indexOf('const caps = Object.freeze({')) + 3) + '\nreturn caps;';
   const caps = new Function(src)();
-  assert.equal(caps.autoRestock, false);
   assert.equal(caps.complaints, false);
+  assert.equal(caps.menuEdit, false);
+  assert.equal(caps.menuDelete, false);
   assert.equal(Object.isFrozen(caps), true);
   // A write attempt must not change the value. In strict mode (module scope, and
   // the page's own IIFE) it throws; either way the flag must stay false.
   let threw = false;
-  try { caps.autoRestock = true; } catch { threw = true; }
-  assert.equal(caps.autoRestock, false, 'autoRestock must not be enable-able');
   try { caps.complaints = true; } catch { threw = true; }
   assert.equal(caps.complaints, false, 'complaints must not be enable-able');
+  try { caps.menuEdit = true; } catch { threw = true; }
+  assert.equal(caps.menuEdit, false, 'menuEdit must not be enable-able');
   assert.equal(threw, true, 'a write attempt must be rejected, not silently accepted');
 });
 
-test('undo and prep-extension endpoints are never called by default', () => {
-  // No unconditional call sites for endpoints we cannot verify.
-  assert.doesNotMatch(html, /\/orders\/[^']*\/undo/);
-  assert.doesNotMatch(html, /\/orders\/[^']*\/extend/);
+test('withdrawal sends only the amount the backend reads', () => {
+  // requestVendorWithdrawal reads only req.body.amount (blank = full balance).
+  // A "note" or similar field would be silently ignored, so none may be sent.
+  const fn = html.slice(html.indexOf('async function submitWithdrawal'), html.indexOf('async function submitWithdrawal') + 1200);
+  assert.match(fn, /apiFetch\('\/settlements\/withdraw'/);
+  assert.match(fn, /payload\.amount = amount/);
+  assert.doesNotMatch(fn, /payload\.note/, 'no unsupported note field on the withdrawal');
+  assert.doesNotMatch(html, /wdNote/, 'the dead note input must be gone');
 });
 
-test('auto-restock request is guarded by caps.autoRestock', () => {
-  assert.match(html, /if \(!caps\.autoRestock\)/);
+test('no vendor request is sent to a route the backend does not mount', () => {
+  // These paths either do not exist or are admin-only, so they must never be
+  // called from the vendor app. See BACKEND-GAPS.md for each.
+  const forbidden = [
+    /\/platform\/settings/,          // admin-only (settings.manage)
+    /\/menu\/restock/,               // no such route; autoTurnOnAt is the real field
+    /\/settlements\/payouts/,        // admin-only
+    /\/settlements\/payout-request/, // not a route
+    /\/vendor\/payout-request/       // not a route
+  ];
+  for (const re of forbidden) assert.doesNotMatch(html, re, 'must not call ' + re);
+  // Menu definition edit/delete are unmounted; the string must not be built.
+  assert.doesNotMatch(html, /apiFetch\('\/menu\/' \+ v2\.editingMenuId/, 'no PUT /menu/:id');
+  assert.doesNotMatch(html, /apiFetch\('\/menu\/' \+ id, \{ method: 'DELETE'/, 'no DELETE /menu/:id');
+  // The complaints calls still exist as code, but every one is unreachable
+  // while caps.complaints is false: loadComplaints returns early and
+  // submitDispute bails out before building a request.
+  const load = html.slice(html.indexOf('async function loadComplaints'), html.indexOf('async function loadComplaints') + 400);
+  assert.match(load, /if \(!caps\.complaints\)/, 'loadComplaints must short-circuit when gated');
+  const dispute = html.slice(html.indexOf('async function submitDispute'), html.indexOf('async function submitDispute') + 600);
+  assert.match(dispute, /if \(!caps\.complaints\)/, 'submitDispute must short-circuit when gated');
+});
+
+test('every static vendor path maps to a mounted backend route', () => {
+  // This is the backend's mounted vendor route table (routes/vendorRoutes.js),
+  // transcribed as "METHOD /path-prefix". It is the allow-list against which
+  // the app's own calls are checked below. Update BOTH together if the backend
+  // route table changes.
+  const MOUNTED = [
+    'GET /restaurant', 'GET /profile', 'GET /dashboard', 'GET /alerts',
+    'GET /activity', 'PUT /menu/availability/bulk', 'PUT /menu/reorder',
+    'GET /inventory/history', 'PUT /restaurant/profile',
+    'PUT /restaurant/availability', 'PUT /restaurant/hours', 'GET /reviews',
+    'POST /reviews/:id/reply', 'GET /analytics', 'GET /analytics/visits',
+    'GET /earnings/summary', 'GET /earnings/orders', 'GET /onboarding/config',
+    'GET /settings', 'PUT /settings', 'GET /capacity',
+    'GET /settlements/summary', 'GET /settlements/withdrawals',
+    'POST /settlements/withdraw', 'GET /support', 'POST /support',
+    'POST /support/:id/reply', 'GET /policies', 'GET /orders',
+    'PUT /orders/:id/accept', 'PUT /orders/:id/extend-prep',
+    'PUT /orders/:id/ready', 'PUT /orders/:id/undo-ready',
+    'PUT /orders/:id/reject', 'PUT /orders/:id/status',
+    'POST /orders/:id/verify-delivery-otp', 'GET /menu', 'POST /menu',
+    'PUT /menu/:id/inventory', 'PUT /menu/:id/toggle-stock'
+  ];
+  // Normalise a mounted entry to a comparable prefix.
+  const norm = (p) => p.replace(/:id/g, ':id').replace(/\/$/, '');
+  const prefixes = MOUNTED.map(m => norm(m.split(' ')[1]));
+
+  // Every apiFetch path expression in the page must match a mounted prefix.
+  // We reconstruct the concatenation (e.g. '/orders/' + id + '/accept') so the
+  // sub-action is actually checked, not just the leading literal.
+  // Gated paths (/complaints*) are the ONLY allowed exceptions and are asserted
+  // unreachable by their own caps guard in the test above.
+  const exprs = [...html.matchAll(/apiFetch\(([^,\n)]+)/g)].map(m => m[1]);
+  assert.ok(exprs.length > 0, 'the page must make vendor calls');
+  let checked = 0;
+  for (const expr of exprs) {
+    // Turn a JS string concatenation into a path template: keep quoted
+    // segments, replace any variable segment with :id, drop the query string.
+    const path = expr
+      .replace(/'( \+ [A-Za-z0-9_.]+ \+ ')?/g, (m, mid) => (mid ? '/:id' : ''))
+      .replace(/^\/\//, '/')
+      .split('?')[0]
+      .replace(/\/$/, '');
+    if (!path.startsWith('/')) continue;
+    const generic = path.replace(/\/+/g, '/');
+    if (generic.startsWith('/complaints')) continue;   // gated, verified elsewhere
+    const ok = prefixes.some(p => generic === p || generic.startsWith(p + '/') || p.startsWith(generic + '/'));
+    assert.ok(ok, 'call ' + expr + ' (→' + generic + ') must map to a mounted vendor route');
+    checked++;
+  }
+  assert.ok(checked >= 20, 'expected to check the full vendor call set, checked ' + checked);
+});
+
+test('supported vendor endpoints are used with their real shapes', () => {
+  // Each of these was verified in routes/vendorRoutes.js.
+  assert.match(html, /\/platform\/public-status/);
+  assert.match(html, /\/restaurant\/profile', \{ method: 'PUT'/);
+  assert.match(html, /\/menu\/' \+ id \+ '\/inventory'/);
+  assert.match(html, /\/menu\/availability\/bulk/);
+  assert.match(html, /\/orders\/' \+ id \+ '\/verify-delivery-otp'/);
+  assert.match(html, /\/inventory\/history\?itemId=/);
+  assert.match(html, /\/settlements\/summary/);
+  assert.match(html, /\/settlements\/withdrawals/);
+  assert.match(html, /\/settlements\/withdraw', \{ method: 'POST'/);
+  assert.match(html, /\/analytics\/visits/);
+  // Restock is expressed through toggle-stock + autoTurnOnAt, not a fake route.
+  assert.match(html, /autoTurnOnAt/);
+});
+
+test('auto-restock writes go through the supported toggle-stock endpoint', () => {
+  assert.match(html, /caps\.autoRestock/);
+  // The scheduling write must be the per-item toggle-stock call.
+  const block = html.slice(html.indexOf('async function chooseRestockOption'), html.indexOf('async function chooseRestockOption') + 1400);
+  assert.match(block, /\/menu\/' \+ id \+ '\/toggle-stock/);
+  assert.match(block, /autoTurnOnAt/);
 });
 
 /* ------------------------------------------------------------------ *
