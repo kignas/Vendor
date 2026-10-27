@@ -30,10 +30,24 @@ React + TypeScript + Vite inside the `web/` folder. The old files stay in place 
 - Read big files by line range or grep. Never print all of index.html.
 - Work in small steps. After EACH step run: `npm run typecheck && npm run lint && npm test && npm run build` (inside `web/`).
   Do not continue while any of these fail.
-- Commit after every working step with a clear message. Never force-push.
+- You CANNOT push to GitHub or open PRs. Never run `git push`, `gh`, or try to fix credentials.
+  You may commit locally inside the sandbox to track your changes. Delivery is by zip (see Delivery below).
 - If something is ambiguous, write the question into `docs/rebuild/OPEN_QUESTIONS.md` and continue
   with the safest assumption. Do not guess backend behaviour.
 - Do not add libraries beyond the approved stack below without writing the reason in the PR.
+
+## Delivery (how your work reaches me)
+At the START of a phase run `git checkout -b rebuild/phase-N-<name>` and `git tag phase-N-start` (local only).
+At the END of a phase, after typecheck/lint/test/build are green:
+1. Commit everything locally.
+2. Build `delivery/phase-N.zip` containing ONLY files that are new or changed since the tag
+   (`git diff --name-only --diff-filter=AM phase-N-start HEAD`), with repo-relative paths, so unzipping at
+   the repo root places each file correctly. Include `web/package.json` and `web/package-lock.json` when changed.
+   NEVER include node_modules, dist, www, .git, android/build output, .env files, or the delivery folder.
+3. Write `delivery/DELIVERY_NOTES.md`: what was built, the list of added/modified files, and shell commands
+   for anything deleted or moved (`git rm ...`, `git mv ...`) because a zip cannot delete files.
+   Also include the exact commands to run the app and the output of the four checks.
+4. Print the zip path and `unzip -l` of it, then stop. Do not start the next phase.
 
 ## Approved stack (inside `web/`)
 React 18, TypeScript (strict), Vite, React Router (HashRouter), Tailwind CSS v3,
