@@ -45,6 +45,7 @@ Key facts to keep in mind while reading the table:
 
 | Legacy function(s) | Target module | Endpoint(s) | State it owns | Tests today |
 | --- | --- | --- | --- | --- |
+| `loadRestaurant()` (2276) | `features/home` (query) | `GET /restaurant` | `state.restaurant` | `dom.smoke`: outlet header |
 | `loadOverview()` (3074) | `features/home` | `GET /earnings/summary?period=today`, `?period=30d`, `GET /dashboard` | `state.dashboard` | `dom.smoke` boots home |
 | `renderOverviewStatus()` (3052), `renderOverviewDocs()` (3063), `overviewCard()` (3012) | `features/home` | — | — | indirect |
 | `pendingOrderCount()` (3015), `refreshOverviewCounts()` (3023), `activeStatuses()` (3036), `loadCapacity()` (3041) | `features/home` | `GET /capacity` | `state.activeStatuses`, `state.serverAlerts` | `dom.smoke` (counts render) |
@@ -63,7 +64,7 @@ Key facts to keep in mind while reading the table:
 | `ordersForTab()` (2113), `visibleOrdersForTab()` (2136), `renderActiveTab()` (2143), `updateCounts()` (2171), `renderEmpty()` (2078) | `features/orders` (tabs + list) | — | `state.activeTab`, `state.orderSearch` | `dom.smoke`: tabs, search, "No matches" |
 | `isReadyOrder()` (2102), `isPreparingOrder()` (2107), `isScheduledOrder()` (2094), `scheduledAtOf()` (2086) | `features/orders` (mapping) | — | — | indirect (`dom.smoke` tab counts) |
 | `orderMatchesQuery()` (2126) | `lib/format` (search) | — | — | `contract`: "order search matches documented fields…" |
-| `renderTicket()` (1976) + `prepStripHtml` (1731), `riderStatusHtml` (1777), `dietPillHtml` (1909), `orderCountChipHtml` (1919), `itemRowHtml` (1925), `ticketToolsHtml` (1934), `ticketStamp` (1903), `loyaltySubtitle` (1895), `pickupCodeOf` (1869), `orderRef` (1865), `ordinal` (1889), `dietMarkHtml` (1597), `itemMetaHtml` (1611) | `features/orders` + `components/` (OrderCard, StatusPill, DietMark) | — | — | `dom.smoke`: kitchen workflow, diet marks, legacy order |
+| `renderTicket()` (1976) + `prepStripHtml` (1731), `riderStatusHtml` (1777), `riderStatusOf` (1755), `riderNameOf` (1758), `riderPhoneOf` (1762), `dietPillHtml` (1909), `orderCountChipHtml` (1919), `itemRowHtml` (1925), `ticketToolsHtml` (1934), `ticketStamp` (1903), `loyaltySubtitle` (1895), `pickupCodeOf` (1869), `orderRef` (1865), `ordinal` (1889), `dietMarkHtml` (1597), `itemMetaHtml` (1611) | `features/orders` + `components/` (OrderCard, StatusPill, DietMark) | — | — | `dom.smoke`: kitchen workflow, diet marks, legacy order |
 | `dietOf()` (1587) | `lib/format` | — | — | `contract`: "dietOf never infers…" |
 | `orderBillOf()` (1628), `billRows()` (1640), `billDetailsHtml()` (1689), `paymentModeOf()` (1664), `commissionPctOf()` (1679) | `features/orders` (bill breakdown) | — | — | `contract`: 3 bill tests; `dom.smoke`: bill details |
 | `acceptOrder()` (2408), `openPrepSheet()` (2417), `closePrepSheet()` (2428) | `features/orders` (accept sheet) | `PUT /orders/:id/accept` | `state.actionBusy`, `state.pendingAcceptId`, `state.prepMinutes` | `dom.smoke` (implicitly via tabs); contract pins body |
@@ -127,7 +128,7 @@ Key facts to keep in mind while reading the table:
 | `openReviewView()` (2952), `closeReviewView()` (2985), `submitReviewViewReply()` (2991), `dishRowHtml()` (2941) | `features/reviews` | `POST /reviews/:id/reply` | `state.reviewViewId`, `state.rvDetailed` | contract: `state.reviewReplyBusy` guard |
 | `openReviewReply()` (4317), `submitReviewReply()` (4323) | `features/reviews` | `POST /reviews/:id/reply` | `state.reviewReplyBusy` | contract: duplicate-guard test |
 | `openPhotoViewer()` (4311) | `features/reviews` | — | — | not covered |
-| Complaints: `loadComplaints()` (4561), `complaintCardHtml()` (4574), `openComplaintView()` (4598), `closeComplaintView()` (4630), `openDisputeSheet()` (4636), `submitDispute()` (4648), `complaintCount()` (2889), `complaint*Of()` helpers (4521–4552) | `features/reviews` (gated tab) | `GET /complaints…`, `POST /complaints/:id/dispute` (**both unreachable — `caps.complaints=false`**) | `state.complaints`, `complaintViewId`, `disputeBusy`, `pendingDisputeId` | contract: gated-path test; `dom.smoke`: `?cap=` test |
+| Complaints: `loadComplaints()` (4561), `complaintCardHtml()` (4574), `openComplaintView()` (4598), `closeComplaintView()` (4630), `openDisputeSheet()` (4636), `submitDispute()` (4648), `complaintCount()` (2889), `complaintCategoryOf`/`complaintDisputeOf`/`complaintIdOf`/`complaintItemsOf`/`complaintMatches`/`complaintPhotosOf`/`complaintPickupPhotoOf`/`complaintRefundOf` (4521–4552) | `features/reviews` (gated tab) | `GET /complaints…`, `POST /complaints/:id/dispute` (**both unreachable — `caps.complaints=false`**) | `state.complaints`, `complaintViewId`, `disputeBusy`, `pendingDisputeId` | contract: gated-path test; `dom.smoke`: `?cap=` test |
 
 ### 1i. Support
 
@@ -316,7 +317,8 @@ round-trip; the request body is only a hint, the server derives the target.
 - `stop()` — clears the interval, cancels vibration, hides `#alarmBar`.
 - `#alarmStopBtn` (line 2211) → `Alarm.unlock(); Alarm.stop(); switchSection('orders')`.
 - Audio is unlocked on the first `pointerdown` (browsers block autoplay
-  otherwise) and `initPush()` is also armed on the first `pointerdown`.
+  otherwise, handler `firstGesture`, line 2209) and `initPush()` is also armed on
+  the first `pointerdown` (handler `enableVendorPush`, line 2210).
 - Trigger points: `updateCounts()` (when the placed count rises),
   `checkVendorNotifications()`, and the FCM foreground handler `messaging.onMessage`.
   `updateCounts()` also calls `Alarm.stop()` when the placed count reaches 0.
