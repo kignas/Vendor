@@ -29,7 +29,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Prepare web assets
+      - name: Install web app dependencies
+        run: npm --prefix web ci
+
+      - name: Quality gate (typecheck, lint, test)
+        run: |
+          npm --prefix web run typecheck
+          npm --prefix web run lint
+          npm --prefix web test
+
+      - name: Build web app and prepare www/
+        env:
+          VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN || 'https://api.eatswada.com' }}
         run: npm run android:prepare
 
       - name: Add Android project

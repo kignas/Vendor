@@ -4,7 +4,12 @@
   "private": true,
   "description": "Android packaging for Eatswada Vendor",
   "scripts": {
-    "android:prepare": "node scripts/prepare-www.mjs",
+    "android:prepare": "node scripts/prepare-www-web.mjs --build",
+    "android:prepare:legacy": "node scripts/prepare-www.mjs",
+    "web:install": "npm --prefix web install",
+    "web:test": "npm --prefix web test",
+    "web:typecheck": "npm --prefix web run typecheck",
+    "web:lint": "npm --prefix web run lint",
     "test": "node --test tests/contract.test.mjs tests/upgrade-features.test.mjs tests/dom.smoke.test.mjs"
   },
   "devDependencies": {

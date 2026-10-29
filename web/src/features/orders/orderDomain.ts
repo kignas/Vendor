@@ -240,7 +240,12 @@ export function commissionPctOf(order: Order): number | null {
 
 /** Mirrors legacy `orderTotalOf()` equivalent — the order bill total. */
 export function orderTotalOf(order: Order): number | null {
-  return firstNumber(order.total, order.grandTotal, order.amount);
+  const direct = firstNumber(order.total, order.grandTotal, order.amount);
+  if (direct !== null) return direct;
+  // Mirrors legacy `billDetailsHtml`: when the server omits a top-level total,
+  // the displayed total falls back to the net receivable from the bill.
+  const net = billRows(order).find((r) => r.kind === 'total');
+  return net ? net.value : null;
 }
 
 /** Mirrors legacy `riderStatusOf()`. */
