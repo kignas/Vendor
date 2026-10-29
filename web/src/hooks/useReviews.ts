@@ -1,12 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
 import { fetchReviews, replyToReview } from '@/services/api/reviews';
 
-/** Vendor reviews list. Reviews change slowly, so a 60 s stale time is plenty. */
+/**
+ * Vendor reviews list, paged. Reviews change slowly, so a 60 s stale time is
+ * plenty; "Load more" pulls the next server page.
+ */
 export function useReviews() {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: queryKeys.reviews,
-    queryFn: () => fetchReviews(1, 50),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => fetchReviews(pageParam, 20),
+    getNextPageParam: (last) =>
+      last.currentPage < last.totalPages ? last.currentPage + 1 : undefined,
     staleTime: 60_000,
   });
 }

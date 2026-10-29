@@ -89,3 +89,41 @@ export function reviewMatches(review: Review, query: string, filter: string): bo
     .toLowerCase();
   return hay.includes(q);
 }
+
+export type DateFilter = 'all' | '7d' | '30d';
+
+/** True when a review falls inside the date filter window. */
+export function reviewInDateRange(review: Review, filter: DateFilter, now = Date.now()): boolean {
+  if (filter === 'all') return true;
+  const raw = review.createdAt;
+  if (!raw) return false;
+  const ms = new Date(raw).getTime();
+  if (!Number.isFinite(ms)) return false;
+  const days = filter === '7d' ? 7 : 30;
+  return now - ms <= days * 24 * 60 * 60 * 1000;
+}
+
+export interface RatingBucket {
+  stars: number;
+  count: number;
+  /** Share of the reviewed rows, 0–100. */
+  pct: number;
+}
+
+/**
+ * Rating distribution across the supplied reviews, from 5 stars down to 1.
+ * It reflects the rows actually loaded (the backend returns one page at a
+ * time); callers label it with the row count so a partial page is never passed
+ * off as the whole population.
+ */
+export function ratingDistribution(reviews: Review[]): RatingBucket[] {
+  const buckets = [5, 4, 3, 2, 1].map((stars) => ({ stars, count: 0, pct: 0 }));
+  for (const r of reviews) {
+    const score = reviewScoreOf(r);
+    const bucket = buckets.find((b) => b.stars === score);
+    if (bucket) bucket.count += 1;
+  }
+  const total = reviews.length;
+  for (const b of buckets) b.pct = total > 0 ? Math.round((b.count / total) * 100) : 0;
+  return buckets;
+}

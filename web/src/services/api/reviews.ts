@@ -9,15 +9,20 @@ export interface ReviewsPage {
   rows: Review[];
   summary: ReviewSummary;
   total: number;
+  currentPage: number;
+  totalPages: number;
 }
 
-export async function fetchReviews(page = 1, limit = 50): Promise<ReviewsPage> {
+export async function fetchReviews(page = 1, limit = 20): Promise<ReviewsPage> {
   const res = await apiFetch<ReviewsResponse>(`/reviews?page=${page}&limit=${limit}`);
   const rows = Array.isArray(res?.data) ? res.data : [];
+  const total = Number(res?.total ?? res?.summary?.reviewCount ?? rows.length) || rows.length;
   return {
     rows,
     summary: res?.summary ?? {},
-    total: Number(res?.total ?? res?.summary?.reviewCount ?? rows.length) || rows.length,
+    total,
+    currentPage: Number((res as { currentPage?: number })?.currentPage) || page,
+    totalPages: Number((res as { totalPages?: number })?.totalPages) || Math.max(1, Math.ceil(total / limit)),
   };
 }
 
