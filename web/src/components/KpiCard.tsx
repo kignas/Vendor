@@ -11,7 +11,7 @@ export interface KpiCardProps {
   /** Show the loading skeleton instead of a value. */
   loading?: boolean;
   /** Optional helper line under the value. */
-  hint?: string;
+  hint?: string | null;
   className?: string;
 }
 

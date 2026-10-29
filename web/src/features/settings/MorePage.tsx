@@ -34,7 +34,7 @@ const GROUPS: { title: string; links: MoreLink[] }[] = [
     title: 'Business tools',
     links: [
       { to: '/inventory', label: 'Inventory', hint: 'Stock and item availability', icon: Package },
-      { to: '/insights', label: 'Analytics', hint: 'Customer views, orders and sales', icon: BarChart3 },
+      { to: '/insights', label: 'Growth & analytics', hint: 'Sales, orders and customer views', icon: BarChart3 },
     ],
   },
   {
