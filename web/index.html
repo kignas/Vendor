@@ -8,6 +8,28 @@
     />
     <meta name="theme-color" content="#F4F5F7" />
     <title>Eatswada Vendor</title>
+    <script>
+      // Resolve and apply the theme before first paint so there is no light
+      // flash in dark mode. Kept inline (not in a module) so it runs ahead of
+      // the CSS/JS bundle. Mirrors the logic in src/app/uiStore.ts.
+      (function () {
+        try {
+          var stored = localStorage.getItem('eatswada_vendor_theme');
+          var pref = stored === 'light' || stored === 'dark' ? stored : 'system';
+          var dark =
+            pref === 'dark' ||
+            (pref === 'system' &&
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+          document.documentElement.dataset.themePreference = pref;
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', dark ? '#17171A' : '#F4F5F7');
+        } catch (e) {
+          /* storage unavailable — default light */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

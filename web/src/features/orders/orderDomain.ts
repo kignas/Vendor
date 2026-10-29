@@ -47,27 +47,43 @@ function positiveOrNull(value: number | null): number | null {
   return value !== null && value > 0 ? value : null;
 }
 
+/**
+ * First valid epoch from the candidates. Unlike `firstNumber` this skips absent
+ * (`null`/`undefined`/`''`) values instead of coercing them to `0`, so a missing
+ * leading field cannot mask a real deadline further down the chain.
+ */
+function firstTimestamp(...values: (string | null | undefined)[]): number | null {
+  for (const value of values) {
+    if (value === null || value === undefined || value === '') continue;
+    const ms = new Date(value).getTime();
+    if (Number.isFinite(ms) && ms > 0) return ms;
+  }
+  return null;
+}
+
 /** Mirrors legacy `prepDeadlineOf()` — reads persisted server deadlines only. */
 export function prepDeadlineOf(order: Order): number | null {
   return positiveOrNull(
-    firstNumber(
-      order.estimatedReadyAt ? new Date(order.estimatedReadyAt).getTime() : null,
-      order.prepReadyAt ? new Date(order.prepReadyAt).getTime() : null,
-      order.readyAt ? new Date(order.readyAt).getTime() : null,
-    ),
+    firstTimestamp(order.estimatedReadyAt, order.prepReadyAt, order.readyAt),
   );
+}
+
+/**
+ * Prep start reference. Mirrors the legacy `firstNumber(acceptedAt, updatedAt,
+ * createdAt)` chain used by both prepStripHtml and kptPct.
+ */
+export function prepStartedAtOf(order: Order): number | null {
+  return positiveOrNull(firstTimestamp(order.acceptedAt, order.updatedAt, order.createdAt));
 }
 
 /** Mirrors legacy `scheduledAtOf()`. */
 export function scheduledAtOf(order: Order): number | null {
   return positiveOrNull(
-    firstNumber(
-      order.scheduledAt ? new Date(order.scheduledAt).getTime() : null,
-      order.scheduledFor ? new Date(order.scheduledFor).getTime() : null,
-      order.deliverySlotAt ? new Date(order.deliverySlotAt).getTime() : null,
-      order.deliverySlot && order.deliverySlot.startAt
-        ? new Date(order.deliverySlot.startAt).getTime()
-        : null,
+    firstTimestamp(
+      order.scheduledAt,
+      order.scheduledFor,
+      order.deliverySlotAt,
+      order.deliverySlot?.startAt ?? null,
     ),
   );
 }
@@ -207,6 +223,18 @@ export function billRows(order: Order): BillRow[] {
     firstNumber(b.vendorNet, b.restaurantNetAmount, b.netAmount, b.netReceivable),
     'total',
   );
+  // Mirrors legacy billDetailsHtml: the restaurant promo share is shown only
+  // when the server reports it and it is not already represented by the
+  // discount row.
+  const promo = firstNumber(
+    b.restaurantPromoShare,
+    b.promoShare,
+    b.restaurantDiscount,
+    b.vendorDiscount,
+  );
+  if (promo !== null && !rows.some((r) => /discount/i.test(r.label))) {
+    push('Restaurant promo share', promo, 'neg');
+  }
   return rows;
 }
 
@@ -255,14 +283,28 @@ export function riderStatusOf(order: Order): string {
 
 /** Mirrors legacy `riderNameOf()`. */
 export function riderNameOf(order: Order): string {
-  const r = order.rider || order.deliveryPartner || {};
-  return order.riderName || r.name || r.fullName || 'Rider';
+  const r = order.rider || order.deliveryPartner || order.deliveryBoy || {};
+  return order.riderName || r.name || r.fullName || order.deliveryPartnerName || 'Rider';
 }
 
 /** Mirrors legacy `riderPhoneOf()`. */
 export function riderPhoneOf(order: Order): string {
-  const r = order.rider || order.deliveryPartner || {};
-  return order.riderPhone || r.phone || r.mobile || '';
+  const r = order.rider || order.deliveryPartner || order.deliveryBoy || {};
+  return order.riderPhone || r.phone || r.mobile || order.deliveryPartnerPhone || '';
+}
+
+/** Timestamp the rider reached the counter, if the server sent one. */
+export function riderReachedAtOf(order: Order): number | null {
+  return positiveOrNull(
+    firstTimestamp(order.reachedRestaurantAt, order.riderReachedAt, order.riderArrivedAt),
+  );
+}
+
+/** Scheduled rider dispatch time, if the server sent one. */
+export function riderDispatchAtOf(order: Order): number | null {
+  return positiveOrNull(
+    firstTimestamp(order.scheduledDispatchAt, order.dispatchScheduledAt, order.riderDispatchAt),
+  );
 }
 
 /** Mirrors legacy `loyaltySubtitle()`. */

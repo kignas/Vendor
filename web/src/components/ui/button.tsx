@@ -7,11 +7,11 @@ import { cn } from '@/lib/cn';
  * 44px minimum tap target, monochrome primary.
  */
 const buttonVariants = cva(
-  'inline-flex min-h-tap items-center justify-center gap-2 whitespace-nowrap rounded-btn px-4 text-sm font-semibold transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
+  'press inline-flex min-h-tap items-center justify-center gap-2 whitespace-nowrap rounded-btn px-4 text-sm font-semibold transition-colors active:brightness-95 disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
-        default: 'bg-ink text-white hover:bg-ink/90',
+        default: 'bg-inverse text-inverse-ink hover:bg-inverse/90',
         secondary: 'border border-border bg-card text-ink hover:bg-border-soft',
         ghost: 'text-ink hover:bg-border-soft',
         danger: 'bg-danger text-white hover:bg-danger/90',

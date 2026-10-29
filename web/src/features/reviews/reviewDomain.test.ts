@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ratingDistribution,
   reviewCustomerCount,
   reviewCustomerName,
   reviewId,
+  reviewInDateRange,
   reviewItemRatings,
   reviewMatches,
   reviewPhotos,
@@ -76,5 +78,34 @@ describe('reviewDomain', () => {
     expect(reviewId({ _id: 'a' })).toBe('a');
     expect(reviewId({ id: 'b' })).toBe('b');
     expect(reviewId({})).toBe('');
+  });
+
+  it('builds a 5..1 rating distribution with shares', () => {
+    const dist = ratingDistribution([
+      { score: 5 },
+      { score: 5 },
+      { score: 3 },
+      { score: 1 },
+    ]);
+    expect(dist.map((b) => b.stars)).toEqual([5, 4, 3, 2, 1]);
+    expect(dist.find((b) => b.stars === 5)?.count).toBe(2);
+    expect(dist.find((b) => b.stars === 5)?.pct).toBe(50);
+    expect(dist.find((b) => b.stars === 4)?.count).toBe(0);
+  });
+
+  it('returns all-zero buckets when there are no rows', () => {
+    const dist = ratingDistribution([]);
+    expect(dist.every((b) => b.count === 0 && b.pct === 0)).toBe(true);
+  });
+
+  it('filters by date window and treats a missing date as out of range', () => {
+    const now = Date.parse('2026-10-29T00:00:00Z');
+    const recent = { createdAt: '2026-10-27T00:00:00Z' };
+    const old = { createdAt: '2026-09-01T00:00:00Z' };
+    expect(reviewInDateRange(recent, '7d', now)).toBe(true);
+    expect(reviewInDateRange(old, '7d', now)).toBe(false);
+    expect(reviewInDateRange(old, '30d', now)).toBe(false);
+    expect(reviewInDateRange(old, 'all', now)).toBe(true);
+    expect(reviewInDateRange({}, '7d', now)).toBe(false);
   });
 });

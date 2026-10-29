@@ -183,12 +183,16 @@ test('unsupported backend features are capability-gated', () => {
   assert.match(html, /complaints: false/);
   assert.match(html, /menuEdit: false/);
   assert.match(html, /menuDelete: false/);
-  // The capability set is closed: only these names may be toggled.
+  // The capability set is closed: only these names may be toggled. Every
+  // `true` flag maps to a route in the mounted-route allow-list above, so the
+  // set is pinned to the full 17-flag contract (see VENDOR-API-CONTRACT.md).
   const capsBlock = html.slice(html.indexOf('const caps = Object.freeze({'), html.indexOf('});', html.indexOf('const caps = Object.freeze({')));
   const names = [...capsBlock.matchAll(/^\s*([a-zA-Z]+):/gm)].map(m => m[1]);
   assert.deepEqual(names.sort(), [
     'autoRestock', 'billBreakdown', 'complaints', 'inventoryQty', 'menuDelete',
-    'menuEdit', 'prepCountdown', 'profileEdit', 'selfDeliveryOtp', 'settlements'
+    'menuEdit', 'menuReorder', 'onboardingConfig', 'policies', 'prepCountdown',
+    'profileEdit', 'selfDeliveryOtp', 'serverActivity', 'serverAlerts',
+    'serverCapacity', 'serverDashboard', 'settlements'
   ].sort());
 });
 

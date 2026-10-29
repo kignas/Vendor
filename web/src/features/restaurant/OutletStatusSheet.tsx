@@ -1,9 +1,10 @@
+import { AlertTriangle } from 'lucide-react';
 import { BottomSheet } from '@/components/BottomSheet';
 import { useRestaurant } from '@/hooks/useRestaurant';
 import { cn } from '@/lib/cn';
 import { toast } from 'sonner';
 import type { AvailabilityStatus } from '@/services/api/restaurant';
-import { STATUS_LABEL, STATUS_OPTIONS, statusOf } from './outletStatus';
+import { isOutletOpen, STATUS_LABEL, STATUS_OPTIONS, statusOf, statusReasonOf } from './outletStatus';
 
 export function OutletStatusSheet({
   open,
@@ -14,6 +15,7 @@ export function OutletStatusSheet({
 }) {
   const restaurant = useRestaurant();
   const current = statusOf(restaurant.data ?? null);
+  const reason = statusReasonOf(restaurant.data ?? null);
 
   function apply(next: AvailabilityStatus) {
     restaurant.availabilityMutation.mutate(next, {
@@ -31,6 +33,12 @@ export function OutletStatusSheet({
       <p className="px-5 pb-2 text-xs text-ink-soft">
         Tell Eatswada whether you can take new orders right now.
       </p>
+      {!isOutletOpen(current) && reason ? (
+        <p className="mx-5 mb-2 flex items-start gap-1.5 rounded-btn bg-warning-bg px-3 py-2 text-xs text-warning-ink">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          {reason}
+        </p>
+      ) : null}
       <div className="px-5 pb-5">
         {STATUS_OPTIONS.map((opt) => (
           <button
@@ -58,7 +66,7 @@ export function OutletStatusSheet({
               <span className="block text-sm text-ink">{STATUS_LABEL[opt.id]}</span>
               <span className="block text-xs text-ink-soft">{opt.hint}</span>
             </span>
-            {opt.id === current ? <span className="text-xs text-brand">Current</span> : null}
+            {opt.id === current ? <span className="text-xs text-brand-ink">Current</span> : null}
           </button>
         ))}
       </div>

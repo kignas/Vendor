@@ -7,6 +7,7 @@ import {
   type AvailabilityStatus,
 } from '@/services/api/restaurant';
 import { setRestaurant } from '@/lib/auth';
+import type { Restaurant } from '@/types/restaurant';
 
 export type OpeningHours = Record<string, { closed?: boolean; opensAt?: string; closesAt?: string }>;
 
@@ -30,9 +31,26 @@ export function useRestaurant() {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: queryKeys.restaurant });
 
+  /**
+   * Availability is server-authoritative. The pill updates optimistically so
+   * the switch feels instant, rolls back to the previous server value on
+   * failure, and always reconciles from a refetch once the request settles —
+   * the client never claims a state the backend rejected.
+   */
   const availabilityMutation = useMutation({
     mutationFn: (status: AvailabilityStatus) => setAvailability(status),
-    onSuccess: invalidate,
+    onMutate: async (status) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.restaurant });
+      const previous = queryClient.getQueryData<Restaurant | null>(queryKeys.restaurant);
+      queryClient.setQueryData<Restaurant | null>(queryKeys.restaurant, (old) =>
+        old ? { ...old, availability: status } : old,
+      );
+      return { previous };
+    },
+    onError: (_err, _status, ctx) => {
+      if (ctx) queryClient.setQueryData(queryKeys.restaurant, ctx.previous);
+    },
+    onSettled: invalidate,
   });
 
   const hoursMutation = useMutation({

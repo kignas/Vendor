@@ -74,7 +74,7 @@ function TicketRow({ ticket, onReply }: { ticket: SupportTicket; onReply: (t: Su
         <button
           type="button"
           onClick={() => onReply(ticket)}
-          className="mt-3 inline-flex min-h-tap items-center gap-1.5 text-sm font-semibold text-brand"
+          className="mt-3 inline-flex min-h-tap items-center gap-1.5 text-sm font-semibold text-brand-ink"
         >
           <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
           Reply
@@ -139,7 +139,7 @@ function NewTicketSheet({ open, onClose }: { open: boolean; onClose: () => void 
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={4}
-            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand"
+            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand-ink"
             placeholder="Describe the issue"
           />
         </div>
@@ -153,7 +153,7 @@ function NewTicketSheet({ open, onClose }: { open: boolean; onClose: () => void 
           {create.isPending ? 'Submitting…' : 'Submit ticket'}
         </Button>
         {create.isError ? (
-          <p className="text-xs text-danger" role="alert">
+          <p className="text-xs text-danger-ink" role="alert">
             Could not submit the ticket. Please try again.
           </p>
         ) : null}
@@ -185,7 +185,7 @@ function ReplySheet({ ticket, onClose }: { ticket: SupportTicket | null; onClose
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
           aria-label="Message"
-          className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand"
+          className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand-ink"
           placeholder="Add a message to this ticket"
         />
         <Button
@@ -198,7 +198,7 @@ function ReplySheet({ ticket, onClose }: { ticket: SupportTicket | null; onClose
           {reply.isPending ? 'Sending…' : 'Send reply'}
         </Button>
         {reply.isError ? (
-          <p className="text-xs text-danger" role="alert">
+          <p className="text-xs text-danger-ink" role="alert">
             Could not send the reply.
           </p>
         ) : null}
@@ -225,7 +225,7 @@ export function SupportPage() {
         <button
           type="button"
           onClick={() => setNewOpen(true)}
-          className="inline-flex min-h-tap items-center gap-1.5 text-sm font-semibold text-brand"
+          className="inline-flex min-h-tap items-center gap-1.5 text-sm font-semibold text-brand-ink"
         >
           <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
           New ticket

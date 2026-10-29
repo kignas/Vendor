@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isOutletOpen, statusOf } from './outletStatus';
+import { isOutletOpen, openingStateOf, statusOf, statusReasonOf } from './outletStatus';
 
 describe('statusOf', () => {
   it('reads the object availability form', () => {
@@ -26,5 +26,63 @@ describe('isOutletOpen', () => {
     expect(isOutletOpen('busy')).toBe(true);
     expect(isOutletOpen('closed_today')).toBe(false);
     expect(isOutletOpen('temporarily_closed')).toBe(false);
+  });
+});
+
+describe('statusReasonOf', () => {
+  it('reads a reason from the availability object when the backend sends one', () => {
+    expect(statusReasonOf({ availability: { status: 'closed_today', reason: 'Closed for Diwali' } })).toBe(
+      'Closed for Diwali',
+    );
+    expect(statusReasonOf({ availability: { status: 'busy', note: 'Kitchen at capacity' } })).toBe(
+      'Kitchen at capacity',
+    );
+  });
+
+  it('reads a top-level reason', () => {
+    expect(statusReasonOf({ availabilityReason: 'Staff shortage' })).toBe('Staff shortage');
+    expect(statusReasonOf({ closureReason: 'Renovation' })).toBe('Renovation');
+  });
+
+  it('returns null rather than inventing a reason', () => {
+    expect(statusReasonOf({ availability: 'closed_today' })).toBeNull();
+    expect(statusReasonOf({})).toBeNull();
+    expect(statusReasonOf(null)).toBeNull();
+  });
+});
+
+describe('openingStateOf', () => {
+  // 2026-10-29 is a Thursday.
+  const thursdayNoon = new Date('2026-10-29T12:00:00');
+
+  it('reports within-hours for a normal open day', () => {
+    const state = openingStateOf(
+      { thursday: { closed: false, opensAt: '09:00', closesAt: '22:00' } },
+      thursdayNoon,
+    );
+    expect(state).toEqual({ closedToday: false, opensAt: '09:00', closesAt: '22:00', outsideHours: false });
+  });
+
+  it('flags outside-hours before opening and after closing', () => {
+    const hours = { thursday: { closed: false, opensAt: '09:00', closesAt: '22:00' } };
+    expect(openingStateOf(hours, new Date('2026-10-29T07:00:00'))?.outsideHours).toBe(true);
+    expect(openingStateOf(hours, new Date('2026-10-29T23:00:00'))?.outsideHours).toBe(true);
+  });
+
+  it('marks a closed day', () => {
+    const state = openingStateOf({ thursday: { closed: true } }, thursdayNoon);
+    expect(state?.closedToday).toBe(true);
+    expect(state?.outsideHours).toBe(true);
+  });
+
+  it('returns null when there is no schedule for the day', () => {
+    expect(openingStateOf({ monday: { opensAt: '09:00', closesAt: '17:00' } }, thursdayNoon)).toBeNull();
+    expect(openingStateOf(undefined, thursdayNoon)).toBeNull();
+  });
+
+  it('handles overnight hours without a false warning', () => {
+    const hours = { thursday: { closed: false, opensAt: '18:00', closesAt: '02:00' } };
+    expect(openingStateOf(hours, new Date('2026-10-29T23:30:00'))?.outsideHours).toBe(false);
+    expect(openingStateOf(hours, new Date('2026-10-29T12:00:00'))?.outsideHours).toBe(true);
   });
 });

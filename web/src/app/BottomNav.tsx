@@ -18,7 +18,8 @@ const ITEMS: NavItem[] = [
 
 /**
  * Bottom navigation. Five destinations; each item is a 44px+ tap target and
- * exposes `aria-current` via NavLink.
+ * exposes `aria-current` via NavLink. The active item shows a short top
+ * indicator and a small pop on the icon so selection reads clearly.
  */
 export function BottomNav() {
   return (
@@ -28,20 +29,33 @@ export function BottomNav() {
     >
       <ul className="app-column flex items-stretch justify-between px-1">
         {ITEMS.map(({ to, label, icon: Icon }) => (
-          <li key={to} className="flex-1">
+          <li key={to} className="relative flex-1">
             <NavLink
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
                 cn(
-                  'flex min-h-tap flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-semibold transition-colors',
+                  'press flex min-h-tap flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-semibold transition-colors',
                   isActive ? 'text-ink' : 'text-ink-faint hover:text-ink-soft',
                 )
               }
             >
               {({ isActive }) => (
                 <>
-                  <Icon className={cn('h-5 w-5', isActive && 'text-brand')} aria-hidden="true" />
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'absolute inset-x-5 top-0 h-0.5 rounded-pill bg-brand-ink transition-transform duration-200 ease-out',
+                      isActive ? 'scale-x-100' : 'scale-x-0',
+                    )}
+                  />
+                  <Icon
+                    className={cn(
+                      'h-5 w-5 transition-transform duration-200 ease-out',
+                      isActive ? 'scale-110 text-brand-ink' : 'scale-100',
+                    )}
+                    aria-hidden="true"
+                  />
                   <span>{label}</span>
                 </>
               )}

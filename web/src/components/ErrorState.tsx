@@ -30,7 +30,7 @@ export function ErrorState({
       role="alert"
     >
       <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-pill bg-danger-bg">
-        <AlertTriangle className="h-6 w-6 text-danger" aria-hidden="true" />
+        <AlertTriangle className="h-6 w-6 text-danger-ink" aria-hidden="true" />
       </span>
       <p className="max-w-xs text-sm font-medium text-ink">{message}</p>
       {onRetry ? (

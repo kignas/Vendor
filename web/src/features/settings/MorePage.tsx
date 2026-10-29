@@ -10,9 +10,8 @@ import {
   Settings as SettingsIcon,
   Star,
   Store,
-  Sun,
 } from 'lucide-react';
-import { useUiStore } from '@/app/uiStore';
+import { ThemeControl } from '@/components/ThemeControl';
 import { useRestaurant } from '@/hooks/useRestaurant';
 import { clearSession } from '@/lib/auth';
 import { cn } from '@/lib/cn';
@@ -35,7 +34,7 @@ const GROUPS: { title: string; links: MoreLink[] }[] = [
     title: 'Business tools',
     links: [
       { to: '/inventory', label: 'Inventory', hint: 'Stock and item availability', icon: Package },
-      { to: '/insights', label: 'Analytics', hint: 'Customer views, orders and sales', icon: BarChart3 },
+      { to: '/insights', label: 'Growth & analytics', hint: 'Sales, orders and customer views', icon: BarChart3 },
     ],
   },
   {
@@ -57,12 +56,10 @@ const GROUPS: { title: string; links: MoreLink[] }[] = [
 /**
  * More / Settings hub. Mirrors the legacy "More" sheet: restaurant profile,
  * inventory, analytics, reviews, notifications, support and settings, plus the
- * theme toggle and logout. Logout clears the three fixed localStorage keys.
+ * appearance selector and logout. Logout clears the three fixed localStorage keys.
  */
 export function MorePage() {
   const navigate = useNavigate();
-  const theme = useUiStore((s) => s.theme);
-  const toggleTheme = useUiStore((s) => s.toggleTheme);
   const restaurant = useRestaurant();
 
   function onLogout() {
@@ -99,7 +96,7 @@ export function MorePage() {
                   i < group.links.length - 1 && 'border-b border-border-soft',
                 )}
               >
-                <Icon className="h-5 w-5 text-brand" aria-hidden="true" />
+                <Icon className="h-5 w-5 text-brand-ink" aria-hidden="true" />
                 <span className="flex-1">
                   <span className="block text-sm font-semibold text-ink">{label}</span>
                   <span className="block text-xs text-ink-soft">{hint}</span>
@@ -111,37 +108,18 @@ export function MorePage() {
         </div>
       ))}
 
-      <button
-        type="button"
-        onClick={toggleTheme}
-        className="flex w-full items-center gap-3 rounded-card border border-border bg-card p-4"
-        aria-pressed={theme === 'dark'}
-      >
-        {theme === 'dark' ? (
-          <Moon className="h-5 w-5 text-brand" aria-hidden="true" />
-        ) : (
-          <Sun className="h-5 w-5 text-brand" aria-hidden="true" />
-        )}
-        <span className="flex-1 text-left text-sm font-semibold text-ink">Dark theme</span>
-        <span
-          className={cn(
-            'relative h-7 w-12 rounded-pill transition-colors',
-            theme === 'dark' ? 'bg-brand' : 'bg-border',
-          )}
-        >
-          <span
-            className={cn(
-              'absolute top-0.5 h-6 w-6 rounded-pill bg-white shadow transition-all',
-              theme === 'dark' ? 'left-5' : 'left-0.5',
-            )}
-          />
-        </span>
-      </button>
+      <div className="rounded-card border border-border bg-card p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <Moon className="h-4 w-4 text-brand-ink" aria-hidden="true" />
+          <span className="text-sm font-semibold text-ink">Appearance</span>
+        </div>
+        <ThemeControl />
+      </div>
 
       <button
         type="button"
         onClick={onLogout}
-        className="flex w-full items-center gap-3 rounded-card border border-border bg-card p-4 text-danger"
+        className="flex w-full items-center gap-3 rounded-card border border-border bg-card p-4 text-danger-ink"
       >
         <LogOut className="h-5 w-5" aria-hidden="true" />
         <span className="text-sm font-semibold">Log out</span>

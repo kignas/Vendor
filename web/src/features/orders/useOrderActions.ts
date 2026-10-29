@@ -30,8 +30,8 @@ export function useOrderActions() {
   }, [queryClient]);
 
   const run = useCallback(
-    async (id: string, task: () => Promise<unknown>, successMsg: string) => {
-      if (busyRef.current.has(id)) return;
+    async (id: string, task: () => Promise<unknown>, successMsg: string): Promise<boolean> => {
+      if (busyRef.current.has(id)) return false;
       busyRef.current.add(id);
       setBusyIds(new Set(busyRef.current));
       try {
@@ -40,8 +40,10 @@ export function useOrderActions() {
         orderAlarm.stop();
         toast.success(successMsg);
         refresh();
+        return true;
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Action failed. Please try again.');
+        return false;
       } finally {
         busyRef.current.delete(id);
         setBusyIds(new Set(busyRef.current));

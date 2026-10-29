@@ -1,12 +1,16 @@
-import { Clock3, MessageSquare, Printer, Bike } from 'lucide-react';
+import { CalendarClock, Clock3, LifeBuoy, MessageSquare, Printer, Utensils, Volume2 } from 'lucide-react';
 import { StatusPill } from '@/components/StatusPill';
-import { enumLabel, formatMoney } from '@/lib/format';
+import { enumLabel, formatMoney, kptPct } from '@/lib/format';
 import { cn } from '@/lib/cn';
+import { formatCountdown, useAcceptanceWindow } from '@/features/orders/acceptanceWindow';
+import { caps } from '@/lib/caps';
+import { useNow } from '@/hooks/useNow';
+import { PrepStrip } from '@/features/orders/PrepStrip';
+import { RiderStatus } from '@/features/orders/RiderStatus';
 import {
   billRows,
   commissionPctOf,
   dietOf,
-  isResponseExpired,
   loyaltySubtitle,
   orderBillOf,
   orderCountWithRestaurant,
@@ -14,20 +18,70 @@ import {
   orderTotalOf,
   paymentModeOf,
   pickupCodeOf,
+  prepDeadlineOf,
+  prepStartedAtOf,
+  scheduledAtOf,
   ticketStamp,
 } from '@/features/orders/orderDomain';
 import type { Order, OrderItem } from '@/types/order';
+
+function mmss(ms: number): string {
+  const secs = Math.ceil(ms / 1000);
+  return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+}
 
 export interface OrderCardProps {
   order: Order;
   /** Restaurant delivery mode, for the self-delivery PIN gate. */
   deliveryMode?: string | undefined;
   busy?: boolean;
+  /** Order ids with a used one-time +5 min prep extension (session-local). */
+  extendedIds?: Set<string>;
+  /** Hide the status action footer (the New tab uses the acceptance sheet). */
+  hideFooter?: boolean;
   onAccept: (order: Order) => void;
   onReject: (order: Order) => void;
   onAdvance: (order: Order) => void;
   onReady: (order: Order) => void;
+  onExtendPrep: (order: Order) => void;
   onVerifyOtp: (order: Order) => void;
+  onKot?: (order: Order) => void;
+  onSpeak?: (order: Order) => void;
+  onSupport?: (order: Order) => void;
+}
+
+/**
+ * Ready CTA with the shared prep deadline. Mirrors the legacy split-fill
+ * `startKptTimer` label: "Order Ready (mm:ss)" while the deadline is in the
+ * future, plain "Order Ready" otherwise. The button is never disabled by the
+ * timer — the kitchen can always mark food ready early.
+ */
+function ReadyButton({ order, busy, onReady }: { order: Order; busy: boolean; onReady: (order: Order) => void }) {
+  const deadline = prepDeadlineOf(order);
+  const active = caps.prepCountdown && deadline !== null;
+  const now = useNow(1000, active);
+  const remaining = deadline !== null ? deadline - now : 0;
+  const started = prepStartedAtOf(order);
+  const pct = deadline !== null ? kptPct(deadline, started) : 100;
+  const showTimer = active && remaining > 0;
+
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={() => onReady(order)}
+      className="relative mt-3 min-h-tap w-full overflow-hidden rounded-btn border border-brand-ink bg-card text-sm font-bold text-brand-ink disabled:opacity-50"
+    >
+      <span
+        className="absolute inset-y-0 left-0 bg-brand/10"
+        style={{ width: `${showTimer ? pct : 100}%` }}
+        aria-hidden="true"
+      />
+      <span className="relative">
+        {showTimer ? `Order Ready (${mmss(remaining)})` : 'Order Ready'}
+      </span>
+    </button>
+  );
 }
 
 function DietMark({ item }: { item: OrderItem }) {
@@ -37,11 +91,58 @@ function DietMark({ item }: { item: OrderItem }) {
     <span
       className={cn(
         'shrink-0 rounded-[3px] border px-1 text-[10px] font-bold leading-4',
-        diet === 'veg' ? 'border-success text-success' : 'border-danger text-danger',
+        diet === 'veg' ? 'border-success text-success-ink' : 'border-danger text-danger-ink',
       )}
     >
       {diet === 'veg' ? 'VEG' : 'NON'}
     </span>
+  );
+}
+
+/**
+ * Cutlery preference and scheduled-slot strips. Mirrors the legacy
+ * `renderTicket` stripHtml block: cutlery is read from the several server field
+ * aliases and only rendered when explicitly sent; a scheduled slot is shown
+ * only for a future delivery time.
+ */
+function TicketStrips({ order }: { order: Order }) {
+  const cutlery =
+    order.sendCutlery ?? order.cutlery ?? order.cutleryPreference ?? order.cutleryRequired;
+  const slotAt = scheduledAtOf(order);
+  const now = useNow(30_000, slotAt !== null && slotAt > Date.now());
+
+  let cutleryText: string | null = null;
+  if (cutlery === true) cutleryText = 'Send cutlery';
+  else if (cutlery === false) cutleryText = 'No cutlery needed';
+  else if (typeof cutlery === 'string' && cutlery.trim()) cutleryText = `Cutlery: ${cutlery.trim()}`;
+
+  const showSlot = slotAt !== null && slotAt > now;
+  if (!cutleryText && !showSlot) return null;
+
+  return (
+    <>
+      {cutleryText ? (
+        <p className="mt-2 inline-flex items-start gap-1 rounded-btn bg-canvas px-2 py-1.5 text-xs text-ink-soft">
+          <Utensils className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span>{cutleryText}</span>
+        </p>
+      ) : null}
+      {showSlot ? (
+        <p className="mt-2 inline-flex items-start gap-1 rounded-btn bg-info-bg px-2 py-1.5 text-xs text-info-ink">
+          <CalendarClock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span>
+            Scheduled for{' '}
+            {new Date(slotAt).toLocaleString('en-IN', {
+              day: '2-digit',
+              month: 'short',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true,
+            })}
+          </span>
+        </p>
+      ) : null}
+    </>
   );
 }
 
@@ -67,17 +168,24 @@ export function OrderCard({
   order,
   deliveryMode,
   busy = false,
+  extendedIds,
+  hideFooter = false,
   onAccept,
   onReject,
   onAdvance,
   onReady,
+  onExtendPrep,
   onVerifyOtp,
+  onKot,
+  onSpeak,
+  onSupport,
 }: OrderCardProps) {
   const items = Array.isArray(order.items) ? order.items : [];
   const ref = orderRef(order);
   const total = orderTotalOf(order);
   const code = pickupCodeOf(order);
-  const expired = isResponseExpired(order);
+  const responseWindow = useAcceptanceWindow(order);
+  const expired = responseWindow.expired;
   const rows = billRows(order);
   const bill = orderBillOf(order) ?? {};
   const pct = commissionPctOf(order);
@@ -87,12 +195,12 @@ export function OrderCard({
   const note =
     order.customerInstructions || order.instructions || order.deliveryInstructions || order.restaurantNote;
   const selfDelivery = deliveryMode === 'self_delivery' || order.deliveryModeSnapshot === 'self_delivery';
-  const rider = String(order.riderStatus || order.deliveryRiderStatus || order.riderState || '').toLowerCase();
 
   const disabled = busy || expired;
 
   let footer: React.ReactNode = null;
-  switch (order.status) {
+  if (hideFooter) footer = null;
+  else switch (order.status) {
     case 'placed':
       footer = (
         <div className="mt-3 flex gap-2">
@@ -108,7 +216,7 @@ export function OrderCard({
             type="button"
             disabled={disabled}
             onClick={() => onAccept(order)}
-            className="min-h-tap flex-1 rounded-btn bg-brand text-sm font-bold text-white disabled:opacity-50"
+            className="min-h-tap flex-1 rounded-btn bg-success text-sm font-bold text-white shadow-sm disabled:opacity-50"
           >
             Accept
           </button>
@@ -128,16 +236,7 @@ export function OrderCard({
       );
       break;
     case 'preparing':
-      footer = (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => onReady(order)}
-          className="mt-3 min-h-tap w-full rounded-btn bg-brand text-sm font-bold text-white disabled:opacity-50"
-        >
-          Order Ready
-        </button>
-      );
+      footer = <ReadyButton order={order} busy={busy} onReady={onReady} />;
       break;
     case 'waiting_for_rider':
       footer = (
@@ -196,7 +295,7 @@ export function OrderCard({
     <article
       className={cn(
         'rounded-card border bg-card p-4 shadow-sm',
-        order.status === 'placed' ? 'border-brand/40 ring-1 ring-brand/20' : 'border-border',
+        order.status === 'placed' ? 'border-brand-ink/40 ring-1 ring-brand-ink/20' : 'border-border',
       )}
       aria-label={`Order ${ref}`}
     >
@@ -212,11 +311,16 @@ export function OrderCard({
         {order.status === 'placed' ? (
           <span
             className={cn(
-              'text-[11px] font-semibold',
-              expired ? 'text-danger' : 'text-ink-soft',
+              'text-[11px] font-semibold tabular-nums',
+              expired ? 'text-danger-ink' : 'text-ink-soft',
             )}
+            aria-live="polite"
           >
-            {expired ? 'Response window expired' : 'Respond within 5:00'}
+            {!responseWindow.active
+              ? null
+              : expired
+                ? 'Response window expired · updating…'
+                : `Respond within ${formatCountdown(responseWindow.remaining)}`}
           </span>
         ) : null}
       </div>
@@ -250,15 +354,18 @@ export function OrderCard({
         <p className="mt-2 text-xs text-ink-faint">No items listed</p>
       )}
 
-      {rider ? (
-        <p className="mt-2 inline-flex items-center gap-1 text-xs text-info">
-          <Bike className="h-3.5 w-3.5" aria-hidden="true" />
-          Rider {rider.replace(/_/g, ' ')}
-        </p>
-      ) : null}
+      <PrepStrip
+        order={order}
+        extended={extendedIds?.has(order._id) ?? false}
+        onExtend={onExtendPrep}
+        busy={busy}
+      />
+
+      <TicketStrips order={order} />
+      <RiderStatus order={order} />
 
       {note ? (
-        <p className="mt-2 inline-flex items-start gap-1 rounded-btn bg-warning-bg px-2 py-1.5 text-xs text-warning">
+        <p className="mt-2 inline-flex items-start gap-1 rounded-btn bg-warning-bg px-2 py-1.5 text-xs text-warning-ink">
           <MessageSquare className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           <span>{String(note)}</span>
         </p>
@@ -310,7 +417,7 @@ export function OrderCard({
       )}
 
       {order.status === 'cancelled' && order.cancelReason ? (
-        <p className="mt-2 rounded-btn bg-danger-bg px-2 py-1.5 text-xs text-danger">
+        <p className="mt-2 rounded-btn bg-danger-bg px-2 py-1.5 text-xs text-danger-ink">
           <strong>Reason </strong>
           {order.cancelReason}
         </p>
@@ -321,10 +428,27 @@ export function OrderCard({
       <div className="mt-3 flex gap-2 text-xs">
         <button
           type="button"
+          onClick={() => onKot?.(order)}
           className="inline-flex min-h-tap flex-1 items-center justify-center gap-1 rounded-btn border border-border text-ink-soft"
           aria-label="Print KOT"
         >
           <Printer className="h-3.5 w-3.5" aria-hidden="true" /> KOT
+        </button>
+        <button
+          type="button"
+          onClick={() => onSpeak?.(order)}
+          className="inline-flex min-h-tap flex-1 items-center justify-center gap-1 rounded-btn border border-border text-ink-soft"
+          aria-label="Voice readout"
+        >
+          <Volume2 className="h-3.5 w-3.5" aria-hidden="true" /> Read
+        </button>
+        <button
+          type="button"
+          onClick={() => onSupport?.(order)}
+          className="inline-flex min-h-tap flex-1 items-center justify-center gap-1 rounded-btn border border-border text-ink-soft"
+          aria-label="Order support"
+        >
+          <LifeBuoy className="h-3.5 w-3.5" aria-hidden="true" /> Help
         </button>
       </div>
     </article>

@@ -67,8 +67,8 @@ export function ApplicationStatusPage() {
     key === 'more_information_required' || key === 'needs_changes' || key === 'rejected';
 
   return (
-    <div className="app-column safe-x min-h-dvh px-5 py-8">
-      <p className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-brand">
+    <div className="app-column safe-x [--page-x:1.25rem] min-h-dvh py-8">
+      <p className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-brand-ink">
         Eatswada Partner
       </p>
       <h1 className="mt-1 text-xl font-extrabold text-ink">Application status</h1>
@@ -106,7 +106,7 @@ export function ApplicationStatusPage() {
         {error ? (
           <div
             role="alert"
-            className="mt-4 rounded-card border-l-4 border-danger bg-danger-bg p-3 text-sm text-danger"
+            className="mt-4 rounded-card border-l-4 border-danger bg-danger-bg p-3 text-sm text-danger-ink"
           >
             {error}
           </div>
@@ -137,7 +137,7 @@ export function ApplicationStatusPage() {
             {canCorrect ? (
               <p className="mt-2 text-ink-soft">
                 If your application is eligible for correction, continue on the{' '}
-                <Link to="/apply" className="font-bold text-brand">
+                <Link to="/apply" className="font-bold text-brand-ink">
                   application form
                 </Link>
                 . Use the same email and phone number to update the existing application. Do not
@@ -149,11 +149,11 @@ export function ApplicationStatusPage() {
       </div>
 
       <p className="mt-6 text-center text-xs text-ink-soft">
-        <Link to="/apply" className="font-bold text-brand">
+        <Link to="/apply" className="font-bold text-brand-ink">
           Become a vendor
         </Link>
         {' · '}
-        <Link to="/login" className="font-bold text-brand">
+        <Link to="/login" className="font-bold text-brand-ink">
           Vendor login
         </Link>
       </p>

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
-import { fetchMenu, toggleStock } from '@/services/api/menu';
+import { createMenuItem, fetchMenu, toggleStock, type NewMenuItem } from '@/services/api/menu';
 import type { MenuItem } from '@/types/menu';
 
 export function useMenu() {
@@ -26,6 +26,17 @@ export function useToggleStock() {
           return res?.data ? { ...item, ...res.data } : { ...item, inStock: variables.inStock };
         }),
       );
+    },
+  });
+}
+
+/** POST /menu — create-only; the new item comes back `pending` admin approval. */
+export function useCreateMenuItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (item: NewMenuItem) => createMenuItem(item),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.menu });
     },
   });
 }

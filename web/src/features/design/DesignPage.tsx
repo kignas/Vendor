@@ -85,7 +85,7 @@ export function DesignPage() {
           action={
             <button
               type="button"
-              className="inline-flex min-h-tap items-center gap-2 rounded-btn bg-ink px-4 text-sm font-semibold text-white"
+              className="inline-flex min-h-tap items-center gap-2 rounded-btn bg-inverse px-4 text-sm font-semibold text-inverse-ink"
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
               Add item
@@ -117,7 +117,7 @@ export function DesignPage() {
               <BarChart data={CHART_DATA}>
                 <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={11} />
                 <YAxis hide />
-                <Bar dataKey="orders" fill="#18181B" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="orders" fill="rgb(var(--es-brand-ink))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -130,7 +130,7 @@ export function DesignPage() {
         <button
           type="button"
           onClick={() => setSheetOpen(true)}
-          className="inline-flex min-h-tap items-center rounded-btn bg-ink px-4 text-sm font-semibold text-white"
+          className="inline-flex min-h-tap items-center rounded-btn bg-inverse px-4 text-sm font-semibold text-inverse-ink"
         >
           Open bottom sheet
         </button>
@@ -146,7 +146,7 @@ export function DesignPage() {
           <button
             type="button"
             onClick={() => setSheetOpen(false)}
-            className="mt-4 inline-flex min-h-tap w-full items-center justify-center rounded-btn bg-ink px-4 text-sm font-semibold text-white"
+            className="mt-4 inline-flex min-h-tap w-full items-center justify-center rounded-btn bg-inverse px-4 text-sm font-semibold text-inverse-ink"
           >
             Close
           </button>

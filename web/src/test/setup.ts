@@ -71,6 +71,18 @@ if (typeof window !== 'undefined' && typeof Element !== 'undefined') {
   if (!proto.releasePointerCapture) proto.releasePointerCapture = () => undefined;
   if (!proto.hasPointerCapture) proto.hasPointerCapture = () => false;
 
+  // jsdom has no ResizeObserver; Recharts' ResponsiveContainer requires one.
+  // A no-op observer lets charts mount (they render at the container's size,
+  // which jsdom reports as 0 — the chart markup still exists for assertions).
+  if (!('ResizeObserver' in globalThis)) {
+    class ResizeObserverShim {
+      observe(): void {}
+      unobserve(): void {}
+      disconnect(): void {}
+    }
+    (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = ResizeObserverShim;
+  }
+
   const originalGetComputedStyle = window.getComputedStyle.bind(window);
   window.getComputedStyle = ((element: Element, pseudo?: string | null) => {
     const style = originalGetComputedStyle(element, pseudo);

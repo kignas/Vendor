@@ -93,4 +93,60 @@ describe('ReviewsPage', () => {
     await waitFor(() => expect(replied).toBe(true));
     expect(await screen.findByText(/Sorry about that/)).toBeInTheDocument();
   });
+
+  it('loads the next page and requests the correct page number', async () => {
+    const user = userEvent.setup();
+    const pages: string[] = [];
+    server.use(
+      http.get(`${API_BASE}/reviews`, ({ request }) => {
+        const page = new URL(request.url).searchParams.get('page') || '1';
+        pages.push(page);
+        if (page === '1') {
+          return HttpResponse.json({
+            data: [reviews[0]],
+            summary: { rating: 4 },
+            currentPage: 1,
+            totalPages: 2,
+            total: 21,
+          });
+        }
+        return HttpResponse.json({
+          data: [reviews[1]],
+          summary: { rating: 4 },
+          currentPage: 2,
+          totalPages: 2,
+          total: 21,
+        });
+      }),
+    );
+    renderPage();
+
+    await screen.findByText('Asha');
+    await user.click(screen.getByRole('button', { name: /load more reviews/i }));
+    expect(await screen.findByText('Rahul')).toBeInTheDocument();
+    expect(pages).toContain('2');
+  });
+
+  it('filters by the last-7-days window', async () => {
+    const user = userEvent.setup();
+    const recent = new Date(Date.now() - 2 * 86_400_000).toISOString();
+    const old = new Date(Date.now() - 20 * 86_400_000).toISOString();
+    server.use(
+      http.get(`${API_BASE}/reviews`, () =>
+        HttpResponse.json({
+          data: [
+            { _id: 'r1', score: 5, comment: 'Fresh', user: { name: 'Asha' }, createdAt: recent },
+            { _id: 'r2', score: 4, comment: 'Old but fine', user: { name: 'Rahul' }, createdAt: old },
+          ],
+          summary: { rating: 4.5 },
+        }),
+      ),
+    );
+    renderPage();
+
+    await screen.findByText('Asha');
+    await user.click(screen.getByRole('tab', { name: 'Last 7 days' }));
+    expect(screen.getByText('Asha')).toBeInTheDocument();
+    expect(screen.queryByText('Rahul')).not.toBeInTheDocument();
+  });
 });

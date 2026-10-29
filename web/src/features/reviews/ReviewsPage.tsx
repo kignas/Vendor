@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { MessageSquare, Search, Star } from 'lucide-react';
+import { ScrollTabs } from '@/components/ScrollTabs';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { BottomSheet } from '@/components/BottomSheet';
@@ -8,14 +9,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useReplyToReview, useReviews } from '@/hooks/useReviews';
 import {
+  ratingDistribution,
   reviewCustomerCount,
   reviewCustomerName,
   reviewId,
+  reviewInDateRange,
   reviewItemRatings,
   reviewMatches,
   reviewPhotos,
   reviewReplyText,
   reviewScoreOf,
+  type DateFilter,
 } from '@/features/reviews/reviewDomain';
 import { cn } from '@/lib/cn';
 import type { Review } from '@/types/review';
@@ -29,6 +33,12 @@ const FILTERS = [
   { id: '3', label: '3★' },
   { id: '2', label: '2★' },
   { id: '1', label: '1★' },
+];
+
+const DATE_FILTERS: { id: DateFilter; label: string }[] = [
+  { id: 'all', label: 'Any time' },
+  { id: '7d', label: 'Last 7 days' },
+  { id: '30d', label: 'Last 30 days' },
 ];
 
 function Stars({ score }: { score: number }) {
@@ -45,6 +55,27 @@ function Stars({ score }: { score: number }) {
   );
 }
 
+/** Distribution bars across the loaded rows; labelled with that row count. */
+function Distribution({ rows }: { rows: Review[] }) {
+  const buckets = useMemo(() => ratingDistribution(rows), [rows]);
+  return (
+    <div className="mt-3 space-y-1" aria-label="Rating distribution">
+      {buckets.map((b) => (
+        <div key={b.stars} className="flex items-center gap-2 text-xs">
+          <span className="w-6 shrink-0 tabular-nums text-ink-soft">{b.stars}★</span>
+          <span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-pill bg-border-soft">
+            <span
+              className="block h-full rounded-pill bg-star transition-[width] duration-300 motion-reduce:transition-none"
+              style={{ width: `${b.pct}%` }}
+            />
+          </span>
+          <span className="w-8 shrink-0 text-right tabular-nums text-ink-faint">{b.count}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ReviewCard({ review, onOpen }: { review: Review; onOpen: (r: Review) => void }) {
   const score = reviewScoreOf(review);
   const name = reviewCustomerName(review);
@@ -55,11 +86,11 @@ function ReviewCard({ review, onOpen }: { review: Review; onOpen: (r: Review) =>
     <button
       type="button"
       onClick={() => onOpen(review)}
-      className="w-full rounded-card border border-border bg-card p-4 text-left"
+      className="press w-full rounded-card border border-border bg-card p-4 text-left"
     >
       <div className="flex items-center gap-3">
         <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-brand/10 text-sm font-bold text-brand"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-brand/10 text-sm font-bold text-brand-ink"
           aria-hidden="true"
         >
           {name.trim().charAt(0).toUpperCase() || 'C'}
@@ -73,9 +104,9 @@ function ReviewCard({ review, onOpen }: { review: Review; onOpen: (r: Review) =>
         <span className="flex flex-col items-end gap-1">
           <Stars score={score} />
           {replied ? (
-            <span className="text-[11px] font-semibold text-success">Replied</span>
+            <span className="text-[11px] font-semibold text-success-ink">Replied</span>
           ) : (
-            <span className="text-[11px] font-semibold text-warning">Awaiting reply</span>
+            <span className="text-[11px] font-semibold text-warning-ink">Awaiting reply</span>
           )}
         </span>
       </div>
@@ -118,6 +149,12 @@ function ReviewSheet({ review, onClose }: { review: Review | null; onClose: () =
             <Stars score={reviewScoreOf(review)} />
           </div>
           <p className="text-sm text-ink-soft">{review.comment || 'No written comment.'}</p>
+
+          {review.orderNumber || review.publicOrderId ? (
+            <p className="text-[11px] text-ink-faint">
+              Order #{review.orderNumber ?? review.publicOrderId}
+            </p>
+          ) : null}
 
           {photos.length ? (
             <div className="flex gap-2 overflow-x-auto">
@@ -175,7 +212,7 @@ function ReviewSheet({ review, onClose }: { review: Review | null; onClose: () =
                 maxLength={500}
                 rows={3}
                 placeholder="Thank the customer or address their feedback…"
-                className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand"
+                className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand-ink"
               />
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-ink-faint">{message.length}/500</span>
@@ -189,7 +226,7 @@ function ReviewSheet({ review, onClose }: { review: Review | null; onClose: () =
                 </Button>
               </div>
               {reply.isError ? (
-                <p className="text-xs text-danger" role="alert">
+                <p className="text-xs text-danger-ink" role="alert">
                   Could not post reply. Please try again.
                 </p>
               ) : null}
@@ -202,39 +239,53 @@ function ReviewSheet({ review, onClose }: { review: Review | null; onClose: () =
 }
 
 /**
- * Reviews. Real data from GET /vendor/reviews with the server's own summary
- * (average rating + counts). Search and filters mirror the legacy review list.
- * Reply posts to POST /reviews/:id/reply and refetches.
+ * Reviews. Real data from GET /vendor/reviews (paged) with the server's own
+ * summary (average rating + counts). Search, rating/date filters and a rating
+ * distribution over the loaded rows. Reply posts to POST /reviews/:id/reply.
  */
 export function ReviewsPage() {
   const reviews = useReviews();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [active, setActive] = useState<Review | null>(null);
 
-  const rows = useMemo(() => {
-    const all = reviews.data?.rows ?? [];
-    return all.filter((r) => reviewMatches(r, query, filter));
-  }, [reviews.data, query, filter]);
+  const allRows = useMemo(
+    () => (reviews.data?.pages ?? []).flatMap((p) => p.rows),
+    [reviews.data],
+  );
 
-  const summary = reviews.data?.summary ?? {};
+  const rows = useMemo(
+    () =>
+      allRows.filter(
+        (r) => reviewMatches(r, query, filter) && reviewInDateRange(r, dateFilter),
+      ),
+    [allRows, query, filter, dateFilter],
+  );
+
+  const summary = reviews.data?.pages?.[0]?.summary ?? {};
+  const total = reviews.data?.pages?.[0]?.total ?? allRows.length;
   const rating = Number(summary.rating);
+  const hasAny = allRows.length > 0;
 
   return (
     <section className="space-y-4">
       <h1 className="text-lg font-extrabold text-ink">Reviews</h1>
 
-      <div className="flex items-center gap-4 rounded-card border border-border bg-card p-4">
-        <div className="text-center">
-          <p className="text-3xl font-extrabold tabular-nums text-ink">
-            {Number.isFinite(rating) && rating > 0 ? rating.toFixed(1) : '—'}
-          </p>
-          {Number.isFinite(rating) && rating > 0 ? <Stars score={Math.round(rating)} /> : null}
+      <div className="rounded-card border border-border bg-card p-4">
+        <div className="flex items-center gap-4">
+          <div className="text-center">
+            <p className="text-3xl font-extrabold tabular-nums text-ink">
+              {Number.isFinite(rating) && rating > 0 ? rating.toFixed(1) : '—'}
+            </p>
+            {Number.isFinite(rating) && rating > 0 ? <Stars score={Math.round(rating)} /> : null}
+          </div>
+          <div className="text-xs text-ink-soft">
+            <p>{Number(summary.ratingCount || 0)} ratings</p>
+            <p>{Number(summary.reviewCount ?? (total || 0))} written reviews</p>
+          </div>
         </div>
-        <div className="text-xs text-ink-soft">
-          <p>{Number(summary.ratingCount || 0)} ratings</p>
-          <p>{Number(summary.reviewCount ?? reviews.data?.total ?? 0)} written reviews</p>
-        </div>
+        {hasAny ? <Distribution rows={allRows} /> : null}
       </div>
 
       <label className="relative block">
@@ -251,16 +302,13 @@ export function ReviewsPage() {
         />
       </label>
 
-      <div
-        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1"
-        role="tablist"
-        aria-label="Filter reviews"
-      >
+      <ScrollTabs activeKey={filter} label="Filter reviews" className="-mx-4 gap-2 px-4">
         {FILTERS.map((f) => (
           <button
             key={f.id}
             type="button"
             role="tab"
+            data-active={filter === f.id}
             aria-selected={filter === f.id}
             onClick={() => setFilter(f.id)}
             className={cn(
@@ -271,7 +319,26 @@ export function ReviewsPage() {
             {f.label}
           </button>
         ))}
-      </div>
+      </ScrollTabs>
+
+      <ScrollTabs activeKey={dateFilter} label="Filter by date" className="-mx-4 gap-2 px-4">
+        {DATE_FILTERS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            role="tab"
+            data-active={dateFilter === f.id}
+            aria-selected={dateFilter === f.id}
+            onClick={() => setDateFilter(f.id)}
+            className={cn(
+              'min-h-tap shrink-0 rounded-pill px-3 text-xs font-semibold transition-colors',
+              dateFilter === f.id ? 'bg-inverse text-inverse-ink' : 'bg-border-soft text-ink-soft',
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </ScrollTabs>
 
       {reviews.isLoading ? <SkeletonList rows={4} /> : null}
 
@@ -283,7 +350,7 @@ export function ReviewsPage() {
         />
       ) : null}
 
-      {reviews.isSuccess && (reviews.data?.rows.length ?? 0) === 0 ? (
+      {reviews.isSuccess && !hasAny ? (
         <EmptyState
           title="No customer reviews yet"
           description="Reviews from completed orders will appear here."
@@ -291,10 +358,10 @@ export function ReviewsPage() {
         />
       ) : null}
 
-      {reviews.isSuccess && (reviews.data?.rows.length ?? 0) > 0 && rows.length === 0 ? (
+      {reviews.isSuccess && hasAny && rows.length === 0 ? (
         <EmptyState
           title="No matches"
-          description="No reviews match the current search or filter."
+          description="No reviews match the current search or filters."
           icon={Search}
         />
       ) : null}
@@ -304,6 +371,17 @@ export function ReviewsPage() {
           <ReviewCard key={reviewId(review) || i} review={review} onOpen={setActive} />
         ))}
       </div>
+
+      {reviews.hasNextPage ? (
+        <button
+          type="button"
+          onClick={() => void reviews.fetchNextPage()}
+          disabled={reviews.isFetchingNextPage}
+          className="min-h-tap w-full rounded-btn border border-border bg-card text-sm font-semibold text-ink disabled:opacity-60"
+        >
+          {reviews.isFetchingNextPage ? 'Loading…' : 'Load more reviews'}
+        </button>
+      ) : null}
 
       <ReviewSheet review={active} onClose={() => setActive(null)} />
     </section>
