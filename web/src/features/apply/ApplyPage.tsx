@@ -265,7 +265,7 @@ export function ApplyPage() {
 
   if (submitted) {
     return (
-      <div className="app-column safe-x min-h-dvh px-5 py-10">
+      <div className="app-column safe-x [--page-x:1.25rem] min-h-dvh py-10">
         <h1 className="text-xl font-extrabold text-ink">Application submitted</h1>
         <div className="mt-4 rounded-card border border-border bg-card p-5">
           <p className="text-sm text-ink">
@@ -289,7 +289,7 @@ export function ApplyPage() {
   }
 
   return (
-    <div className="app-column safe-x min-h-dvh px-5 py-8">
+    <div className="app-column safe-x [--page-x:1.25rem] min-h-dvh py-8">
       <div className="mb-4">
         <p className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-brand-ink">
           Eatswada Partner

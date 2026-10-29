@@ -67,7 +67,7 @@ export function ApplicationStatusPage() {
     key === 'more_information_required' || key === 'needs_changes' || key === 'rejected';
 
   return (
-    <div className="app-column safe-x min-h-dvh px-5 py-8">
+    <div className="app-column safe-x [--page-x:1.25rem] min-h-dvh py-8">
       <p className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-brand-ink">
         Eatswada Partner
       </p>

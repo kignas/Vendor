@@ -57,7 +57,7 @@ export function LoginPage() {
 
   if (checking) {
     return (
-      <div className="app-column safe-x flex min-h-dvh items-center justify-center px-6">
+      <div className="app-column safe-x [--page-x:1.5rem] flex min-h-dvh items-center justify-center">
         <p className="text-sm text-ink-soft" role="status">
           Checking your session…
         </p>
@@ -66,7 +66,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="app-column safe-x flex min-h-dvh flex-col justify-center px-6 py-10">
+    <div className="app-column safe-x [--page-x:1.5rem] flex min-h-dvh flex-col justify-center py-10">
       <div className="mb-8 flex flex-col items-center text-center">
         <span className="flex h-14 w-14 items-center justify-center rounded-card bg-brand text-ivory">
           <UtensilsCrossed className="h-7 w-7" aria-hidden="true" />

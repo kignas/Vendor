@@ -21,7 +21,7 @@ export function AppShell() {
   return (
     <div className="min-h-full bg-canvas">
       <TopBar />
-      <main className="app-column safe-x px-4 pb-28 pt-4">
+      <main className="app-column safe-x [--page-x:1rem] pb-28 pt-4">
         <PageTransition>
           <Outlet />
         </PageTransition>

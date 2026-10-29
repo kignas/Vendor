@@ -174,10 +174,37 @@ const server = http.createServer((req, res) => {
     });
   }
   if (path === '/api/vendor/settlements/summary') {
-    return send(res, 200, { data: { eligibleBalance: 3100, availableBalance: 1200 } });
+    return send(res, 200, {
+      data: {
+        currency: 'INR',
+        settlementSchedule: 'weekly',
+        joinDate: '2025-01-15T00:00:00.000Z',
+        eligibleBalance: 3100,
+        availableForWithdrawal: 1200,
+        activePayoutRequest: {
+          amount: 1900,
+          status: 'pending',
+          requestedAt: new Date(Date.now() - 86400_000).toISOString(),
+        },
+      },
+    });
   }
-  if (path === '/api/vendor/settlements/withdrawals') return send(res, 200, { data: [] });
-  if (path === '/api/vendor/earnings/orders') return send(res, 200, { data: [] });
+  if (path === '/api/vendor/settlements/withdrawals') {
+    return send(res, 200, {
+      data: [
+        { _id: 'w1', amount: 1900, status: 'pending', createdAt: new Date(Date.now() - 86400_000).toISOString() },
+        { _id: 'w2', amount: 4200, status: 'paid', createdAt: new Date(Date.now() - 20 * 86400_000).toISOString(), utr: 'UTR1234567890' },
+      ],
+    });
+  }
+  if (path === '/api/vendor/earnings/orders') {
+    return send(res, 200, {
+      data: [
+        { _id: 'e1', orderNumber: 'SW-1001', status: 'delivered', restaurantNetAmount: 221, createdAt: new Date().toISOString() },
+        { _id: 'e2', orderNumber: 'SW-1000', status: 'delivered', restaurantNetAmount: 468, createdAt: new Date(Date.now() - 86400_000).toISOString() },
+      ],
+    });
+  }
 
   if (path === '/api/vendor/reviews') {
     return send(res, 200, {
@@ -201,6 +228,8 @@ const server = http.createServer((req, res) => {
       ],
       summary: { rating: 4.3, ratingCount: 28, reviewCount: 12 },
       total: 12,
+      currentPage: 1,
+      totalPages: 1,
     });
   }
   if (path.match(/^\/api\/vendor\/reviews\/[^/]+\/reply$/) && req.method === 'POST') {
