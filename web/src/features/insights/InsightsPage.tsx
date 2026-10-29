@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BarChart3 } from 'lucide-react';
+import { ScrollTabs } from '@/components/ScrollTabs';
 import { KpiCard } from '@/components/KpiCard';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
@@ -61,16 +62,17 @@ export function InsightsPage() {
     <section className="space-y-4">
       <h1 className="text-lg font-extrabold text-ink">Insights</h1>
 
-      <div
-        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1"
-        role="tablist"
-        aria-label="Analytics period"
+      <ScrollTabs
+        activeKey={period}
+        label="Analytics period"
+        className="-mx-4 gap-2 px-4"
       >
         {PERIODS.map((p) => (
           <button
             key={p.id}
             type="button"
             role="tab"
+            data-active={period === p.id}
             aria-selected={period === p.id}
             onClick={() => setPeriod(p.id)}
             className={cn(
@@ -81,7 +83,7 @@ export function InsightsPage() {
             {p.label}
           </button>
         ))}
-      </div>
+      </ScrollTabs>
 
       {analytics.isError ? (
         <ErrorState

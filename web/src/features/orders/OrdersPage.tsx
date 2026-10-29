@@ -16,6 +16,7 @@ import { NewOrderBanner } from '@/features/orders/NewOrderBanner';
 import { AcceptOrderSheet } from '@/features/orders/AcceptOrderSheet';
 import { orderAlarm } from '@/services/notifications/alarm';
 import { Sheet } from '@/components/Sheet';
+import { ScrollTabs } from '@/components/ScrollTabs';
 import { printKot } from '@/features/orders/kot';
 import { speakOrder } from '@/features/orders/voice';
 import { cn } from '@/lib/cn';
@@ -164,7 +165,7 @@ export function OrdersPage() {
         />
       </label>
 
-      <div className="flex gap-1 overflow-x-auto pb-1" role="tablist" aria-label="Order views">
+      <ScrollTabs activeKey={tab} label="Order views" className="pb-1">
         {TABS.map((t) => {
           const active = t.id === tab;
           const badge = t.id === 'new' ? newCount : 0;
@@ -172,6 +173,7 @@ export function OrdersPage() {
             <button
               key={t.id}
               role="tab"
+              data-active={active}
               aria-selected={active}
               onClick={() => setTab(t.id)}
               className={cn(
@@ -193,7 +195,7 @@ export function OrdersPage() {
             </button>
           );
         })}
-      </div>
+      </ScrollTabs>
 
       {loading ? (
         <div className="space-y-3" role="status" aria-label="Loading orders">

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Wallet, TrendingUp } from 'lucide-react';
+import { ScrollTabs } from '@/components/ScrollTabs';
 import { KpiCard } from '@/components/KpiCard';
 import { StatusPill } from '@/components/StatusPill';
 import { EmptyState } from '@/components/EmptyState';
@@ -58,11 +59,12 @@ export function FinancePage() {
     <section className="space-y-4">
       <h1 className="text-lg font-extrabold text-ink">Finance</h1>
 
-      <div className="flex gap-1 overflow-x-auto" role="tablist" aria-label="Earnings period">
+      <ScrollTabs activeKey={period} label="Earnings period">
         {PERIODS.map((p) => (
           <button
             key={p.id}
             role="tab"
+            data-active={period === p.id}
             aria-selected={period === p.id}
             onClick={() => setPeriod(p.id)}
             className={cn(
@@ -73,7 +75,7 @@ export function FinancePage() {
             {p.label}
           </button>
         ))}
-      </div>
+      </ScrollTabs>
 
       <div className="grid grid-cols-2 gap-3">
         <KpiCard label="Delivered sales" value={formatMoney(current?.deliveredFoodSales)} loading={summary.isLoading} />

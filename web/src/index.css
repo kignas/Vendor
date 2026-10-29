@@ -114,6 +114,15 @@
     margin-inline: auto;
   }
 
+  /* Hide the scrollbar on horizontal tab strips while keeping swipe scrolling. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   .safe-top {
     padding-top: env(safe-area-inset-top, 0px);
   }

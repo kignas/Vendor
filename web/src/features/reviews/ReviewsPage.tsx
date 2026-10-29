@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { MessageSquare, Search, Star } from 'lucide-react';
+import { ScrollTabs } from '@/components/ScrollTabs';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { BottomSheet } from '@/components/BottomSheet';
@@ -251,16 +252,13 @@ export function ReviewsPage() {
         />
       </label>
 
-      <div
-        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1"
-        role="tablist"
-        aria-label="Filter reviews"
-      >
+      <ScrollTabs activeKey={filter} label="Filter reviews" className="-mx-4 gap-2 px-4">
         {FILTERS.map((f) => (
           <button
             key={f.id}
             type="button"
             role="tab"
+            data-active={filter === f.id}
             aria-selected={filter === f.id}
             onClick={() => setFilter(f.id)}
             className={cn(
@@ -271,7 +269,7 @@ export function ReviewsPage() {
             {f.label}
           </button>
         ))}
-      </div>
+      </ScrollTabs>
 
       {reviews.isLoading ? <SkeletonList rows={4} /> : null}
 
