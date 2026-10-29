@@ -1,10 +1,18 @@
-import { Loader2, Power } from 'lucide-react';
+import { AlertTriangle, Loader2, Power } from 'lucide-react';
 import { StatusPill } from '@/components/StatusPill';
 import { useRestaurant } from '@/hooks/useRestaurant';
 import { cn } from '@/lib/cn';
 import { toast } from 'sonner';
 import type { AvailabilityStatus } from '@/services/api/restaurant';
-import { isOutletOpen, STATUS_LABEL, STATUS_ORDER, STATUS_SHORT, statusOf } from './outletStatus';
+import {
+  isOutletOpen,
+  openingStateOf,
+  STATUS_LABEL,
+  STATUS_ORDER,
+  STATUS_SHORT,
+  statusOf,
+  statusReasonOf,
+} from './outletStatus';
 
 /**
  * Shared restaurant availability control. Used on the Home dashboard and the
@@ -28,6 +36,9 @@ export function RestaurantStatusControl({
   const online = isOutletOpen(status);
   const pending = restaurant.availabilityMutation.isPending;
   const loading = restaurant.isLoading;
+  const reason = statusReasonOf(restaurant.data ?? null);
+  const hours = openingStateOf(restaurant.data?.openingHours);
+  const showHoursWarning = online && hours?.outsideHours === true;
 
   function apply(next: AvailabilityStatus) {
     if (next === status || pending) return;
@@ -70,6 +81,21 @@ export function RestaurantStatusControl({
           >
             Retry
           </button>
+        </p>
+      ) : null}
+
+      {!online && reason ? (
+        <p className="mt-2 flex items-start gap-1.5 text-xs text-ink-soft">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning-ink" aria-hidden="true" />
+          {reason}
+        </p>
+      ) : null}
+
+      {showHoursWarning ? (
+        <p className="mt-2 flex items-start gap-1.5 text-xs text-warning-ink">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          You are accepting orders outside today&apos;s saved hours
+          {hours?.opensAt && hours?.closesAt ? ` (${hours.opensAt}–${hours.closesAt})` : ''}.
         </p>
       ) : null}
 

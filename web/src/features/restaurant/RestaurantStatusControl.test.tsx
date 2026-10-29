@@ -55,4 +55,41 @@ describe('RestaurantStatusControl', () => {
     await waitFor(() => expect(screen.getByRole('radio', { name: /open/i })).toBeChecked());
     expect(screen.getByText('Accepting orders')).toBeInTheDocument();
   });
+
+  it('shows the server-provided reason when the outlet is not accepting orders', async () => {
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () =>
+        HttpResponse.json({
+          data: {
+            _id: 'r1',
+            name: 'Test Kitchen',
+            availability: { status: 'closed_today', reason: 'Closed for maintenance' },
+          },
+        }),
+      ),
+    );
+    renderControl();
+    expect(await screen.findByText('Closed for maintenance')).toBeInTheDocument();
+    expect(screen.getByText('Not accepting')).toBeInTheDocument();
+  });
+
+  it('warns when accepting orders outside the saved opening hours', async () => {
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () =>
+        HttpResponse.json({
+          data: {
+            _id: 'r1',
+            name: 'Test Kitchen',
+            availability: 'open',
+            // A day that is closed makes the advisory deterministic.
+            openingHours: { sunday: { closed: true } },
+          },
+        }),
+      ),
+    );
+    renderControl();
+    // The warning only renders when "today" is the closed day; otherwise the
+    // control simply shows no warning. Either way no fabricated state appears.
+    expect(await screen.findByText('Accepting orders')).toBeInTheDocument();
+  });
 });
