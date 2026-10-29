@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LogIn, UtensilsCrossed } from 'lucide-react';
 import { login, verifyStoredSession } from '@/services/api/auth';
 import { getToken, setSession } from '@/lib/auth';
@@ -120,6 +120,17 @@ export function LoginPage() {
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
+
+      <p className="mt-6 text-center text-xs text-ink-soft">
+        New restaurant?{' '}
+        <Link to="/apply" className="font-bold text-brand">
+          Apply to become a vendor
+        </Link>
+        {' · '}
+        <Link to="/application-status" className="font-bold text-brand">
+          Check application
+        </Link>
+      </p>
     </div>
   );
 }

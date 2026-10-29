@@ -90,6 +90,8 @@ export interface ApiFetchOptions extends Omit<RequestInit, 'body'> {
   base?: string;
   /** Skip the automatic 401 redirect (used by the login/restore calls). */
   skipAuthRedirect?: boolean;
+  /** Per-request timeout override (defaults to REQUEST_TIMEOUT_MS). */
+  timeoutMs?: number;
 }
 
 function isBodyInit(value: unknown): value is BodyInit {
@@ -106,7 +108,14 @@ export async function apiFetch<T = unknown>(
   path: string,
   options: ApiFetchOptions = {},
 ): Promise<T> {
-  const { body, base = API_BASE, skipAuthRedirect = false, headers, ...rest } = options;
+  const {
+    body,
+    base = API_BASE,
+    skipAuthRedirect = false,
+    timeoutMs = REQUEST_TIMEOUT_MS,
+    headers,
+    ...rest
+  } = options;
 
   const token = getToken();
   const requestHeaders = new Headers(headers);
@@ -126,7 +135,7 @@ export async function apiFetch<T = unknown>(
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   let response: Response;
   try {

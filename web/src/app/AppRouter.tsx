@@ -14,6 +14,8 @@ import { SettingsPage } from '@/features/settings/SettingsPage';
 import { ProfilePage } from '@/features/restaurant/ProfilePage';
 import { MorePage } from '@/features/settings/MorePage';
 import { LoginPage } from '@/features/auth/LoginPage';
+import { ApplyPage } from '@/features/apply/ApplyPage';
+import { ApplicationStatusPage } from '@/features/apply/ApplicationStatusPage';
 import { DesignPage } from '@/features/design/DesignPage';
 
 /**
@@ -25,6 +27,8 @@ export function AppRouter() {
     <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/apply" element={<ApplyPage />} />
+        <Route path="/application-status" element={<ApplicationStatusPage />} />
         <Route element={<RequireAuth />}>
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />

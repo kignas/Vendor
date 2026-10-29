@@ -88,6 +88,15 @@ const server = http.createServer((req, res) => {
     return send(res, 200, { data: orders });
   }
   if (path === '/api/vendor/menu') return send(res, 200, { data: menu });
+  if (path === '/api/vendor-applications' && req.method === 'POST') {
+    return send(res, 200, { success: true, data: { id: 'APP-1234', statusToken: 'tok-xyz' } });
+  }
+  if (path.match(/^\/api\/vendor-applications\/[^/]+\/status$/) && req.method === 'GET') {
+    return send(res, 200, {
+      success: true,
+      data: { status: 'under_review', restaurantName: 'Spice Route Kitchen' },
+    });
+  }
   if (path.match(/^\/api\/vendor\/menu\/[^/]+\/inventory$/) && req.method === 'PUT') {
     return send(res, 200, { data: { ...menu[0], trackStock: true, stockQuantity: 12 } });
   }
