@@ -135,6 +135,15 @@
     padding-left: env(safe-area-inset-left, 0px);
     padding-right: env(safe-area-inset-right, 0px);
   }
+
+  /* Touch feedback for tappable surfaces. Motion is short; the global
+     reduced-motion rule collapses the duration so it becomes an instant state. */
+  .press {
+    transition: transform 120ms ease, background-color 120ms ease, opacity 120ms ease;
+  }
+  .press:active {
+    transform: scale(0.97);
+  }
 }
 
 /* Respect reduced motion everywhere (AGENTS.md: subtle motion, honour the OS). */

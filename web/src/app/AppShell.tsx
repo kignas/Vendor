@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { BottomNav } from './BottomNav';
 import { TopBar } from './TopBar';
+import { PageTransition } from '@/components/PageTransition';
 import { useConnectionWatcher } from './useConnectionWatcher';
 import { useBackButton } from '@/hooks/useBackButton';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -21,7 +22,9 @@ export function AppShell() {
     <div className="min-h-full bg-canvas">
       <TopBar />
       <main className="app-column safe-x px-4 pb-28 pt-4">
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </main>
       <BottomNav />
       <div id="kot-print-root" aria-hidden="true" />

@@ -47,9 +47,10 @@ export function NewOrderBanner({
 
   return (
     <div
+      key={count}
       role="alert"
       aria-live="assertive"
-      className="-mx-4 mb-1 flex items-center gap-3 rounded-card bg-warning px-4 py-3 text-white shadow-md motion-safe:animate-pulse"
+      className="-mx-4 mb-1 flex items-center gap-3 rounded-card bg-warning px-4 py-3 text-white shadow-md motion-safe:animate-attention-pulse"
     >
       <BellRing className="h-5 w-5 shrink-0" aria-hidden="true" />
       <p className="flex-1 text-sm font-extrabold">

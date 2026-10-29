@@ -5,7 +5,7 @@ import { cva } from 'class-variance-authority';
  * file only exports components (react-refresh requirement).
  */
 export const statusPillVariants = cva(
-  'inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 text-xs font-semibold leading-none',
+  'inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 text-xs font-semibold leading-none transition-colors duration-200',
   {
     variants: {
       tone: {

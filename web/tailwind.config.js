@@ -88,10 +88,33 @@ export default {
           from: { transform: 'translateY(8px)', opacity: '0' },
           to: { transform: 'translateY(0)', opacity: '1' },
         },
+        'fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        'scale-in': {
+          from: { transform: 'scale(0.96)', opacity: '0' },
+          to: { transform: 'scale(1)', opacity: '1' },
+        },
+        'pop-in': {
+          '0%': { transform: 'scale(0.85)', opacity: '0' },
+          '60%': { transform: 'scale(1.03)' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        /* New-order arrival: a short attention pulse, not a continuous loop. */
+        'attention-pulse': {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.015)', opacity: '1' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
       },
       animation: {
         shimmer: 'shimmer 1.6s infinite',
-        'slide-up': 'slide-up 200ms ease-out',
+        'slide-up': 'slide-up 200ms ease-out both',
+        'fade-in': 'fade-in 180ms ease-out both',
+        'scale-in': 'scale-in 180ms ease-out both',
+        'pop-in': 'pop-in 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both',
+        'attention-pulse': 'attention-pulse 700ms ease-in-out 2',
       },
     },
   },
