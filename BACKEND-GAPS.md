@@ -110,6 +110,46 @@ additional platform state, extend the public-status whitelist.
 
 **Backend change to close it:** none required.
 
+## 9. Growth analytics — metrics the endpoint does not return
+
+`GET /vendor/analytics?period=` returns `data.summary` (`totalOrders`,
+`deliveredOrders`, `cancelledOrders`, `deliveredFoodSales`,
+`averageDeliveredOrderValue`), `data.daily`, `data.statusCounts` and
+`data.topItems`; `GET /vendor/analytics/visits` adds `totalViews` /
+`uniqueVisitors`. The Growth screen renders exactly these.
+
+Metrics the task asks for that are **not** derivable from those fields:
+
+| Metric | Why it is unavailable | Instrumentation needed |
+| --- | --- | --- |
+| Previous-period comparison | the endpoint takes no previous-window parameter and returns no prior totals | accept `?compare=previous` (or `period`+`baseline`) and return a `previous` summary block |
+| Average preparation time | no prep-duration field on the summary or daily rows | return `averagePrepMinutes` (from `acceptedAt`→`readyAt`) |
+| Acceptance rate | `summary` has no `acceptedOrders` count | return `acceptedOrders` (or `rejectedOrders`) |
+| Category performance | `topItems` has no category dimension | add `data.byCategory [{ category, orders, sales }]` |
+
+**App behaviour:** the Growth screen shows the within-period trend ("2nd half
+vs 1st half" of the returned `daily` series) and labels it as such — it never
+presents it as a previous-period delta, and it omits any metric the backend did
+not send instead of zero-filling (AGENTS.md rule 5).
+
+## 10. Restaurant availability reason — no dedicated field
+
+`PUT /vendor/restaurant/availability` accepts `{ status }`
+(`open|busy|closed_today|temporarily_closed`) and the restaurant object exposes
+`availability` / `isOpen`. There is no `availabilityReason`, `closedReason` or
+`pauseUntil` field.
+
+**App behaviour:** `statusReasonOf()` reads a reason only when the backend
+supplies one (defensive: `availability.reason|message|note|closedReason|
+pauseReason`, or a top-level `availabilityReason`/`closureReason`) and returns
+`null` otherwise, so no reason text is invented. The status control and the
+outlet sheet therefore show a reason the moment the backend provides it, with no
+client change.
+
+**Backend change to close it:** include `reason` (and optionally `resumeAt`) in
+the restaurant `availability` object, set when the vendor picks a non-open
+status.
+
 ---
 
 ## Summary table
@@ -124,5 +164,7 @@ additional platform state, extend the public-status whitelist.
 | 6 | Settlement batches | admin-only | shows own `PayoutRequest` rows |
 | 7 | Platform settings | admin-only | uses `/platform/public-status` |
 | 8 | Rider-order OTP | self-delivery only | button gated on current mode |
+| 9 | Growth comparison/prep/acceptance/category metrics | not returned by `/analytics` | within-period trend only; missing metrics omitted |
+| 10 | Availability reason | no field | shown only when the backend sends one |
 
 None of these is worked around with fake data or a frontend-only "success".

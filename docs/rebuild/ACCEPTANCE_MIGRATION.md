@@ -43,11 +43,13 @@ the actions enabled and lets the server decide.
 - `npm run typecheck` — clean
 - `npm run lint` — clean
 - `npx vitest run` (web/) — 22 files, 129 tests, all pass
-- `npm test` (repo root, legacy) — 44 tests, 32 pass, 1 fail, 11 skipped.
-  The single failure (`unsupported backend features are capability-gated`,
-  `tests/contract.test.mjs:180`) is the **pre-existing baseline drift**
-  documented in memory (legacy `caps` has 17 flags; the contract pins 10). It
-  reproduces on a clean `main` and is not caused by this increment.
+- `npm test` (repo root, legacy) — 44 tests, all pass. The formerly failing
+  `unsupported backend features are capability-gated` assertion pinned a
+  10-flag `caps` set while legacy `index.html` had grown to 17 flags (each
+  already in the test's own mounted-route allow-list). The test and
+  `VENDOR-API-CONTRACT.md` were aligned to the real 17 flags in a later
+  increment; the three unsupported flags stay `false` and the immutability
+  checks are unchanged.
 - End-to-end (headless Chromium against a staging API): Accept fires exactly
   **one** `PUT /orders/:id/accept` despite three rapid taps; the order leaves
   the New tab and appears in Preparing from the refetched queue.
