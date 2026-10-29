@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Pencil } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { OutletStatusSheet } from './OutletStatusSheet';
+import { isOutletOpen, STATUS_LABEL, statusOf } from './outletStatus';
 import { BottomSheet } from '@/components/BottomSheet';
 import { SkeletonList } from '@/components/Skeletons';
 import { Button } from '@/components/ui/button';
@@ -222,7 +225,11 @@ function OpeningHoursEditor({ hours }: { hours?: OpeningHours | undefined }) {
 export function ProfilePage() {
   const profile = useProfile();
   const policies = usePolicies();
+  const restaurant = useRestaurant();
   const [editOpen, setEditOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
+  const status = statusOf(restaurant.data ?? null);
+  const open = isOutletOpen(status);
 
   const r = profile.data ?? {};
   const cuisine = Array.isArray(r.cuisine) ? r.cuisine.join(', ') : String(r.cuisine ?? '');
@@ -294,6 +301,25 @@ export function ProfilePage() {
           </div>
 
           <div className="rounded-card border border-border bg-card p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-ink">Availability</h2>
+                <p className="mt-0.5 text-xs text-ink-soft">Can customers order right now?</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStatusOpen(true)}
+                className={cn(
+                  'rounded-pill px-3 py-1.5 text-xs font-bold',
+                  open ? 'bg-success-bg text-success' : 'bg-danger-bg text-danger',
+                )}
+              >
+                {STATUS_LABEL[status]}
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-card border border-border bg-card p-4">
             <h2 className="text-sm font-bold text-ink">Operating hours</h2>
             <OpeningHoursEditor hours={r.openingHours as OpeningHours | undefined} />
           </div>
@@ -308,6 +334,7 @@ export function ProfilePage() {
       ) : null}
 
       <EditSheet profile={r} open={editOpen} onClose={() => setEditOpen(false)} />
+      <OutletStatusSheet open={statusOpen} onOpenChange={setStatusOpen} />
     </section>
   );
 }
