@@ -7,6 +7,18 @@ export default defineConfig({
   // Relative asset paths so the bundle works both at a web root and inside the
   // Capacitor Android shell (served from the app scheme root).
   base: './',
+  build: {
+    rollupOptions: {
+      output: {
+        // Split the vendor libraries so a code change to app code does not
+        // invalidate the (large, rarely-changing) framework chunk in the APK.
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-query': ['@tanstack/react-query'],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
