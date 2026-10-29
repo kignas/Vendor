@@ -1,14 +1,63 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { BarChart3, ChevronRight, LogOut, Moon, Star, Sun } from 'lucide-react';
+import {
+  BarChart3,
+  Bell,
+  ChevronRight,
+  LifeBuoy,
+  LogOut,
+  Moon,
+  Package,
+  Settings as SettingsIcon,
+  Star,
+  Store,
+  Sun,
+} from 'lucide-react';
 import { useUiStore } from '@/app/uiStore';
 import { useRestaurant } from '@/hooks/useRestaurant';
 import { clearSession } from '@/lib/auth';
 import { cn } from '@/lib/cn';
 
+interface MoreLink {
+  to: string;
+  label: string;
+  hint: string;
+  icon: typeof Store;
+}
+
+const GROUPS: { title: string; links: MoreLink[] }[] = [
+  {
+    title: 'Restaurant',
+    links: [
+      { to: '/profile', label: 'Restaurant profile', hint: 'Business details, status and hours', icon: Store },
+    ],
+  },
+  {
+    title: 'Business tools',
+    links: [
+      { to: '/inventory', label: 'Inventory', hint: 'Stock and item availability', icon: Package },
+      { to: '/insights', label: 'Analytics', hint: 'Customer views, orders and sales', icon: BarChart3 },
+    ],
+  },
+  {
+    title: 'Customers & help',
+    links: [
+      { to: '/reviews', label: 'Reviews', hint: 'Customer feedback and replies', icon: Star },
+      { to: '/notifications', label: 'Notifications', hint: 'Important updates and alerts', icon: Bell },
+      { to: '/support', label: 'Support', hint: 'Raise and track tickets', icon: LifeBuoy },
+    ],
+  },
+  {
+    title: 'Account',
+    links: [
+      { to: '/settings', label: 'Settings', hint: 'Preferences and session', icon: SettingsIcon },
+    ],
+  },
+];
+
 /**
- * More / Settings. Secondary destinations plus the theme toggle and logout.
- * Logout clears the three fixed localStorage keys and returns to login —
- * identical to the legacy `logout()`.
+ * More / Settings hub. Mirrors the legacy "More" sheet: restaurant profile,
+ * inventory, analytics, reviews, notifications, support and settings, plus the
+ * theme toggle and logout. Logout clears the three fixed localStorage keys.
  */
 export function MorePage() {
   const navigate = useNavigate();
@@ -32,18 +81,35 @@ export function MorePage() {
         </p>
       </div>
 
-      <nav className="overflow-hidden rounded-card border border-border bg-card" aria-label="More sections">
-        <Link to="/insights" className="flex items-center gap-3 border-b border-border-soft p-4">
-          <BarChart3 className="h-5 w-5 text-brand" aria-hidden="true" />
-          <span className="flex-1 text-sm font-semibold text-ink">Insights</span>
-          <ChevronRight className="h-4 w-4 text-ink-faint" aria-hidden="true" />
-        </Link>
-        <Link to="/reviews" className="flex items-center gap-3 p-4">
-          <Star className="h-5 w-5 text-brand" aria-hidden="true" />
-          <span className="flex-1 text-sm font-semibold text-ink">Reviews</span>
-          <ChevronRight className="h-4 w-4 text-ink-faint" aria-hidden="true" />
-        </Link>
-      </nav>
+      {GROUPS.map((group) => (
+        <div key={group.title}>
+          <h2 className="mb-2 px-1 text-[11px] font-extrabold uppercase tracking-wide text-ink-faint">
+            {group.title}
+          </h2>
+          <nav
+            className="overflow-hidden rounded-card border border-border bg-card"
+            aria-label={group.title}
+          >
+            {group.links.map(({ to, label, hint, icon: Icon }, i) => (
+              <Link
+                key={to}
+                to={to}
+                className={cn(
+                  'flex items-center gap-3 p-4',
+                  i < group.links.length - 1 && 'border-b border-border-soft',
+                )}
+              >
+                <Icon className="h-5 w-5 text-brand" aria-hidden="true" />
+                <span className="flex-1">
+                  <span className="block text-sm font-semibold text-ink">{label}</span>
+                  <span className="block text-xs text-ink-soft">{hint}</span>
+                </span>
+                <ChevronRight className="h-4 w-4 text-ink-faint" aria-hidden="true" />
+              </Link>
+            ))}
+          </nav>
+        </div>
+      ))}
 
       <button
         type="button"

@@ -104,7 +104,7 @@ describe('AppShell', () => {
       </QueryClientProvider>,
     );
     expect(screen.getByRole('navigation', { name: /primary/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /notifications/i })).toBeInTheDocument();
     for (const label of ['Home', 'Orders', 'Menu', 'Finance', 'More']) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }

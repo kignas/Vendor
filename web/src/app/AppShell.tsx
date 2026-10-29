@@ -3,6 +3,7 @@ import { BottomNav } from './BottomNav';
 import { TopBar } from './TopBar';
 import { useConnectionWatcher } from './useConnectionWatcher';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 
 /**
  * App shell: a single centred 480px column, sticky top bar, fixed bottom nav,
@@ -11,6 +12,7 @@ import { usePushNotifications } from '@/hooks/usePushNotifications';
 export function AppShell() {
   useConnectionWatcher();
   usePushNotifications();
+  useUnreadNotifications();
 
   return (
     <div className="min-h-full bg-canvas">

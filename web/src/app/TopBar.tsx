@@ -1,23 +1,17 @@
 import { Bell, Wifi, WifiOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useUiStore } from '@/app/uiStore';
 import { getRestaurant } from '@/lib/auth';
 import { cn } from '@/lib/cn';
 
-export interface TopBarProps {
-  /** Optional restaurant name override; falls back to the cached restaurant. */
-  restaurantName?: string;
-  /** Called when the bell is tapped. */
-  onBellClick?: () => void;
-}
-
 /**
  * Top bar: restaurant name, online/offline pill, notification bell.
- * Sticky at the top of the app column.
+ * Sticky at the top of the app column. The bell links to /notifications.
  */
-export function TopBar({ restaurantName, onBellClick }: TopBarProps) {
+export function TopBar() {
   const connection = useUiStore((s) => s.connection);
   const unreadCount = useUiStore((s) => s.unreadCount);
-  const name = restaurantName ?? getRestaurant()?.name ?? 'Your restaurant';
+  const name = getRestaurant()?.name ?? 'Your restaurant';
   const offline = connection === 'offline';
 
   return (
@@ -41,9 +35,8 @@ export function TopBar({ restaurantName, onBellClick }: TopBarProps) {
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={onBellClick}
+        <Link
+          to="/notifications"
           aria-label={
             unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'
           }
@@ -55,7 +48,7 @@ export function TopBar({ restaurantName, onBellClick }: TopBarProps) {
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           ) : null}
-        </button>
+        </Link>
       </div>
     </header>
   );

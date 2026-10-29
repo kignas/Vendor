@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
-import { fetchRestaurant, setAvailability, type AvailabilityStatus } from '@/services/api/restaurant';
+import {
+  fetchRestaurant,
+  setAvailability,
+  setOpeningHours,
+  type AvailabilityStatus,
+} from '@/services/api/restaurant';
 import { setRestaurant } from '@/lib/auth';
+
+export type OpeningHours = Record<string, { closed?: boolean; opensAt?: string; closesAt?: string }>;
 
 /**
  * The current restaurant. On success the cached restaurant is mirrored into
@@ -21,10 +28,17 @@ export function useRestaurant() {
     staleTime: 60_000,
   });
 
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: queryKeys.restaurant });
+
   const availabilityMutation = useMutation({
     mutationFn: (status: AvailabilityStatus) => setAvailability(status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.restaurant }),
+    onSuccess: invalidate,
   });
 
-  return { ...query, availabilityMutation };
+  const hoursMutation = useMutation({
+    mutationFn: (openingHours: OpeningHours) => setOpeningHours(openingHours),
+    onSuccess: invalidate,
+  });
+
+  return { ...query, availabilityMutation, hoursMutation };
 }

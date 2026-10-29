@@ -79,6 +79,77 @@ const server = http.createServer((req, res) => {
     return send(res, 200, { data: orders });
   }
   if (path === '/api/vendor/menu') return send(res, 200, { data: menu });
+  if (path.match(/^\/api\/vendor\/menu\/[^/]+\/inventory$/) && req.method === 'PUT') {
+    return send(res, 200, { data: { ...menu[0], trackStock: true, stockQuantity: 12 } });
+  }
+  if (path.match(/^\/api\/vendor\/menu\/[^/]+\/toggle-stock$/) && req.method === 'PUT') {
+    const id = path.split('/')[4];
+    const item = menu.find((m) => m._id === id);
+    if (item) item.inStock = !item.inStock;
+    return send(res, 200, { data: item ?? {} });
+  }
+  if (path === '/api/vendor/menu/availability/bulk' && req.method === 'PUT') {
+    return send(res, 200, { data: { modifiedCount: 2 }, message: 'Availability updated.' });
+  }
+  if (path === '/api/vendor/inventory/history') {
+    return send(res, 200, {
+      data: [{ change: -2, after: 8, reason: 'order_accepted', createdAt: new Date().toISOString() }],
+    });
+  }
+  if (path === '/api/vendor/profile') return send(res, 200, { data: restaurant });
+  if (path === '/api/vendor/policies') {
+    return send(res, 200, { data: { privacyPolicy: '2026-01', termsOfService: '2026-01' } });
+  }
+  if (path === '/api/vendor/settings') {
+    if (req.method === 'PUT') return send(res, 200, { message: 'Settings saved.' });
+    return send(res, 200, {
+      data: {
+        businessType: 'restaurant',
+        deliveryMode: 'eatswada_rider',
+        commissionRate: 15,
+        commissionPlan: 'standard',
+        maxActiveOrders: 20,
+        activeOrders: 3,
+        availableSlots: 17,
+        settlementSchedule: 'weekly',
+      },
+    });
+  }
+  if (path === '/api/vendor/onboarding/config') {
+    return send(res, 200, {
+      data: { maxActiveOrders: { min: 1, max: 500 }, settlementSchedules: ['weekly', 'monthly'] },
+    });
+  }
+  if (path === '/api/vendor/support') {
+    if (req.method === 'POST') return send(res, 200, { success: true });
+    return send(res, 200, {
+      data: [
+        {
+          _id: 'tk1',
+          subject: 'Payout not received',
+          category: 'settlements',
+          status: 'open',
+          message: 'My settlement for last week is missing.',
+          createdAt: new Date().toISOString(),
+        },
+        { _id: 'tk2', subject: 'Menu image upload', category: 'menu', status: 'resolved', createdAt: new Date().toISOString() },
+      ],
+    });
+  }
+  if (path.match(/^\/api\/vendor\/support\/[^/]+\/reply$/) && req.method === 'POST') {
+    return send(res, 200, { success: true });
+  }
+  if (path === '/api/notifications') {
+    return send(res, 200, {
+      data: [
+        { _id: 'n1', title: 'New order received', body: 'Order SW-1001 is waiting for acceptance.', createdAt: new Date().toISOString() },
+        { _id: 'n2', title: 'Settlement processed', body: '₹3,100 settled to your bank.', createdAt: new Date(Date.now() - 86400_000).toISOString(), readAt: new Date().toISOString() },
+      ],
+    });
+  }
+  if (path.match(/^\/api\/notifications\/[^/]+\/read$/) && req.method === 'PATCH') {
+    return send(res, 200, { success: true });
+  }
   if (path === '/api/vendor/earnings/summary') {
     return send(res, 200, {
       data: { current: { deliveredFoodSales: 5200, deliveredCommission: 780, deliveredEarnings: 4420, inProgress: 900 } },

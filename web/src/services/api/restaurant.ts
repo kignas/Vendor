@@ -24,3 +24,67 @@ export function setOpeningHours(
 ): Promise<unknown> {
   return apiFetch('/restaurant/hours', { method: 'PUT', body: { openingHours } });
 }
+
+/** Profile document returned by GET /vendor/profile (read-only). */
+export interface VendorProfile {
+  name?: string;
+  businessType?: string;
+  cuisine?: string[] | string;
+  description?: string;
+  phone?: string;
+  contactNumber?: string;
+  address?: string | Record<string, unknown>;
+  image?: string;
+  fssaiLicenseNumber?: string;
+  fssaiVerificationStatus?: string;
+  approvalStatus?: string;
+  deliveryMode?: string;
+  commissionRate?: number;
+  settlementSchedule?: string;
+  createdAt?: string;
+  joinedAt?: string;
+  policies?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+/**
+ * GET /profile is the full profile; it is read-only (no PUT /profile route).
+ * The legacy screen falls back to /restaurant when /profile fails.
+ */
+export async function fetchProfile(): Promise<VendorProfile | null> {
+  try {
+    const res = await apiFetch<{ data?: VendorProfile }>('/profile');
+    return res?.data ?? null;
+  } catch {
+    try {
+      const res = await apiFetch<{ data?: VendorProfile }>('/restaurant');
+      return res?.data ?? null;
+    } catch {
+      return null;
+    }
+  }
+}
+
+export interface ProfileUpdate {
+  name: string;
+  phone?: string;
+  cuisine?: string[];
+  address?: string;
+  description?: string;
+  image?: string;
+}
+
+/** PUT /restaurant/profile — vendor allow-list only. */
+export function updateProfile(payload: ProfileUpdate): Promise<unknown> {
+  return apiFetch('/restaurant/profile', { method: 'PUT', body: payload });
+}
+
+/** GET /policies — accepted policy version identifiers (informational). */
+export async function fetchPolicies(): Promise<Record<string, unknown> | null> {
+  try {
+    const res = await apiFetch<{ data?: Record<string, unknown> }>('/policies');
+    return res?.data ?? null;
+  } catch {
+    return null;
+  }
+}

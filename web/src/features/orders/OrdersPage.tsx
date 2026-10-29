@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Receipt, Search, Loader2 } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
@@ -8,7 +8,6 @@ import { useOrderActions } from '@/features/orders/useOrderActions';
 import { useOrderHistory, useOrderQueue } from '@/hooks/useOrders';
 import { useRestaurant } from '@/hooks/useRestaurant';
 import { useNewOrderAlarm } from '@/hooks/useNewOrderAlarm';
-import { useUiStore } from '@/app/uiStore';
 import { cn } from '@/lib/cn';
 import type { Order, OrderTab } from '@/types/order';
 
@@ -16,7 +15,7 @@ const TABS: { id: OrderTab; label: string }[] = [
   { id: 'new', label: 'New' },
   { id: 'preparing', label: 'Preparing' },
   { id: 'ready', label: 'Ready' },
-  { id: 'dispatch', label: 'Dispatch' },
+  { id: 'dispatch', label: 'Out for delivery' },
   { id: 'scheduled', label: 'Scheduled' },
   { id: 'history', label: 'History' },
 ];
@@ -32,12 +31,6 @@ export function OrdersPage() {
   const actions = useOrderActions();
 
   const newCount = useNewOrderAlarm(queue.data);
-  const setUnreadCount = useUiStore((s) => s.setUnreadCount);
-  // The bell badge doubles as the new-order count on the orders screen.
-  useEffect(() => {
-    setUnreadCount(newCount);
-  }, [newCount, setUnreadCount]);
-
   const [prepOrder, setPrepOrder] = useState<Order | null>(null);
   const [prepMinutes, setPrepMinutes] = useState(25);
   const [rejectOrder, setRejectOrder] = useState<Order | null>(null);
@@ -114,6 +107,7 @@ export function OrdersPage() {
       <div className="flex gap-1 overflow-x-auto pb-1" role="tablist" aria-label="Order views">
         {TABS.map((t) => {
           const active = t.id === tab;
+          const badge = t.id === 'new' ? newCount : 0;
           return (
             <button
               key={t.id}
@@ -126,6 +120,16 @@ export function OrdersPage() {
               )}
             >
               {t.label}
+              {badge > 0 ? (
+                <span
+                  className={cn(
+                    'ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-pill px-1 text-[10px] font-bold',
+                    active ? 'bg-white text-brand' : 'bg-brand text-white',
+                  )}
+                >
+                  {badge}
+                </span>
+              ) : null}
             </button>
           );
         })}
