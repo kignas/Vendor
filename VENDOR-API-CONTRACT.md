@@ -187,7 +187,14 @@ route does not exist, so no request is sent and no figure is invented.
 | `selfDeliveryOtp` | true | `POST /orders/:id/verify-delivery-otp` |
 | `inventoryQty` | true | `PUT /menu/:id/inventory` |
 | `profileEdit` | true | `PUT /restaurant/profile` |
-| `settlements` | true | `/settlements/summary|withdrawals|withdraw` |
+| `settlements` | true | `/settlements/summary\|withdrawals\|withdraw` |
+| `menuReorder` | true | `PUT /menu/reorder` |
+| `serverAlerts` | true | `GET /alerts` |
+| `serverActivity` | true | `GET /activity` |
+| `serverDashboard` | true | `GET /dashboard` |
+| `serverCapacity` | true | `GET /capacity` |
+| `onboardingConfig` | true | `GET /onboarding/config` |
+| `policies` | true | `GET /policies` |
 | `complaints` | **false** | backend mounts no vendor complaint route |
 | `menuEdit` | false | controller exists, `PUT /menu/:id` is **not mounted** |
 | `menuDelete` | false | controller exists, `DELETE /menu/:id` is **not mounted** |
