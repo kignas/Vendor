@@ -25,7 +25,7 @@ export function BottomSheet({
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-40 bg-ink/40" />
+        <Drawer.Overlay className="fixed inset-0 z-40 bg-scrim/60" />
         <Drawer.Content
           className={cn(
             'app-column fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col rounded-t-card bg-card outline-none',

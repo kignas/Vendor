@@ -124,7 +124,7 @@ function EditSheet({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand"
+            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand-ink"
           />
         </div>
         <div className="space-y-1">
@@ -311,7 +311,7 @@ export function ProfilePage() {
                 onClick={() => setStatusOpen(true)}
                 className={cn(
                   'rounded-pill px-3 py-1.5 text-xs font-bold',
-                  open ? 'bg-success-bg text-success' : 'bg-danger-bg text-danger',
+                  open ? 'bg-success-bg text-success-ink' : 'bg-danger-bg text-danger-ink',
                 )}
               >
                 {STATUS_LABEL[status]}

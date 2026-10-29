@@ -11,7 +11,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-ink text-white hover:bg-ink/90',
+        default: 'bg-inverse text-inverse-ink hover:bg-inverse/90',
         secondary: 'border border-border bg-card text-ink hover:bg-border-soft',
         ghost: 'text-ink hover:bg-border-soft',
         danger: 'bg-danger text-white hover:bg-danger/90',

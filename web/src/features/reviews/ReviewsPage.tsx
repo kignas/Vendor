@@ -59,7 +59,7 @@ function ReviewCard({ review, onOpen }: { review: Review; onOpen: (r: Review) =>
     >
       <div className="flex items-center gap-3">
         <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-brand/10 text-sm font-bold text-brand"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-brand/10 text-sm font-bold text-brand-ink"
           aria-hidden="true"
         >
           {name.trim().charAt(0).toUpperCase() || 'C'}
@@ -73,9 +73,9 @@ function ReviewCard({ review, onOpen }: { review: Review; onOpen: (r: Review) =>
         <span className="flex flex-col items-end gap-1">
           <Stars score={score} />
           {replied ? (
-            <span className="text-[11px] font-semibold text-success">Replied</span>
+            <span className="text-[11px] font-semibold text-success-ink">Replied</span>
           ) : (
-            <span className="text-[11px] font-semibold text-warning">Awaiting reply</span>
+            <span className="text-[11px] font-semibold text-warning-ink">Awaiting reply</span>
           )}
         </span>
       </div>
@@ -175,7 +175,7 @@ function ReviewSheet({ review, onClose }: { review: Review | null; onClose: () =
                 maxLength={500}
                 rows={3}
                 placeholder="Thank the customer or address their feedback…"
-                className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand"
+                className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand-ink"
               />
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-ink-faint">{message.length}/500</span>
@@ -189,7 +189,7 @@ function ReviewSheet({ review, onClose }: { review: Review | null; onClose: () =
                 </Button>
               </div>
               {reply.isError ? (
-                <p className="text-xs text-danger" role="alert">
+                <p className="text-xs text-danger-ink" role="alert">
                   Could not post reply. Please try again.
                 </p>
               ) : null}

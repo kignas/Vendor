@@ -88,7 +88,7 @@ export function FinancePage() {
 
       <div className="rounded-card border border-border bg-card p-4">
         <div className="flex items-center gap-2">
-          <Wallet className="h-5 w-5 text-brand" aria-hidden="true" />
+          <Wallet className="h-5 w-5 text-brand-ink" aria-hidden="true" />
           <h2 className="text-sm font-bold text-ink">Settlements</h2>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-3">
@@ -106,7 +106,7 @@ export function FinancePage() {
           </div>
         </div>
         {settlement.isError ? (
-          <p className="mt-2 text-xs text-danger">Could not load settlement summary.</p>
+          <p className="mt-2 text-xs text-danger-ink">Could not load settlement summary.</p>
         ) : null}
 
         <div className="mt-3 flex gap-2">
@@ -117,7 +117,7 @@ export function FinancePage() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Amount ₹"
-            className="min-h-tap flex-1 rounded-btn border border-border bg-card px-3 text-sm text-ink outline-none focus:border-brand"
+            className="min-h-tap flex-1 rounded-btn border border-border bg-card px-3 text-sm text-ink outline-none focus:border-brand-ink"
             aria-label="Withdrawal amount"
           />
           <button
@@ -136,7 +136,7 @@ export function FinancePage() {
 
       <div className="rounded-card border border-border bg-card p-4">
         <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
-          <TrendingUp className="h-4 w-4 text-brand" aria-hidden="true" /> Recent earnings
+          <TrendingUp className="h-4 w-4 text-brand-ink" aria-hidden="true" /> Recent earnings
         </h2>
         {orders.isLoading ? (
           <div className="mt-3 h-20 animate-pulse rounded-btn bg-border-soft" />
@@ -155,7 +155,7 @@ export function FinancePage() {
                     · {enumLabel(o.status)}
                   </p>
                 </div>
-                <span className="shrink-0 text-sm font-bold tabular-nums text-success">
+                <span className="shrink-0 text-sm font-bold tabular-nums text-success-ink">
                   {formatMoney(o.restaurantNetAmount ?? o.netAmount ?? o.restaurantNet)}
                 </span>
               </li>

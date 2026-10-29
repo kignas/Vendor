@@ -19,7 +19,7 @@ export function Sheet({
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 bg-ink/40"
+        className="absolute inset-0 bg-scrim/60"
       />
       <div className="app-column safe-bottom relative z-10 rounded-t-card bg-card p-5 animate-slide-up">
         <h2 className="text-base font-bold text-ink">{title}</h2>

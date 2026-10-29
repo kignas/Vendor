@@ -59,7 +59,7 @@ export function NewOrderBanner({
       <button
         type="button"
         onClick={onStop}
-        className="min-h-tap shrink-0 rounded-pill bg-white px-3.5 text-[13px] font-extrabold text-warning"
+        className="min-h-tap shrink-0 rounded-pill bg-white px-3.5 text-[13px] font-extrabold text-warning-ink"
       >
         Stop
       </button>

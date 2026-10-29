@@ -45,8 +45,8 @@ export function KpiCard({ label, value, delta, loading = false, hint, className 
           <span
             className={cn(
               'inline-flex items-center gap-0.5 text-xs font-semibold tabular-nums',
-              deltaPositive && 'text-success',
-              deltaNegative && 'text-danger',
+              deltaPositive && 'text-success-ink',
+              deltaNegative && 'text-danger-ink',
               !deltaPositive && !deltaNegative && 'text-ink-soft',
             )}
           >

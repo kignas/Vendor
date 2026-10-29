@@ -104,7 +104,7 @@ export function OrderSupportSheet({
                 onClick={() => setKind(k)}
                 className="flex min-h-tap w-full items-center gap-2 rounded-btn border border-border bg-card px-3 text-left text-sm font-semibold text-ink"
               >
-                <LifeBuoy className="h-4 w-4 text-brand" aria-hidden="true" />
+                <LifeBuoy className="h-4 w-4 text-brand-ink" aria-hidden="true" />
                 {SUPPORT_KIND[k].label}
               </button>
             </li>
@@ -125,9 +125,9 @@ export function OrderSupportSheet({
             rows={4}
             aria-label="Describe the issue"
             placeholder="Describe the issue"
-            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand"
+            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand-ink"
           />
-          <p className={cn('mt-1 text-right text-[11px]', message.length >= MAX_LEN ? 'text-danger' : 'text-ink-faint')}>
+          <p className={cn('mt-1 text-right text-[11px]', message.length >= MAX_LEN ? 'text-danger-ink' : 'text-ink-faint')}>
             {message.length} / {MAX_LEN}
           </p>
           <button

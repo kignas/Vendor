@@ -70,7 +70,7 @@ function ReadyButton({ order, busy, onReady }: { order: Order; busy: boolean; on
       type="button"
       disabled={busy}
       onClick={() => onReady(order)}
-      className="relative mt-3 min-h-tap w-full overflow-hidden rounded-btn border border-brand bg-card text-sm font-bold text-brand disabled:opacity-50"
+      className="relative mt-3 min-h-tap w-full overflow-hidden rounded-btn border border-brand-ink bg-card text-sm font-bold text-brand-ink disabled:opacity-50"
     >
       <span
         className="absolute inset-y-0 left-0 bg-brand/10"
@@ -91,7 +91,7 @@ function DietMark({ item }: { item: OrderItem }) {
     <span
       className={cn(
         'shrink-0 rounded-[3px] border px-1 text-[10px] font-bold leading-4',
-        diet === 'veg' ? 'border-success text-success' : 'border-danger text-danger',
+        diet === 'veg' ? 'border-success text-success-ink' : 'border-danger text-danger-ink',
       )}
     >
       {diet === 'veg' ? 'VEG' : 'NON'}
@@ -128,7 +128,7 @@ function TicketStrips({ order }: { order: Order }) {
         </p>
       ) : null}
       {showSlot ? (
-        <p className="mt-2 inline-flex items-start gap-1 rounded-btn bg-info-bg px-2 py-1.5 text-xs text-info">
+        <p className="mt-2 inline-flex items-start gap-1 rounded-btn bg-info-bg px-2 py-1.5 text-xs text-info-ink">
           <CalendarClock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           <span>
             Scheduled for{' '}
@@ -295,7 +295,7 @@ export function OrderCard({
     <article
       className={cn(
         'rounded-card border bg-card p-4 shadow-sm',
-        order.status === 'placed' ? 'border-brand/40 ring-1 ring-brand/20' : 'border-border',
+        order.status === 'placed' ? 'border-brand-ink/40 ring-1 ring-brand-ink/20' : 'border-border',
       )}
       aria-label={`Order ${ref}`}
     >
@@ -312,7 +312,7 @@ export function OrderCard({
           <span
             className={cn(
               'text-[11px] font-semibold tabular-nums',
-              expired ? 'text-danger' : 'text-ink-soft',
+              expired ? 'text-danger-ink' : 'text-ink-soft',
             )}
             aria-live="polite"
           >
@@ -365,7 +365,7 @@ export function OrderCard({
       <RiderStatus order={order} />
 
       {note ? (
-        <p className="mt-2 inline-flex items-start gap-1 rounded-btn bg-warning-bg px-2 py-1.5 text-xs text-warning">
+        <p className="mt-2 inline-flex items-start gap-1 rounded-btn bg-warning-bg px-2 py-1.5 text-xs text-warning-ink">
           <MessageSquare className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           <span>{String(note)}</span>
         </p>
@@ -417,7 +417,7 @@ export function OrderCard({
       )}
 
       {order.status === 'cancelled' && order.cancelReason ? (
-        <p className="mt-2 rounded-btn bg-danger-bg px-2 py-1.5 text-xs text-danger">
+        <p className="mt-2 rounded-btn bg-danger-bg px-2 py-1.5 text-xs text-danger-ink">
           <strong>Reason </strong>
           {order.cancelReason}
         </p>

@@ -159,7 +159,7 @@ export function OrdersPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search order no., customer or item"
-          className="min-h-tap w-full rounded-btn border border-border bg-card pl-9 pr-3 text-sm text-ink outline-none focus:border-brand"
+          className="min-h-tap w-full rounded-btn border border-border bg-card pl-9 pr-3 text-sm text-ink outline-none focus:border-brand-ink"
           aria-label="Search orders"
         />
       </label>
@@ -184,7 +184,7 @@ export function OrdersPage() {
                 <span
                   className={cn(
                     'ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-pill px-1 text-[10px] font-bold',
-                    active ? 'bg-white text-brand' : 'bg-brand text-white',
+                    active ? 'bg-white text-brand-ink' : 'bg-brand text-white',
                   )}
                 >
                   {badge}
@@ -296,7 +296,7 @@ export function OrdersPage() {
             onChange={(e) => setRejectReason(e.target.value)}
             rows={3}
             placeholder="Reason (required)"
-            className="w-full rounded-btn border border-border bg-card px-3 py-2 text-sm text-ink outline-none focus:border-brand"
+            className="w-full rounded-btn border border-border bg-card px-3 py-2 text-sm text-ink outline-none focus:border-brand-ink"
           />
           <button
             type="button"
@@ -334,7 +334,7 @@ export function OrdersPage() {
             onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
             inputMode="numeric"
             placeholder="4-digit PIN"
-            className="min-h-tap w-full rounded-btn border border-border bg-card px-3 text-center text-lg tracking-widest text-ink outline-none focus:border-brand"
+            className="min-h-tap w-full rounded-btn border border-border bg-card px-3 text-center text-lg tracking-widest text-ink outline-none focus:border-brand-ink"
           />
           <button
             type="button"

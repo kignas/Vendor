@@ -54,12 +54,12 @@ export function MenuPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search items or categories"
-          className="min-h-tap w-full rounded-btn border border-border bg-card pl-9 pr-3 text-sm text-ink outline-none focus:border-brand"
+          className="min-h-tap w-full rounded-btn border border-border bg-card pl-9 pr-3 text-sm text-ink outline-none focus:border-brand-ink"
           aria-label="Search menu"
         />
       </label>
 
-      <p className="rounded-btn bg-info-bg px-3 py-2 text-xs text-info">
+      <p className="rounded-btn bg-info-bg px-3 py-2 text-xs text-info-ink">
         Editing item details and deleting items need backend routes that are not mounted yet.
         Stock can be toggled here.
       </p>
@@ -110,7 +110,7 @@ export function MenuPage() {
                     )}
                   />
                 </button>
-                <span className={cn('text-[11px] font-semibold', item.inStock ? 'text-success' : 'text-ink-faint')}>
+                <span className={cn('text-[11px] font-semibold', item.inStock ? 'text-success-ink' : 'text-ink-faint')}>
                   {item.inStock ? 'In stock' : 'Out of stock'}
                 </span>
               </div>

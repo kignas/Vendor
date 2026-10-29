@@ -10,11 +10,11 @@ export const statusPillVariants = cva(
     variants: {
       tone: {
         neutral: 'bg-border-soft text-ink-soft',
-        success: 'bg-success-bg text-success',
-        warning: 'bg-warning-bg text-warning',
-        danger: 'bg-danger-bg text-danger',
-        info: 'bg-info-bg text-info',
-        brand: 'bg-brand/10 text-brand',
+        success: 'bg-success-bg text-success-ink',
+        warning: 'bg-warning-bg text-warning-ink',
+        danger: 'bg-danger-bg text-danger-ink',
+        info: 'bg-info-bg text-info-ink',
+        brand: 'bg-brand/10 text-brand-ink',
       },
     },
     defaultVariants: { tone: 'neutral' },

@@ -55,7 +55,7 @@ export function PrepStrip({
       <span
         className={cn(
           'flex items-center gap-1 text-sm font-extrabold tabular-nums',
-          overdue ? 'text-danger' : dueSoon ? 'text-warning' : 'text-ink',
+          overdue ? 'text-danger-ink' : dueSoon ? 'text-warning-ink' : 'text-ink',
         )}
         aria-live="off"
       >
@@ -85,7 +85,7 @@ export function PrepStrip({
           disabled={isExtended || busy}
           className={cn(
             'shrink-0 rounded-btn border px-2.5 py-1 text-[11px] font-bold disabled:opacity-60',
-            isExtended ? 'border-border text-ink-faint' : 'border-brand text-brand',
+            isExtended ? 'border-border text-ink-faint' : 'border-brand-ink text-brand-ink',
           )}
         >
           {isExtended ? '+5 min added' : '+5 min'}

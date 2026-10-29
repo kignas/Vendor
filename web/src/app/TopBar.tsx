@@ -33,7 +33,7 @@ export function TopBar() {
             aria-label={`Outlet status: ${STATUS_LABEL[status]}. Change status`}
             className={cn(
               'mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold',
-              open ? 'text-success' : 'text-danger',
+              open ? 'text-success-ink' : 'text-danger-ink',
             )}
           >
             <span className="h-1.5 w-1.5 rounded-pill bg-current" aria-hidden="true" />
@@ -45,7 +45,7 @@ export function TopBar() {
         <span
           className={cn(
             'inline-flex items-center gap-1 text-[11px] font-semibold',
-            offline ? 'text-danger' : 'text-ink-faint',
+            offline ? 'text-danger-ink' : 'text-ink-faint',
           )}
           role="status"
         >

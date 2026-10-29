@@ -9,43 +9,73 @@
 @tailwind utilities;
 
 @layer base {
+  /* Design tokens as raw RGB triplets so Tailwind can apply opacity modifiers
+     (`bg-brand/10`) while every value stays theme-aware. Mirrored from
+     AGENTS.md / theme.css so JS and CSS agree. */
   :root {
-    /* Design tokens — mirrored from AGENTS.md / theme.css so JS and CSS agree. */
-    --es-canvas: #f4f5f7;
-    --es-card: #ffffff;
-    --es-ink: #18181b;
-    --es-ink-soft: #52525b;
-    --es-ink-faint: #9ca3af;
-    --es-border: #e4e4e7;
-    --es-success: #15803d;
-    --es-success-bg: #dcfce7;
-    --es-warning: #b45309;
-    --es-warning-bg: #fef3c7;
-    --es-danger: #dc2626;
-    --es-danger-bg: #fee2e2;
-    --es-info: #2563eb;
-    --es-info-bg: #e8f0fe;
-    --es-star: #f59e0b;
-    --es-brand: #690d27;
-    --es-brand-soft: #8a1533;
-    --es-ivory: #fff5dc;
+    --es-canvas: 244 245 247;
+    --es-card: 255 255 255;
+    --es-ink: 24 24 27;
+    --es-ink-soft: 82 82 91;
+    --es-ink-faint: 156 163 175;
+    --es-border: 228 228 231;
+    --es-border-soft: 243 244 246;
+    /* Each status colour has three roles: a saturated FILL for white-text
+       buttons, an INK for text/icons on surfaces, and a subtle BG tint. */
+    --es-success: 21 128 61;
+    --es-success-ink: 21 128 61;
+    --es-success-bg: 220 252 231;
+    --es-warning: 180 83 9;
+    --es-warning-ink: 146 64 14;
+    --es-warning-bg: 254 243 199;
+    --es-danger: 220 38 38;
+    --es-danger-ink: 220 38 38;
+    --es-danger-bg: 254 226 226;
+    --es-info: 37 99 235;
+    --es-info-ink: 37 99 235;
+    --es-info-bg: 232 240 254;
+    --es-star: 245 158 11;
+    --es-brand: 105 13 39;
+    --es-brand-soft: 138 21 51;
+    --es-brand-ink: 105 13 39;
+    --es-ivory: 255 245 220;
+    --es-scrim: 24 24 27;
+    /* Inverted surface (dark chip on light theme, light chip on dark theme). */
+    --es-inverse: 24 24 27;
+    --es-inverse-ink: 255 255 255;
 
     color-scheme: light;
   }
 
-  /* Dark theme. Applied via html[data-theme="dark"], toggled from Settings.
-     Only surface/ink tokens flip; status colours stay legible on both. */
+  /* Dark theme. Applied via html[data-theme="dark"], set from Settings or the
+     system preference. Fills stay saturated so white button text keeps
+     contrast; inks lighten so text/icons stay readable on dark surfaces. */
   html[data-theme='dark'] {
-    --es-canvas: #17171a;
-    --es-card: #222226;
-    --es-ink: #f4f4f5;
-    --es-ink-soft: #c4c4c9;
-    --es-ink-faint: #8b8b93;
-    --es-border: #33333a;
-    --es-success-bg: #10321c;
-    --es-warning-bg: #3a2a08;
-    --es-danger-bg: #3a1416;
-    --es-info-bg: #10233f;
+    --es-canvas: 23 23 26;
+    --es-card: 34 34 38;
+    --es-ink: 244 244 245;
+    --es-ink-soft: 196 196 201;
+    --es-ink-faint: 139 139 147;
+    --es-border: 51 51 58;
+    --es-border-soft: 39 39 44;
+    --es-success: 21 128 61;
+    --es-success-ink: 74 222 128;
+    --es-success-bg: 16 50 28;
+    --es-warning: 180 83 9;
+    --es-warning-ink: 251 191 36;
+    --es-warning-bg: 58 42 8;
+    --es-danger: 185 28 28;
+    --es-danger-ink: 248 113 113;
+    --es-danger-bg: 58 20 22;
+    --es-info: 37 99 235;
+    --es-info-ink: 96 165 250;
+    --es-info-bg: 16 35 63;
+    --es-star: 250 204 21;
+    --es-brand-ink: 242 169 190;
+    --es-scrim: 0 0 0;
+    --es-inverse: 244 244 245;
+    --es-inverse-ink: 24 24 27;
+
     color-scheme: dark;
   }
 
@@ -61,15 +91,17 @@
 
   body {
     margin: 0;
-    background-color: var(--es-canvas);
-    color: var(--es-ink);
+    background-color: rgb(var(--es-canvas));
+    color: rgb(var(--es-ink));
     font-family: 'Manrope', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Smooth surface change when the theme flips; suppressed for reduced motion. */
+    transition: background-color 200ms ease, color 200ms ease;
   }
 
   :focus-visible {
-    outline: 2px solid var(--es-info);
+    outline: 2px solid rgb(var(--es-info));
     outline-offset: 2px;
   }
 }

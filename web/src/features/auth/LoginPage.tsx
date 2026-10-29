@@ -87,7 +87,7 @@ export function LoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="min-h-tap w-full rounded-btn border border-border bg-card px-3 text-sm text-ink outline-none focus:border-brand"
+            className="min-h-tap w-full rounded-btn border border-border bg-card px-3 text-sm text-ink outline-none focus:border-brand-ink"
           />
         </div>
         <div className="space-y-1.5">
@@ -101,12 +101,12 @@ export function LoginPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="min-h-tap w-full rounded-btn border border-border bg-card px-3 text-sm text-ink outline-none focus:border-brand"
+            className="min-h-tap w-full rounded-btn border border-border bg-card px-3 text-sm text-ink outline-none focus:border-brand-ink"
           />
         </div>
 
         {error ? (
-          <p className="rounded-btn bg-danger-bg px-3 py-2 text-sm font-medium text-danger" role="alert">
+          <p className="rounded-btn bg-danger-bg px-3 py-2 text-sm font-medium text-danger-ink" role="alert">
             {error}
           </p>
         ) : null}
@@ -123,11 +123,11 @@ export function LoginPage() {
 
       <p className="mt-6 text-center text-xs text-ink-soft">
         New restaurant?{' '}
-        <Link to="/apply" className="font-bold text-brand">
+        <Link to="/apply" className="font-bold text-brand-ink">
           Apply to become a vendor
         </Link>
         {' · '}
-        <Link to="/application-status" className="font-bold text-brand">
+        <Link to="/application-status" className="font-bold text-brand-ink">
           Check application
         </Link>
       </p>

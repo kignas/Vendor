@@ -41,7 +41,7 @@ export function BottomNav() {
             >
               {({ isActive }) => (
                 <>
-                  <Icon className={cn('h-5 w-5', isActive && 'text-brand')} aria-hidden="true" />
+                  <Icon className={cn('h-5 w-5', isActive && 'text-brand-ink')} aria-hidden="true" />
                   <span>{label}</span>
                 </>
               )}

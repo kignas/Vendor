@@ -58,7 +58,7 @@ export function OutletStatusSheet({
               <span className="block text-sm text-ink">{STATUS_LABEL[opt.id]}</span>
               <span className="block text-xs text-ink-soft">{opt.hint}</span>
             </span>
-            {opt.id === current ? <span className="text-xs text-brand">Current</span> : null}
+            {opt.id === current ? <span className="text-xs text-brand-ink">Current</span> : null}
           </button>
         ))}
       </div>

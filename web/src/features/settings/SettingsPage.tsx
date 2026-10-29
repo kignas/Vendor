@@ -4,6 +4,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { SkeletonCard } from '@/components/Skeletons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ThemeControl } from '@/components/ThemeControl';
 import { useOnboardingConfig, useSettings, useUpdateSettings } from '@/hooks/useSettings';
 import { useRushMode } from '@/hooks/useRushMode';
 import { enumLabel } from '@/lib/format';
@@ -196,6 +197,14 @@ export function SettingsPage() {
           </div>
         </>
       ) : null}
+
+      <div className="rounded-card border border-border bg-card p-4">
+        <p className="text-sm font-bold text-ink">Appearance</p>
+        <p className="mb-3 mt-0.5 text-xs text-ink-soft">
+          Choose a theme. System follows your phone's display setting.
+        </p>
+        <ThemeControl />
+      </div>
     </section>
   );
 }

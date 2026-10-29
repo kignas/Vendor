@@ -63,7 +63,7 @@ export function AcceptOrderSheet({
           <p
             className={cn(
               'flex items-center justify-center gap-1.5 rounded-btn px-3 py-2 text-sm font-bold tabular-nums',
-              window.expired ? 'bg-danger-bg text-danger' : 'bg-warning-bg text-warning',
+              window.expired ? 'bg-danger-bg text-danger-ink' : 'bg-warning-bg text-warning-ink',
             )}
             aria-live="polite"
           >
@@ -88,7 +88,7 @@ export function AcceptOrderSheet({
         ) : null}
 
         {note ? (
-          <p className="rounded-btn bg-warning-bg px-2 py-1.5 text-xs text-warning">{String(note)}</p>
+          <p className="rounded-btn bg-warning-bg px-2 py-1.5 text-xs text-warning-ink">{String(note)}</p>
         ) : null}
 
         <div>
@@ -132,7 +132,7 @@ export function AcceptOrderSheet({
                 className={cn(
                   'min-h-tap rounded-pill border px-3 text-xs font-semibold',
                   min === minutes
-                    ? 'border-brand bg-brand/10 text-brand'
+                    ? 'border-brand-ink bg-brand/10 text-brand-ink'
                     : 'border-border text-ink-soft',
                 )}
               >
@@ -147,7 +147,7 @@ export function AcceptOrderSheet({
             type="button"
             disabled={busy}
             onClick={() => onReject(order)}
-            className="min-h-tap flex-1 rounded-btn border-2 border-danger font-bold text-danger disabled:opacity-50"
+            className="min-h-tap flex-1 rounded-btn border-2 border-danger font-bold text-danger-ink disabled:opacity-50"
           >
             Reject
           </button>

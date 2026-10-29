@@ -36,7 +36,7 @@ export function UndoReadyToast({
     <div className="pointer-events-none fixed inset-x-0 bottom-20 z-40 flex justify-center px-4">
       <div
         role="status"
-        className="pointer-events-auto flex items-center gap-3 rounded-card bg-ink px-4 py-2.5 text-white shadow-lg"
+        className="pointer-events-auto flex items-center gap-3 rounded-card bg-inverse px-4 py-2.5 text-inverse-ink shadow-lg"
       >
         <span className="text-xs font-semibold">Marked ready</span>
         <button

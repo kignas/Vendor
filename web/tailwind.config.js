@@ -4,27 +4,53 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: '#F4F5F7',
-        card: '#FFFFFF',
+        /* Every token resolves to a theme-aware CSS variable so light/dark
+           both work and opacity modifiers (`bg-brand/10`) still compile. */
+        canvas: 'rgb(var(--es-canvas) / <alpha-value>)',
+        card: 'rgb(var(--es-card) / <alpha-value>)',
         ink: {
-          DEFAULT: '#18181B',
-          soft: '#52525B',
-          faint: '#9CA3AF',
+          DEFAULT: 'rgb(var(--es-ink) / <alpha-value>)',
+          soft: 'rgb(var(--es-ink-soft) / <alpha-value>)',
+          faint: 'rgb(var(--es-ink-faint) / <alpha-value>)',
         },
         border: {
-          DEFAULT: '#E4E4E7',
-          soft: '#F3F4F6',
+          DEFAULT: 'rgb(var(--es-border) / <alpha-value>)',
+          soft: 'rgb(var(--es-border-soft) / <alpha-value>)',
         },
-        success: { DEFAULT: '#15803D', bg: '#DCFCE7' },
-        warning: { DEFAULT: '#B45309', bg: '#FEF3C7' },
-        danger: { DEFAULT: '#DC2626', bg: '#FEE2E2' },
-        info: { DEFAULT: '#2563EB', bg: '#E8F0FE' },
-        star: '#F59E0B',
+        success: {
+          DEFAULT: 'rgb(var(--es-success) / <alpha-value>)',
+          ink: 'rgb(var(--es-success-ink) / <alpha-value>)',
+          bg: 'rgb(var(--es-success-bg) / <alpha-value>)',
+        },
+        warning: {
+          DEFAULT: 'rgb(var(--es-warning) / <alpha-value>)',
+          ink: 'rgb(var(--es-warning-ink) / <alpha-value>)',
+          bg: 'rgb(var(--es-warning-bg) / <alpha-value>)',
+        },
+        danger: {
+          DEFAULT: 'rgb(var(--es-danger) / <alpha-value>)',
+          ink: 'rgb(var(--es-danger-ink) / <alpha-value>)',
+          bg: 'rgb(var(--es-danger-bg) / <alpha-value>)',
+        },
+        info: {
+          DEFAULT: 'rgb(var(--es-info) / <alpha-value>)',
+          ink: 'rgb(var(--es-info-ink) / <alpha-value>)',
+          bg: 'rgb(var(--es-info-bg) / <alpha-value>)',
+        },
+        star: 'rgb(var(--es-star) / <alpha-value>)',
+        /* `brand` is the fixed burgundy for filled buttons with white text;
+           `brand-ink` is the accent for text/borders, which lightens in dark mode. */
         brand: {
-          DEFAULT: '#690D27',
-          soft: '#8A1533',
+          DEFAULT: 'rgb(var(--es-brand) / <alpha-value>)',
+          soft: 'rgb(var(--es-brand-soft) / <alpha-value>)',
+          ink: 'rgb(var(--es-brand-ink) / <alpha-value>)',
         },
-        ivory: '#FFF5DC',
+        ivory: 'rgb(var(--es-ivory) / <alpha-value>)',
+        scrim: 'rgb(var(--es-scrim) / <alpha-value>)',
+        inverse: {
+          DEFAULT: 'rgb(var(--es-inverse) / <alpha-value>)',
+          ink: 'rgb(var(--es-inverse-ink) / <alpha-value>)',
+        },
       },
       fontFamily: {
         sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],

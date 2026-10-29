@@ -271,7 +271,7 @@ export function ApplyPage() {
           <p className="text-sm text-ink">
             Reference ID: <span className="font-mono">{submitted.id || '—'}</span>
           </p>
-          <p className="mt-3 inline-flex rounded-pill bg-warning-bg px-2.5 py-1 text-xs font-bold text-warning">
+          <p className="mt-3 inline-flex rounded-pill bg-warning-bg px-2.5 py-1 text-xs font-bold text-warning-ink">
             PENDING REVIEW
           </p>
           <p className="mt-3 text-sm text-ink-soft">
@@ -291,7 +291,7 @@ export function ApplyPage() {
   return (
     <div className="app-column safe-x min-h-dvh px-5 py-8">
       <div className="mb-4">
-        <p className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-brand">
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-brand-ink">
           Eatswada Partner
         </p>
         <h1 className="mt-1 text-xl font-extrabold text-ink">Become a vendor</h1>
@@ -314,7 +314,7 @@ export function ApplyPage() {
           role={message.type === 'error' ? 'alert' : 'status'}
           className={cn(
             'mb-3 rounded-btn px-3 py-2 text-sm font-medium',
-            message.type === 'error' ? 'bg-danger-bg text-danger' : 'bg-success-bg text-success',
+            message.type === 'error' ? 'bg-danger-bg text-danger-ink' : 'bg-success-bg text-success-ink',
           )}
         >
           {message.text}
@@ -348,7 +348,7 @@ export function ApplyPage() {
                 }}
                 className={cn(
                   'w-full rounded-card border p-4 text-left',
-                  businessType === o.v ? 'border-brand bg-brand/5' : 'border-border',
+                  businessType === o.v ? 'border-brand-ink bg-brand/5' : 'border-border',
                 )}
               >
                 <span className="block text-sm font-bold text-ink">{o.t}</span>
@@ -412,7 +412,7 @@ export function ApplyPage() {
                 maxLength={1000}
                 value={fields.description}
                 onChange={(e) => set('description', e.target.value)}
-                className="w-full rounded-btn border border-border bg-card px-3 py-2 text-sm text-ink outline-none focus:border-brand"
+                className="w-full rounded-btn border border-border bg-card px-3 py-2 text-sm text-ink outline-none focus:border-brand-ink"
               />
             </div>
             <div>
@@ -433,7 +433,7 @@ export function ApplyPage() {
         {step === 3 ? (
           <div className="space-y-3">
             <h2 className="text-base font-bold text-ink">Legal verification</h2>
-            <p className="rounded-btn bg-warning-bg px-3 py-2 text-xs text-warning">
+            <p className="rounded-btn bg-warning-bg px-3 py-2 text-xs text-warning-ink">
               Verification is manual. Eatswada reviews your FSSAI number during admin approval. No
               certificate upload is required at this stage.
             </p>
@@ -463,7 +463,7 @@ export function ApplyPage() {
                 }}
                 className={cn(
                   'w-full rounded-card border p-4 text-left',
-                  deliveryMode === o.v ? 'border-brand bg-brand/5' : 'border-border',
+                  deliveryMode === o.v ? 'border-brand-ink bg-brand/5' : 'border-border',
                 )}
               >
                 <span className="block text-sm font-bold text-ink">{o.t}</span>
@@ -626,11 +626,11 @@ export function ApplyPage() {
 
       <p className="mt-6 text-center text-xs text-ink-soft">
         Already applied?{' '}
-        <Link to="/application-status" className="font-bold text-brand">
+        <Link to="/application-status" className="font-bold text-brand-ink">
           Check application
         </Link>
         {' · '}
-        <Link to="/login" className="font-bold text-brand">
+        <Link to="/login" className="font-bold text-brand-ink">
           Vendor login
         </Link>
       </p>
