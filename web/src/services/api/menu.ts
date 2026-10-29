@@ -47,6 +47,35 @@ export function reorderMenu(items: { id: string; sortOrder: number }[]): Promise
   return apiFetch('/menu/reorder', { method: 'PUT', body: { items } });
 }
 
+/**
+ * The definition fields POST /vendor/menu actually reads. Sending anything
+ * else is pointless (the controller ignores it) and risks weakening server
+ * validation, so the app sends exactly this set.
+ */
+export interface NewMenuItem {
+  name: string;
+  price: number;
+  category?: string;
+  description?: string;
+  originalPrice?: number;
+  image?: string;
+  isVeg?: boolean;
+  inStock?: boolean;
+  trackStock?: boolean;
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+  sortOrder?: number;
+}
+
+/**
+ * POST /vendor/menu — create-only. The backend marks the new item
+ * `approvalStatus: 'pending'` for admin review; there is no PUT /menu/:id
+ * (BACKEND-GAPS.md §1), so this is the only menu write beyond stock/inventory.
+ */
+export function createMenuItem(item: NewMenuItem): Promise<{ data?: MenuItem; message?: string }> {
+  return apiFetch('/menu', { method: 'POST', body: item });
+}
+
 export interface StockMovement {
   change?: number;
   after?: number;
