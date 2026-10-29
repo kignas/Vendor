@@ -17,6 +17,7 @@ import {
   paymentModeOf,
   pickupCodeOf,
   prepDeadlineOf,
+  prepStartedAtOf,
 } from '@/features/orders/orderDomain';
 import type { Order } from '@/types/order';
 
@@ -112,6 +113,19 @@ describe('orderDomain — bills and payment are server-sourced only', () => {
     expect(commissionPctOf(order)).toBe(15);
   });
 
+  it('shows a restaurant promo share only when the server reports one', () => {
+    const withPromo = makeOrder({
+      vendorBill: { itemSubtotal: 200, restaurantPromoShare: 25, restaurantNetAmount: 175 },
+    });
+    expect(billRows(withPromo).map((r) => r.label)).toContain('Restaurant promo share');
+
+    // When a discount row already exists, the promo share is not duplicated.
+    const withDiscount = makeOrder({
+      vendorBill: { itemSubtotal: 200, restaurantDiscount: 25, restaurantNetAmount: 175 },
+    });
+    expect(billRows(withDiscount).map((r) => r.label)).not.toContain('Restaurant promo share');
+  });
+
   it('paymentModeOf returns null when the server is silent (never guesses)', () => {
     expect(paymentModeOf(makeOrder())).toBeNull();
     expect(paymentModeOf(makeOrder({ paymentMode: 'cod' }))).toBe('cod');
@@ -155,5 +169,21 @@ describe('orderDomain — search and self-delivery gate', () => {
     const iso = new Date(Date.now() + 1000).toISOString();
     expect(prepDeadlineOf(makeOrder({ estimatedReadyAt: iso }))).toBe(new Date(iso).getTime());
     expect(prepDeadlineOf(makeOrder())).toBeNull();
+  });
+
+  it('prepDeadlineOf falls through an absent leading field (never masked by 0)', () => {
+    const iso = new Date(Date.now() + 1000).toISOString();
+    // estimatedReadyAt absent, prepReadyAt present: the deadline must still resolve.
+    expect(prepDeadlineOf(makeOrder({ prepReadyAt: iso }))).toBe(new Date(iso).getTime());
+    expect(prepDeadlineOf(makeOrder({ readyAt: iso }))).toBe(new Date(iso).getTime());
+  });
+
+  it('prepStartedAtOf prefers acceptedAt then falls back to createdAt', () => {
+    const accepted = new Date(Date.now() - 60_000).toISOString();
+    const created = new Date(Date.now() - 120_000).toISOString();
+    expect(prepStartedAtOf(makeOrder({ acceptedAt: accepted, createdAt: created }))).toBe(
+      new Date(accepted).getTime(),
+    );
+    expect(prepStartedAtOf(makeOrder({ createdAt: created }))).toBe(new Date(created).getTime());
   });
 });

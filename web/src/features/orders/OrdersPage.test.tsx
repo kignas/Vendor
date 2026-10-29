@@ -55,7 +55,9 @@ describe('OrdersPage', () => {
     // ₹221 appears as the card total and again as the bill's net receivable.
     expect(within(card).getAllByText('₹221').length).toBeGreaterThanOrEqual(1);
     expect(within(card).getByText(/Paid online/i)).toBeInTheDocument();
+    // The card carries the reference Accept/Reject pair; Accept opens the sheet.
     expect(within(card).getByRole('button', { name: /^Accept$/ })).toBeInTheDocument();
+    expect(within(card).getByRole('button', { name: /^Reject$/ })).toBeInTheDocument();
   });
 
   it('accept posts prepMinutes and refetches (server stays authoritative)', async () => {
@@ -80,11 +82,15 @@ describe('OrdersPage', () => {
     await user.click(await screen.findByRole('button', { name: /^Accept$/ }));
     const sheet = await screen.findByRole('dialog', { name: /Accept order/i });
     await user.click(within(sheet).getByRole('button', { name: /^25 min$/ }));
-    await user.click(within(sheet).getByRole('button', { name: /Confirm/i }));
+    await user.click(within(sheet).getByRole('button', { name: /^Accept$/ }));
 
     // The queue refetches and the order moves to "preparing" — proven by the
     // card leaving the New tab.
     await waitFor(() => expect(screen.getByText(/No new orders yet/i)).toBeInTheDocument());
+
+    // ...and landing in the Preparing tab from the authoritative server state.
+    await user.click(screen.getByRole('tab', { name: /Preparing/i }));
+    expect(await screen.findByRole('article', { name: /Order SW-1001/i })).toBeInTheDocument();
   });
 
   it('a double tap fires the accept request once', async () => {
@@ -99,12 +105,73 @@ describe('OrdersPage', () => {
 
     await user.click(await screen.findByRole('button', { name: /^Accept$/ }));
     const sheet = await screen.findByRole('dialog', { name: /Accept order/i });
-    const confirm = within(sheet).getByRole('button', { name: /Confirm/i });
+    const confirm = within(sheet).getByRole('button', { name: /^Accept$/ });
     await user.click(confirm);
     await user.click(confirm);
     await user.click(confirm);
 
     await waitFor(() => expect(accept).toHaveBeenCalledTimes(1));
+  });
+
+  it('reject sends the reason and refetches the queue', async () => {
+    const user = userEvent.setup();
+    let rejected = false;
+    let sentReason = '';
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
+      http.get(`${API_BASE}/orders`, ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
+        return HttpResponse.json({ data: rejected ? [] : [placedOrder] });
+      }),
+      http.put(`${API_BASE}/orders/ord_1/reject`, async ({ request }) => {
+        const body = (await request.json()) as { reason: string };
+        sentReason = body.reason;
+        rejected = true;
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: /^Reject$/ }));
+    const sheet = await screen.findByRole('dialog', { name: /Reject order/i });
+    const confirm = within(sheet).getByRole('button', { name: /Reject order/i });
+    // The reason is required: the confirm stays disabled until one is typed.
+    expect(confirm).toBeDisabled();
+    await user.type(within(sheet).getByPlaceholderText(/Reason/i), 'Out of stock');
+    await user.click(confirm);
+
+    await waitFor(() => expect(sentReason).toBe('Out of stock'));
+    // The order leaves the New tab only from the authoritative refetch.
+    await waitFor(() => expect(screen.getByText(/No new orders yet/i)).toBeInTheDocument());
+  });
+
+  it('a failed accept surfaces an error and never advances the order', async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
+      http.get(`${API_BASE}/orders`, ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
+        return HttpResponse.json({ data: [placedOrder] });
+      }),
+      http.put(`${API_BASE}/orders/ord_1/accept`, () =>
+        HttpResponse.json({ message: 'Order already accepted' }, { status: 409 }),
+      ),
+    );
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: /^Accept$/ }));
+    const sheet = await screen.findByRole('dialog', { name: /Accept order/i });
+    await user.click(within(sheet).getByRole('button', { name: /^Accept$/ }));
+
+    // The server rejected it, so the order must stay in the New tab (no
+    // optimistic advance) and the sheet stays open for a retry.
+    await waitFor(() =>
+      expect(screen.getByRole('article', { name: /Order SW-1001/i })).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/No new orders yet/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: /Accept order/i })).toBeInTheDocument();
   });
 
   it('an expired acceptance window disables Accept', async () => {
@@ -119,5 +186,72 @@ describe('OrdersPage', () => {
     const card = await screen.findByRole('article', { name: /Order SW-1001/i });
     expect(within(card).getByText(/expired/i)).toBeInTheDocument();
     expect(within(card).getByRole('button', { name: /^Accept$/ })).toBeDisabled();
+    expect(within(card).getByText(/Response window expired/i)).toBeInTheDocument();
+  });
+
+  it('marking ready opens the 15-second undo window and undo calls the endpoint', async () => {
+    const user = userEvent.setup();
+    let undone = false;
+    const readyOrder = {
+      ...placedOrder,
+      status: 'preparing',
+      prepReadyAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+    };
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
+      http.get(`${API_BASE}/orders`, ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
+        return HttpResponse.json({ data: [readyOrder] });
+      }),
+      http.put(`${API_BASE}/orders/ord_1/ready`, () => HttpResponse.json({ success: true })),
+      http.put(`${API_BASE}/orders/ord_1/undo-ready`, () => {
+        undone = true;
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    renderPage();
+
+    // Switch to the Preparing tab.
+    await user.click(await screen.findByRole('tab', { name: /Preparing/i }));
+    const ready = await screen.findByRole('button', { name: /Order Ready/i });
+    await user.click(ready);
+
+    const undo = await screen.findByRole('button', { name: /Undo Ready \(\d+s\)/i });
+    await user.click(undo);
+    await waitFor(() => expect(undone).toBe(true));
+  });
+
+  it('extend-prep is one-time: the chip disables after the first call', async () => {
+    const user = userEvent.setup();
+    let extendCalls = 0;
+    const readyOrder = {
+      ...placedOrder,
+      status: 'preparing',
+      prepReadyAt: new Date(Date.now() + 10 * 60_000).toISOString(),
+    };
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
+      http.get(`${API_BASE}/orders`, ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
+        return HttpResponse.json({ data: [readyOrder] });
+      }),
+      http.put(`${API_BASE}/orders/ord_1/extend-prep`, () => {
+        extendCalls += 1;
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    renderPage();
+
+    await user.click(await screen.findByRole('tab', { name: /Preparing/i }));
+    const chip = await screen.findByRole('button', { name: /^\+5 min$/ });
+    await user.click(chip);
+    await waitFor(() => expect(extendCalls).toBe(1));
+    // After a successful extension the chip shows the used state and is disabled.
+    const used = await screen.findByRole('button', { name: /\+5 min added/ });
+    expect(used).toBeDisabled();
+    await user.click(used);
+    expect(extendCalls).toBe(1);
   });
 });

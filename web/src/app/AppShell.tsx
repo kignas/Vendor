@@ -21,6 +21,7 @@ export function AppShell() {
         <Outlet />
       </main>
       <BottomNav />
+      <div id="kot-print-root" aria-hidden="true" />
     </div>
   );
 }

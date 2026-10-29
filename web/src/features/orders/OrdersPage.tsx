@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { Receipt, Search, Loader2 } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
@@ -9,6 +10,14 @@ import { useOrderHistory, useOrderQueue } from '@/hooks/useOrders';
 import { useRestaurant } from '@/hooks/useRestaurant';
 import { useRushMode } from '@/hooks/useRushMode';
 import { useNewOrderAlarm } from '@/hooks/useNewOrderAlarm';
+import { UndoReadyToast } from '@/features/orders/UndoReadyToast';
+import { OrderSupportSheet } from '@/features/orders/OrderSupportSheet';
+import { NewOrderBanner } from '@/features/orders/NewOrderBanner';
+import { AcceptOrderSheet } from '@/features/orders/AcceptOrderSheet';
+import { orderAlarm } from '@/services/notifications/alarm';
+import { Sheet } from '@/components/Sheet';
+import { printKot } from '@/features/orders/kot';
+import { speakOrder } from '@/features/orders/voice';
 import { cn } from '@/lib/cn';
 import type { Order, OrderTab } from '@/types/order';
 
@@ -21,8 +30,6 @@ const TABS: { id: OrderTab; label: string }[] = [
   { id: 'history', label: 'History' },
 ];
 
-const PREP_CHOICES = [15, 20, 25, 30];
-
 export function OrdersPage() {
   const [tab, setTab] = useState<OrderTab>('new');
   const [query, setQuery] = useState('');
@@ -34,11 +41,13 @@ export function OrdersPage() {
 
   const newCount = useNewOrderAlarm(queue.data);
   const [prepOrder, setPrepOrder] = useState<Order | null>(null);
-  const [prepMinutes, setPrepMinutes] = useState(defaultPrepMinutes);
   const [rejectOrder, setRejectOrder] = useState<Order | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [otpOrder, setOtpOrder] = useState<Order | null>(null);
   const [otp, setOtp] = useState('');
+  const [extendedIds, setExtendedIds] = useState<Set<string>>(new Set());
+  const [undoReadyId, setUndoReadyId] = useState<string | null>(null);
+  const [supportOrder, setSupportOrder] = useState<Order | null>(null);
 
   const queueRows = useMemo(() => queue.data ?? [], [queue.data]);
   const historyRows = useMemo(
@@ -56,13 +65,53 @@ export function OrdersPage() {
 
   function openPrep(order: Order) {
     setPrepOrder(order);
-    setPrepMinutes(defaultPrepMinutes);
   }
 
-  async function confirmAccept() {
-    if (!prepOrder) return;
-    await actions.accept(prepOrder._id, prepMinutes);
-    setPrepOrder(null);
+  async function confirmAccept(order: Order, minutes: number) {
+    const ok = await actions.accept(order._id, minutes);
+    if (ok) setPrepOrder(null);
+  }
+
+  /** Marks ready, then opens the 15-second undo window (legacy showUndoReadyToast). */
+  async function handleReady(order: Order) {
+    const id = order._id;
+    const ok = await actions.markReady(id);
+    if (ok) setUndoReadyId(id);
+  }
+
+  async function handleExtendPrep(order: Order) {
+    const id = order._id;
+    setExtendedIds((prev) => new Set(prev).add(id));
+    await actions.extendPrep(id);
+  }
+
+  // Close the undo window after 15 seconds (mirrors the legacy interval).
+  useEffect(() => {
+    if (!undoReadyId) return;
+    const t = window.setTimeout(() => setUndoReadyId(null), 15_000);
+    return () => window.clearTimeout(t);
+  }, [undoReadyId]);
+
+  // Drop session-local extension flags once the order leaves the queue.
+  useEffect(() => {
+    if (!extendedIds.size) return;
+    const ids = new Set(queueRows.map((o) => o._id));
+    setExtendedIds((prev) => {
+      const next = new Set([...prev].filter((id) => ids.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [queueRows, extendedIds.size]);
+
+  function handleKot(order: Order) {
+    const ok = printKot(order, restaurant.data?.name ?? '');
+    if (!ok) toast.error('Printing is not available on this device.');
+  }
+
+  function handleSpeak(order: Order) {
+    const result = speakOrder(order);
+    if (result === 'unsupported') toast.error('Voice readout is not supported on this device.');
+    else if (result === 'no-voice')
+      toast.error('No installed voice for English, Bengali or Hindi. Using the system default.');
   }
 
   async function confirmReject() {
@@ -93,6 +142,15 @@ export function OrdersPage() {
           <Loader2 className="h-4 w-4 animate-spin text-ink-faint motion-reduce:animate-none" aria-label="Refreshing" />
         ) : null}
       </div>
+
+      <NewOrderBanner
+        orders={queueRows}
+        onStop={() => {
+          orderAlarm.stop();
+          setTab('new');
+        }}
+        onExpired={() => void queue.refetch()}
+      />
 
       <label className="relative block">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" aria-hidden="true" />
@@ -160,11 +218,16 @@ export function OrdersPage() {
                 order={o}
                 deliveryMode={deliveryMode}
                 busy={actions.busyIds.has(o._id)}
+                extendedIds={extendedIds}
                 onAccept={openPrep}
                 onReject={setRejectOrder}
                 onAdvance={actions.advance}
-                onReady={(ord) => actions.markReady(ord._id)}
+                onReady={(ord) => void handleReady(ord)}
+                onExtendPrep={(ord) => void handleExtendPrep(ord)}
                 onVerifyOtp={setOtpOrder}
+                onKot={handleKot}
+                onSpeak={handleSpeak}
+                onSupport={setSupportOrder}
               />
             ))}
             {history.hasNextPage ? (
@@ -193,11 +256,16 @@ export function OrdersPage() {
               order={o}
               deliveryMode={deliveryMode}
               busy={actions.busyIds.has(o._id)}
+              extendedIds={extendedIds}
               onAccept={openPrep}
               onReject={setRejectOrder}
               onAdvance={actions.advance}
-              onReady={(ord) => actions.markReady(ord._id)}
+              onReady={(ord) => void handleReady(ord)}
+              onExtendPrep={(ord) => void handleExtendPrep(ord)}
               onVerifyOtp={setOtpOrder}
+              onKot={handleKot}
+              onSpeak={handleSpeak}
+              onSupport={setSupportOrder}
             />
           ))}
         </div>
@@ -209,34 +277,17 @@ export function OrdersPage() {
         />
       )}
 
-      {prepOrder ? (
-        <Sheet onClose={() => setPrepOrder(null)} title="Accept order" description={`Choose a preparation time for #${prepOrder.publicOrderId || prepOrder.orderNumber || prepOrder._id.slice(-6).toUpperCase()}`}>
-          <div className="flex flex-wrap gap-2">
-            {PREP_CHOICES.map((min) => (
-              <button
-                key={min}
-                type="button"
-                onClick={() => setPrepMinutes(min)}
-                aria-pressed={min === prepMinutes}
-                className={cn(
-                  'min-h-tap rounded-btn border px-4 text-sm font-semibold',
-                  min === prepMinutes ? 'border-brand bg-brand/10 text-brand' : 'border-border text-ink',
-                )}
-              >
-                {min} min
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => void confirmAccept()}
-            disabled={actions.busyIds.has(prepOrder._id)}
-            className="mt-4 min-h-tap w-full rounded-btn bg-brand text-sm font-bold text-white disabled:opacity-50"
-          >
-            Confirm · {prepMinutes} min
-          </button>
-        </Sheet>
-      ) : null}
+      <AcceptOrderSheet
+        order={prepOrder}
+        busy={prepOrder ? actions.busyIds.has(prepOrder._id) : false}
+        defaultMinutes={defaultPrepMinutes}
+        onAccept={(ord, minutes) => void confirmAccept(ord, minutes)}
+        onReject={(ord) => {
+          setPrepOrder(null);
+          setRejectOrder(ord);
+        }}
+        onClose={() => setPrepOrder(null)}
+      />
 
       {rejectOrder ? (
         <Sheet onClose={() => setRejectOrder(null)} title="Reject order" description="Tell us why this order is being rejected.">
@@ -256,6 +307,24 @@ export function OrdersPage() {
             Reject order
           </button>
         </Sheet>
+      ) : null}
+
+      {undoReadyId ? (
+        <UndoReadyToast
+          onUndo={() => {
+            void actions.undoReady(undoReadyId);
+            setUndoReadyId(null);
+          }}
+          onExpire={() => setUndoReadyId(null)}
+        />
+      ) : null}
+
+      {supportOrder ? (
+        <OrderSupportSheet
+          order={supportOrder}
+          vendorName={restaurant.data?.name ?? ''}
+          onClose={() => setSupportOrder(null)}
+        />
       ) : null}
 
       {otpOrder ? (
@@ -299,30 +368,3 @@ function emptyCopy(tab: OrderTab): { title: string; body: string } {
 }
 
 /** Minimal accessible sheet (avoids pulling a Radix dialog per action). */
-function Sheet({
-  title,
-  description,
-  onClose,
-  children,
-}: {
-  title: string;
-  description?: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-end" role="dialog" aria-modal="true" aria-label={title}>
-      <button
-        type="button"
-        aria-label="Close"
-        onClick={onClose}
-        className="absolute inset-0 bg-ink/40"
-      />
-      <div className="app-column safe-bottom relative z-10 rounded-t-card bg-card p-5 animate-slide-up">
-        <h2 className="text-base font-bold text-ink">{title}</h2>
-        {description ? <p className="mt-1 text-xs text-ink-soft">{description}</p> : null}
-        <div className="mt-3">{children}</div>
-      </div>
-    </div>
-  );
-}

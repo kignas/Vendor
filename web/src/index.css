@@ -107,3 +107,60 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Kitchen Order Ticket (KOT) print sheet. Mirrors the legacy @media print rules:
+   everything except #kot-print-root is hidden, and the ticket is sized for
+   58mm/80mm thermal paper. */
+#kot-print-root {
+  display: none;
+}
+
+@media print {
+  body > #root {
+    display: none !important;
+  }
+  #kot-print-root {
+    display: block !important;
+    width: 72mm;
+    margin: 0 auto;
+    color: #000;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+  }
+  #kot-print-root h2 {
+    font-size: 16px;
+    text-align: center;
+    margin: 0 0 2px;
+  }
+  #kot-print-root .kot-sub {
+    text-align: center;
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+  #kot-print-root hr {
+    border: none;
+    border-top: 1px dashed #000;
+    margin: 6px 0;
+  }
+  #kot-print-root .kot-row {
+    display: flex;
+    justify-content: space-between;
+  }
+  #kot-print-root ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  #kot-print-root li {
+    display: flex;
+    gap: 6px;
+  }
+  #kot-print-root .kot-note {
+    font-weight: bold;
+  }
+  #kot-print-root .kot-foot {
+    text-align: center;
+    font-size: 10px;
+    margin-top: 8px;
+  }
+}
