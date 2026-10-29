@@ -59,6 +59,28 @@ function installFetchBridge(): void {
   }) as typeof fetch;
 }
 
+/*
+ * jsdom does not implement the Pointer Events capture API, which vaul's bottom
+ * sheet calls on pointer-down, and its computed styles omit `transform`, which
+ * vaul's drag-release handler reads. Without these shims a component test that
+ * opens a sheet logs uncaught errors even though the interaction works.
+ */
+if (typeof window !== 'undefined' && typeof Element !== 'undefined') {
+  const proto = Element.prototype as unknown as Record<string, unknown>;
+  if (!proto.setPointerCapture) proto.setPointerCapture = () => undefined;
+  if (!proto.releasePointerCapture) proto.releasePointerCapture = () => undefined;
+  if (!proto.hasPointerCapture) proto.hasPointerCapture = () => false;
+
+  const originalGetComputedStyle = window.getComputedStyle.bind(window);
+  window.getComputedStyle = ((element: Element, pseudo?: string | null) => {
+    const style = originalGetComputedStyle(element, pseudo);
+    if (!style.transform) {
+      Object.defineProperty(style, 'transform', { value: 'none', configurable: true });
+    }
+    return style;
+  }) as typeof window.getComputedStyle;
+}
+
 // MSW is the single network boundary in tests: no real request can escape.
 beforeAll(() => {
   server.listen({ onUnhandledRequest: 'error' });

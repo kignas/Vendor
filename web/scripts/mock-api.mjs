@@ -90,6 +90,74 @@ const server = http.createServer((req, res) => {
   if (path === '/api/vendor/settlements/withdrawals') return send(res, 200, { data: [] });
   if (path === '/api/vendor/earnings/orders') return send(res, 200, { data: [] });
 
+  if (path === '/api/vendor/reviews') {
+    return send(res, 200, {
+      data: [
+        {
+          _id: 'rv1',
+          score: 5,
+          comment: 'Best masala dosa in town!',
+          user: { name: 'Asha Rao', orderCount: 4 },
+          createdAt: new Date(Date.now() - 2 * 86400_000).toISOString(),
+          orderNumber: 'SW-1001',
+        },
+        {
+          _id: 'rv2',
+          score: 3,
+          comment: 'Food was good but delivery was slow.',
+          user: { name: 'Rahul Mehta' },
+          createdAt: new Date(Date.now() - 5 * 86400_000).toISOString(),
+          vendorReply: { message: 'Sorry for the delay, we are working on it.', createdAt: new Date().toISOString() },
+        },
+      ],
+      summary: { rating: 4.3, ratingCount: 28, reviewCount: 12 },
+      total: 12,
+    });
+  }
+  if (path.match(/^\/api\/vendor\/reviews\/[^/]+\/reply$/) && req.method === 'POST') {
+    return send(res, 200, { success: true });
+  }
+
+  if (path === '/api/vendor/analytics') {
+    const period = url.searchParams.get('period') || '7d';
+    return send(res, 200, {
+      period,
+      currency: 'INR',
+      summary: {
+        totalOrders: 86,
+        deliveredOrders: 74,
+        cancelledOrders: 6,
+        deliveredFoodSales: 48250,
+        averageDeliveredOrderValue: 652,
+      },
+      statusCounts: [],
+      daily: [
+        { date: '2026-10-25', orders: 12, deliveredSales: 7600 },
+        { date: '2026-10-26', orders: 15, deliveredSales: 9100 },
+        { date: '2026-10-27', orders: 9, deliveredSales: 5400 },
+      ],
+      topItems: [
+        { name: 'Masala Dosa', quantity: 42, sales: 5460 },
+        { name: 'Butter Chicken', quantity: 28, sales: 11760 },
+      ],
+    });
+  }
+  if (path === '/api/vendor/analytics/visits') {
+    return send(res, 200, {
+      data: {
+        summary: { totalViews: 320, uniqueVisitors: 180 },
+        daily: [
+          { day: '2026-10-26', views: 120, uniqueVisitors: 70 },
+          { day: '2026-10-27', views: 90, uniqueVisitors: 55 },
+        ],
+        byEventType: [
+          { eventType: 'menu_view', count: 210 },
+          { eventType: 'restaurant_view', count: 110 },
+        ],
+      },
+    });
+  }
+
   const put = path.match(/^\/api\/vendor\/orders\/([^/]+)\/(accept|reject|ready|status)$/);
   if (put && req.method === 'PUT') {
     const id = put[1];
