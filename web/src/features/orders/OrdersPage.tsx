@@ -7,6 +7,7 @@ import { ordersForTab, orderMatchesQuery } from '@/features/orders/orderDomain';
 import { useOrderActions } from '@/features/orders/useOrderActions';
 import { useOrderHistory, useOrderQueue } from '@/hooks/useOrders';
 import { useRestaurant } from '@/hooks/useRestaurant';
+import { useRushMode } from '@/hooks/useRushMode';
 import { useNewOrderAlarm } from '@/hooks/useNewOrderAlarm';
 import { cn } from '@/lib/cn';
 import type { Order, OrderTab } from '@/types/order';
@@ -29,10 +30,11 @@ export function OrdersPage() {
   const history = useOrderHistory(tab === 'history');
   const restaurant = useRestaurant();
   const actions = useOrderActions();
+  const { defaultPrepMinutes } = useRushMode();
 
   const newCount = useNewOrderAlarm(queue.data);
   const [prepOrder, setPrepOrder] = useState<Order | null>(null);
-  const [prepMinutes, setPrepMinutes] = useState(25);
+  const [prepMinutes, setPrepMinutes] = useState(defaultPrepMinutes);
   const [rejectOrder, setRejectOrder] = useState<Order | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [otpOrder, setOtpOrder] = useState<Order | null>(null);
@@ -54,7 +56,7 @@ export function OrdersPage() {
 
   function openPrep(order: Order) {
     setPrepOrder(order);
-    setPrepMinutes(25);
+    setPrepMinutes(defaultPrepMinutes);
   }
 
   async function confirmAccept() {

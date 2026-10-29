@@ -5,6 +5,7 @@ import { SkeletonCard } from '@/components/Skeletons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useOnboardingConfig, useSettings, useUpdateSettings } from '@/hooks/useSettings';
+import { useRushMode } from '@/hooks/useRushMode';
 import { enumLabel } from '@/lib/format';
 import { toast } from 'sonner';
 
@@ -29,6 +30,7 @@ export function SettingsPage() {
   const settings = useSettings();
   const config = useOnboardingConfig();
   const update = useUpdateSettings();
+  const { rush, setRushMode, defaultPrepMinutes } = useRushMode();
 
   const d = settings.data ?? {};
   const cfg = config.data ?? {};
@@ -90,6 +92,41 @@ export function SettingsPage() {
       <h1 className="text-lg font-extrabold text-ink">Settings</h1>
 
       {settings.isLoading ? <SkeletonCard /> : null}
+
+      <div className="rounded-card border border-border bg-card p-4">
+        <p className="text-sm font-bold text-ink">Kitchen</p>
+        <p className="mt-0.5 text-xs text-ink-soft">
+          Tune how the kitchen accepts and prepares orders.
+        </p>
+        <label className="mt-3 flex items-center justify-between gap-3">
+          <span>
+            <span className="block text-sm font-semibold text-ink">Kitchen Rush Mode</span>
+            <span className="block text-xs text-ink-faint">
+              +5 mins auto-added to the default KPT so busy dine-in hours are handled smoothly.
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            role="switch"
+            checked={rush}
+            onChange={(e) => {
+              setRushMode(e.target.checked);
+              toast.success(
+                e.target.checked
+                  ? 'Kitchen Rush Mode on · +5 min added to default KPT.'
+                  : 'Kitchen Rush Mode off.',
+              );
+            }}
+            aria-label="Kitchen Rush Mode"
+            className="h-6 w-11 shrink-0 accent-brand"
+          />
+        </label>
+        <p className="mt-2 text-xs text-ink-faint">
+          {rush
+            ? `On. New accepts default to ${defaultPrepMinutes} min (20 min + 5 min rush buffer).`
+            : 'Off. Accepted orders use your selected KPT.'}
+        </p>
+      </div>
 
       {settings.isSuccess ? (
         <>

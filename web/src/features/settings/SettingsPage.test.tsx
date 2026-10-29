@@ -83,4 +83,25 @@ describe('SettingsPage', () => {
     await user.click(screen.getByRole('button', { name: /save settings/i }));
     expect(putCount).toBe(0);
   });
+
+  it('Kitchen Rush Mode is local-only and never sent to the backend', async () => {
+    const user = userEvent.setup();
+    const bodies: unknown[] = [];
+    server.use(
+      http.get(`${API_BASE}/settings`, () =>
+        HttpResponse.json({ data: { maxActiveOrders: 20, settlementSchedule: 'weekly' } }),
+      ),
+      http.get(`${API_BASE}/onboarding/config`, () => HttpResponse.json({ data: {} })),
+      http.put(`${API_BASE}/settings`, async ({ request }) => {
+        bodies.push(await request.json());
+        return HttpResponse.json({ message: 'Settings saved.' });
+      }),
+    );
+    renderPage();
+    await user.click(await screen.findByRole('switch', { name: /kitchen rush mode/i }));
+    expect(window.localStorage.getItem('eatswada_vendor_rush_mode')).toBe('1');
+    await user.click(screen.getByRole('button', { name: /save settings/i }));
+    // The rush flag must not appear in the PUT body.
+    expect(JSON.stringify(bodies[0])).not.toContain('rush');
+  });
 });
