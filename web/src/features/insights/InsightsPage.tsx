@@ -22,11 +22,13 @@ import type { AnalyticsPeriod } from '@/services/api/analytics';
 import { enumLabel, firstNumber, formatMoney, num } from '@/lib/format';
 import { cn } from '@/lib/cn';
 import {
+  conversionRate,
   dailySeries,
   deltaLabel,
   hasSummaryData,
   orderRates,
   peakDay,
+  viewsAreZero,
   withinPeriodTrend,
 } from './growthDomain';
 
@@ -74,11 +76,14 @@ export function InsightsPage() {
   const trend = useMemo(() => withinPeriodTrend(daily, 'sales'), [daily]);
   const peak = useMemo(() => peakDay(daily), [daily]);
 
-  const visitSummary = visits.data?.data?.summary;
-  const visitDaily = (visits.data?.data?.daily ?? []).filter((r) => (num(r.views) ?? 0) > 0);
-  const visitTypes = visits.data?.data?.byEventType ?? [];
+  const visitSummary = visits.data?.summary;
+  const visitDaily = (visits.data?.daily ?? []).filter((r) => (num(r.views) ?? 0) > 0);
+  const visitTypes = visits.data?.byEventType ?? [];
   const totalViews = firstNumber(visitSummary?.totalViews);
   const uniqueVisitors = firstNumber(visitSummary?.uniqueVisitors);
+
+  const conversion = conversionRate(total, totalViews);
+  const noViewsRecorded = viewsAreZero(totalViews);
 
   const hasKpis = hasSummaryData(s) || totalViews !== null;
   const periodLabel = PERIODS.find((p) => p.id === period)?.label ?? '';
@@ -153,7 +158,22 @@ export function InsightsPage() {
             {uniqueVisitors !== null ? (
               <KpiCard label="Unique visitors" value={String(uniqueVisitors)} />
             ) : null}
+            {conversion ? (
+              <KpiCard
+                label="Conversion"
+                value={`${conversion.pct}%`}
+                hint={`orders ÷ ${conversion.denominator}`}
+              />
+            ) : null}
           </div>
+
+          {noViewsRecorded ? (
+            <p className="rounded-btn bg-info-bg px-3 py-2 text-xs text-info-ink" role="note">
+              Customer menu views are not being recorded yet, so views and conversion stay at
+              zero. This needs a visit event on the customer app — see BACKEND-GAPS.md. The sales
+              and order figures above are real.
+            </p>
+          ) : null}
 
           {peak || rates.deliveredRate !== null ? (
             <div className="rounded-card border border-border bg-card p-4">

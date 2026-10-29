@@ -15,6 +15,14 @@ export const handlers = [
   // bell badge; default to an empty list so no test hits the network.
   http.get(NOTIFICATIONS_BASE, () => HttpResponse.json({ data: [] })),
 
+  // Home dashboard summary; tests that assert on it override this locally.
+  http.get(`${API_BASE}/dashboard`, () =>
+    HttpResponse.json({
+      success: true,
+      data: { today: { orders: 0, sales: 0, averageOrderValue: 0 }, alerts: {}, recentActivity: [] },
+    }),
+  ),
+
   // Any unknown vendor route 404s rather than silently returning an empty body.
   http.all(`${API_BASE}/*`, () =>
     HttpResponse.json({ success: false, message: 'Not found' }, { status: 404 }),

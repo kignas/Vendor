@@ -150,6 +150,47 @@ client change.
 the restaurant `availability` object, set when the vendor picks a non-open
 status.
 
+## 11. Customer menu-view tracking — no beacon is emitted anywhere
+
+`GET /vendor/analytics/visits` reads `AnalyticsEvent` rows with
+`scope: 'restaurant'` and `eventType` `menu_view` / `restaurant_view`
+(`services/analyticsService.js` → `getRestaurantVisitAnalytics`). Those rows are
+written **only** by the public beacon `POST /api/analytics/visit`
+(`controllers/analyticsController.js` → `trackVisit`, mounted in
+`routes/analyticsRoutes.js`).
+
+**No client emits that beacon.** Verified across every accessible repository:
+this vendor app, the `Eatswada-` backend (defines the route only), the customer
+web app `eatswada-nextjs`, `Eatswada-2.0`, `Nearbit`, `Nearbite-`, `Nearbite1`,
+`Sagnik-`, and `Admin` (which *reads* the admin analytics but never writes).
+Consequently the collection is empty and the vendor's menu views / unique
+visitors are a **true zero**.
+
+- **App behaviour:** the Growth screen shows the real zero and an explicit note
+  that customer views are not being recorded yet; it never fabricates a view
+  count. Sales and order KPIs on the same screen are real (the analytics
+  envelope was also being mis-read — see
+  `docs/rebuild/ANALYTICS_ROOT_CAUSE.md`).
+- **This is not fixable in the vendor app:** the vendor is the reader of this
+  metric, not the writer.
+
+**Backend/customer change to close it:** add a fire-and-forget beacon on the
+customer restaurant/menu page:
+
+```js
+navigator.sendBeacon(
+  `${API_ORIGIN}/api/analytics/visit`,
+  new Blob([JSON.stringify({ eventType: 'menu_view', restaurantId })], {
+    type: 'application/json',
+  }),
+);
+```
+
+(fire on `menu_view` when the menu opens and `restaurant_view` for the
+restaurant page). The endpoint already deduplicates per actor per day via the
+unique `dedupeKey = eventType:restaurant:actor:day` index, so refreshes cannot
+inflate the count and "unique visitors per day" is exact without client state.
+
 ---
 
 ## Summary table
@@ -166,5 +207,6 @@ status.
 | 8 | Rider-order OTP | self-delivery only | button gated on current mode |
 | 9 | Growth comparison/prep/acceptance/category metrics | not returned by `/analytics` | within-period trend only; missing metrics omitted |
 | 10 | Availability reason | no field | shown only when the backend sends one |
+| 11 | Customer menu-view tracking | beacon `POST /analytics/visit` exists but no client emits it | real zero shown + honest note; customer app must emit the beacon |
 
 None of these is worked around with fake data or a frontend-only "success".

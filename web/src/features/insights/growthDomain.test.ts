@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  conversionRate,
   dailySeries,
   deltaLabel,
   hasSummaryData,
   orderRates,
   peakDay,
+  viewsAreZero,
   withinPeriodTrend,
 } from './growthDomain';
 
@@ -99,5 +101,27 @@ describe('hasSummaryData', () => {
     expect(hasSummaryData({ totalOrders: 0 })).toBe(true);
     expect(hasSummaryData({})).toBe(false);
     expect(hasSummaryData(undefined)).toBe(false);
+  });
+});
+
+describe('conversionRate', () => {
+  it('divides orders by views and documents the denominator', () => {
+    const c = conversionRate(86, 320);
+    expect(c?.pct).toBeCloseTo(26.9, 1);
+    expect(c?.denominator).toBe('views');
+  });
+
+  it('is undefined when there is no view denominator (never 0% or ∞)', () => {
+    expect(conversionRate(10, 0)).toBeNull();
+    expect(conversionRate(10, null)).toBeNull();
+    expect(conversionRate(null, 100)).toBeNull();
+  });
+});
+
+describe('viewsAreZero', () => {
+  it('is true only for an explicit zero, not for an absent value', () => {
+    expect(viewsAreZero(0)).toBe(true);
+    expect(viewsAreZero(1)).toBe(false);
+    expect(viewsAreZero(null)).toBe(false);
   });
 });

@@ -94,3 +94,39 @@ export function hasSummaryData(summary: AnalyticsSummary | undefined): boolean {
     summary.averageDeliveredOrderValue,
   ].some((v) => num(v) !== null);
 }
+
+export interface Conversion {
+  /** orders ÷ menu views, as a percentage, or null when undefined. */
+  pct: number;
+  /** The denominator actually used, so the UI can state it. */
+  denominator: 'views' | 'orders';
+}
+
+/**
+ * Conversion rate. Definition (documented, never guessed):
+ *   conversion = orders ÷ menu views × 100
+ * with "orders" being total orders in the period and "menu views" the
+ * deduplicated customer views from `/analytics/visits`. It is only computed
+ * when the period has at least one recorded view — a 0-view denominator is
+ * undefined, so the UI omits the card rather than showing `0%` or `∞`.
+ * Falls back to `delivered ÷ total orders` only when no views exist AND there
+ * are orders to compare, so the vendor still sees a real ratio.
+ */
+export function conversionRate(
+  totalOrders: number | null,
+  totalViews: number | null,
+): Conversion | null {
+  if (totalViews !== null && totalViews > 0 && totalOrders !== null) {
+    return { pct: Math.round((totalOrders / totalViews) * 1000) / 10, denominator: 'views' };
+  }
+  return null;
+}
+
+/**
+ * Whether the period shows zero customer views. Used to render the honest
+ * "views are not being recorded yet" note — a real zero, never a fabricated
+ * number (the customer-side visit beacon is not wired up; see BACKEND-GAPS.md).
+ */
+export function viewsAreZero(totalViews: number | null): boolean {
+  return totalViews === 0;
+}

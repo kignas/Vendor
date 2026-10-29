@@ -59,6 +59,28 @@ describe('SupportPage', () => {
     expect(posted[0]).toMatchObject({ subject: 'Order issue', message: 'Food arrived cold' });
   });
 
+  it('offers exactly the categories the backend accepts', async () => {
+    const user = userEvent.setup();
+    server.use(http.get(`${API_BASE}/support`, () => HttpResponse.json({ data: [] })));
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: /create a ticket/i }));
+    const select = screen.getByLabelText('Category') as HTMLSelectElement;
+    const values = Array.from(select.options).map((o) => o.value);
+    // Mirrors createVendorSupportTicket's allow-list; any other value the app
+    // sent would be silently coerced to 'other'.
+    expect(values).toEqual([
+      'payment',
+      'order',
+      'delivery',
+      'customer_complaint',
+      'technical',
+      'account',
+      'document',
+      'policy',
+      'other',
+    ]);
+  });
+
   it('shows an error state with retry when tickets fail to load', async () => {
     server.use(
       http.get(`${API_BASE}/support`, () => HttpResponse.json({ message: 'boom' }, { status: 500 })),

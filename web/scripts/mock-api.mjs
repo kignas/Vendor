@@ -236,32 +236,59 @@ const server = http.createServer((req, res) => {
     return send(res, 200, { success: true });
   }
 
+  if (path === '/api/vendor/dashboard') {
+    return send(res, 200, {
+      success: true,
+      data: {
+        date: new Date().toISOString().slice(0, 10),
+        restaurant: { name: 'Test Kitchen', isOpen: true, availability: 'open', deliveryMode: 'eatswada_rider' },
+        today: { orders: 18, sales: 9420, averageOrderValue: 523, cancelled: 1, statusCounts: { delivered: 14, preparing: 3, placed: 1 } },
+        pendingSettlement: 3150,
+        alerts: { menuReview: 1, lowStock: 2, outOfStock: 1 },
+        recentActivity: [
+          { type: 'menu_submitted', message: 'Submitted Paneer Tikka for admin approval.', createdAt: new Date(Date.now() - 3 * 60_000).toISOString() },
+          { type: 'inventory_updated', message: 'Updated inventory for Masala Dosa.', createdAt: new Date(Date.now() - 20 * 60_000).toISOString() },
+        ],
+      },
+    });
+  }
+  if (path === '/api/vendor/alerts') {
+    return send(res, 200, { success: true, data: [] });
+  }
+  if (path === '/api/vendor/activity') {
+    return send(res, 200, { success: true, data: [] });
+  }
+
   if (path === '/api/vendor/analytics') {
     const period = url.searchParams.get('period') || '7d';
     return send(res, 200, {
-      period,
-      currency: 'INR',
-      summary: {
-        totalOrders: 86,
-        deliveredOrders: 74,
-        cancelledOrders: 6,
-        deliveredFoodSales: 48250,
-        averageDeliveredOrderValue: 652,
+      success: true,
+      data: {
+        period,
+        currency: 'INR',
+        summary: {
+          totalOrders: 86,
+          deliveredOrders: 74,
+          cancelledOrders: 6,
+          deliveredFoodSales: 48250,
+          averageDeliveredOrderValue: 652,
+        },
+        statusCounts: [],
+        daily: [
+          { date: '2026-10-25', orders: 12, deliveredSales: 7600 },
+          { date: '2026-10-26', orders: 15, deliveredSales: 9100 },
+          { date: '2026-10-27', orders: 9, deliveredSales: 5400 },
+        ],
+        topItems: [
+          { name: 'Masala Dosa', quantity: 42, sales: 5460 },
+          { name: 'Butter Chicken', quantity: 28, sales: 11760 },
+        ],
       },
-      statusCounts: [],
-      daily: [
-        { date: '2026-10-25', orders: 12, deliveredSales: 7600 },
-        { date: '2026-10-26', orders: 15, deliveredSales: 9100 },
-        { date: '2026-10-27', orders: 9, deliveredSales: 5400 },
-      ],
-      topItems: [
-        { name: 'Masala Dosa', quantity: 42, sales: 5460 },
-        { name: 'Butter Chicken', quantity: 28, sales: 11760 },
-      ],
     });
   }
   if (path === '/api/vendor/analytics/visits') {
     return send(res, 200, {
+      success: true,
       data: {
         summary: { totalViews: 320, uniqueVisitors: 180 },
         daily: [

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Receipt, Search, Loader2 } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
@@ -14,6 +14,7 @@ import { UndoReadyToast } from '@/features/orders/UndoReadyToast';
 import { OrderSupportSheet } from '@/features/orders/OrderSupportSheet';
 import { NewOrderBanner } from '@/features/orders/NewOrderBanner';
 import { AcceptOrderSheet } from '@/features/orders/AcceptOrderSheet';
+import { SuccessFlash } from '@/features/orders/SuccessFlash';
 import { orderAlarm } from '@/services/notifications/alarm';
 import { Sheet } from '@/components/Sheet';
 import { ScrollTabs } from '@/components/ScrollTabs';
@@ -49,6 +50,12 @@ export function OrdersPage() {
   const [extendedIds, setExtendedIds] = useState<Set<string>>(new Set());
   const [undoReadyId, setUndoReadyId] = useState<string | null>(null);
   const [supportOrder, setSupportOrder] = useState<Order | null>(null);
+  // Replay key for the post-accept confirmation flash. Only set AFTER the
+  // server confirms, so the animation can never precede or delay the request.
+  const [confirmFlash, setConfirmFlash] = useState<{ id: number; message: string; detail: string } | null>(
+    null,
+  );
+  const flashIdRef = useRef(0);
 
   const queueRows = useMemo(() => queue.data ?? [], [queue.data]);
   const historyRows = useMemo(
@@ -68,9 +75,18 @@ export function OrdersPage() {
     setPrepOrder(order);
   }
 
+  /** Replays the confirmation flash with a fresh key. Called only on success. */
+  function showConfirm(message: string, detail: string) {
+    flashIdRef.current += 1;
+    setConfirmFlash({ id: flashIdRef.current, message, detail });
+  }
+
   async function confirmAccept(order: Order, minutes: number) {
     const ok = await actions.accept(order._id, minutes);
-    if (ok) setPrepOrder(null);
+    if (ok) {
+      setPrepOrder(null);
+      showConfirm('Order accepted', `Prep time ${minutes} min · the customer can see it now`);
+    }
   }
 
   /** Marks ready, then opens the 15-second undo window (legacy showUndoReadyToast). */
@@ -119,9 +135,12 @@ export function OrdersPage() {
     if (!rejectOrder) return;
     const reason = rejectReason.trim();
     if (!reason) return;
-    await actions.reject(rejectOrder._id, reason);
-    setRejectOrder(null);
-    setRejectReason('');
+    const ok = await actions.reject(rejectOrder._id, reason);
+    if (ok) {
+      setRejectOrder(null);
+      setRejectReason('');
+      showConfirm('Order rejected', 'The customer has been notified');
+    }
   }
 
   async function confirmOtp() {
@@ -348,6 +367,13 @@ export function OrdersPage() {
           </button>
         </Sheet>
       ) : null}
+
+      <SuccessFlash
+        trigger={confirmFlash?.id ?? null}
+        message={confirmFlash?.message ?? ''}
+        detail={confirmFlash?.detail ?? null}
+        onDone={() => setConfirmFlash(null)}
+      />
     </section>
   );
 }

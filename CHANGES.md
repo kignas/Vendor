@@ -97,3 +97,71 @@ CHANGES.md                 (new)
 TEST-REPORT.md             (new)
 BACKEND-GAPS.md            (new)
 ```
+
+---
+
+# Rebuild branch `rebuild/phase-2-orders` — analytics, dashboard, order feedback
+
+The React/TypeScript rebuild (`web/`) is the source of truth on this branch.
+This section records the changes made on `rebuild/phase-2-orders`.
+
+## 1. Growth analytics: root cause and fix
+
+The Growth screen showed **zero** for every sales/order KPI, and menu
+views / unique visitors were zero. Two independent causes:
+
+1. **Envelope mismatch (fixed).** The backend wraps payloads in
+   `{ success, data: { … } }`. `InsightsPage` read `envelope.summary` instead of
+   `envelope.data.summary`, so every KPI fell back to the em dash. The unit test
+   stubbed a *flat* shape, so it passed while the live screen was broken.
+   `services/api/analytics.ts` now unwraps `.data` for both `/analytics` and
+   `/analytics/visits`; the page reads the unwrapped block; tests stub the real
+   envelope; `web/scripts/mock-api.mjs` returns it too.
+2. **No visit beacon (blocked upstream).** `GET /analytics/visits` reads
+   `menu_view` / `restaurant_view` rows written only by `POST /api/analytics/visit`,
+   which **no client emits** in any accessible repo. The zero is real and is
+   stated as such. See `docs/rebuild/ANALYTICS_ROOT_CAUSE.md` and
+   `BACKEND-GAPS.md` §11 for the exact customer-side fix.
+
+Added on the Growth screen: conversion rate (`orders ÷ views`, omitted when the
+denominator is zero), and an honest note when views are not being recorded.
+
+## 2. Home dashboard (`GET /vendor/dashboard`, `/alerts`, `/activity`)
+
+The Home screen previously used only the earnings summary + queue, leaving the
+mounted `/dashboard`, `/alerts` and `/activity` routes unused. Home now shows
+today's orders, delivered sales, average order value, pending settlement, an
+alert summary (out-of-stock / low-stock / awaiting review), the live queue
+counts, recent activity and one-tap shortcuts to every operational screen.
+
+## 3. Order confirmation feedback
+
+After the server confirms an accept or reject, a short `SuccessFlash` plays
+(haptic tap via `orderAlarm.tap()`), then auto-dismisses. It renders only on a
+resolved mutation — a test holds the accept response open to prove the flash
+never appears before the server confirms, and it never delays the request.
+Reduced-motion collapses the animation to an instant state.
+
+## 4. Support ticket categories
+
+`POST /vendor/support` silently coerces any unrecognised `category` to `other`.
+The picker offered categories the backend does not accept (`general`, `orders`,
+`payments`, `settlements`, `menu`), so the vendor's choice was discarded. The
+list now matches `createVendorSupportTicket`'s allow-list exactly.
+
+## 5. Legacy files restored
+
+The branch had deleted `theme.css`, `sw.js`, `apply.html` and
+`application-status.html` while `index.html` / `login.html` still reference
+them and the root test suite reads `theme.css` / `sw.js`. They are restored from
+`main` (AGENTS.md rule 10: do not delete the old HTML before Phase 7). The root
+suite is back to **44/44**.
+
+## 6. Tests
+
+- `web/` `vitest`: 195 tests pass (30 files), including new
+  `services/api/analytics.test.ts`, `features/home/HomePage.test.tsx`, and
+  rewritten `InsightsPage.test.tsx` that pins the real envelope.
+- Root `node --test tests/*.mjs`: 44 pass.
+- `web/` `typecheck`, `lint`, `build`: clean.
+

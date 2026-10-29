@@ -254,4 +254,36 @@ describe('OrdersPage', () => {
     await user.click(used);
     expect(extendCalls).toBe(1);
   });
+
+  it('shows the confirmation flash only after the server accepts the order', async () => {
+    const user = userEvent.setup();
+    const gate: { release?: () => void } = {};
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
+      http.get(`${API_BASE}/orders`, ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
+        return HttpResponse.json({ data: [placedOrder] });
+      }),
+      http.put(`${API_BASE}/orders/ord_1/accept`, async () => {
+        // Hold the response so we can prove the flash is NOT shown before the
+        // server confirms.
+        await new Promise<void>((resolve) => {
+          gate.release = resolve;
+        });
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: /^Accept$/ }));
+    const sheet = await screen.findByRole('dialog', { name: /Accept order/i });
+    await user.click(within(sheet).getByRole('button', { name: /^Accept$/ }));
+
+    // Request in flight: no success flash yet.
+    expect(screen.queryByText(/Order accepted/i)).not.toBeInTheDocument();
+
+    gate.release?.();
+    expect(await screen.findByText(/Order accepted/i)).toBeInTheDocument();
+  });
 });

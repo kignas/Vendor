@@ -3,3 +3,4 @@ www/
 web/dist/
 web/node_modules/
 android/
+.openhands/

@@ -17,25 +17,32 @@ function renderPage() {
 }
 
 describe('InsightsPage', () => {
-  it('renders analytics KPIs and daily/top-item rows from the server', async () => {
+  it('renders analytics KPIs from the real { success, data } envelope', async () => {
+    // The backend wraps every payload in `{ success: true, data: {...} }`.
+    // Stubbing the flat shape (as an earlier test did) hid a bug where the page
+    // read `summary` one level too high and rendered zero for every KPI.
     server.use(
       http.get(`${API_BASE}/analytics`, () =>
         HttpResponse.json({
-          period: '7d',
-          currency: 'INR',
-          summary: {
-            totalOrders: 86,
-            deliveredOrders: 74,
-            cancelledOrders: 6,
-            deliveredFoodSales: 48250,
-            averageDeliveredOrderValue: 652,
+          success: true,
+          data: {
+            period: '7d',
+            currency: 'INR',
+            summary: {
+              totalOrders: 86,
+              deliveredOrders: 74,
+              cancelledOrders: 6,
+              deliveredFoodSales: 48250,
+              averageDeliveredOrderValue: 652,
+            },
+            daily: [{ date: '2026-10-26', orders: 15, deliveredSales: 9100 }],
+            topItems: [{ name: 'Masala Dosa', quantity: 42, sales: 5460 }],
           },
-          daily: [{ date: '2026-10-26', orders: 15, deliveredSales: 9100 }],
-          topItems: [{ name: 'Masala Dosa', quantity: 42, sales: 5460 }],
         }),
       ),
       http.get(`${API_BASE}/analytics/visits`, () =>
         HttpResponse.json({
+          success: true,
           data: { summary: { totalViews: 320, uniqueVisitors: 180 }, daily: [], byEventType: [] },
         }),
       ),
@@ -48,6 +55,30 @@ describe('InsightsPage', () => {
     expect(screen.getByText('42 sold · ₹5,460')).toBeInTheDocument();
     expect(screen.getByText('Menu views')).toBeInTheDocument();
     expect(screen.getByText('320')).toBeInTheDocument();
+    // conversion = 86 orders ÷ 320 views = 26.9%
+    expect(screen.getByText('26.9%')).toBeInTheDocument();
+  });
+
+  it('shows the honest views note when the beacon has recorded nothing', async () => {
+    server.use(
+      http.get(`${API_BASE}/analytics`, () =>
+        HttpResponse.json({
+          success: true,
+          data: { period: '7d', summary: { totalOrders: 12, deliveredOrders: 10 } },
+        }),
+      ),
+      http.get(`${API_BASE}/analytics/visits`, () =>
+        HttpResponse.json({
+          success: true,
+          data: { summary: { totalViews: 0, uniqueVisitors: 0 }, daily: [], byEventType: [] },
+        }),
+      ),
+    );
+    renderPage();
+    expect(await screen.findByText('12')).toBeInTheDocument();
+    expect(screen.getByRole('note')).toHaveTextContent(/not being recorded yet/i);
+    // No conversion card when the denominator is zero.
+    expect(screen.queryByText('Conversion')).not.toBeInTheDocument();
   });
 
   it('re-queries with the selected period', async () => {
@@ -56,9 +87,12 @@ describe('InsightsPage', () => {
     server.use(
       http.get(`${API_BASE}/analytics`, ({ request }) => {
         seen.push(new URL(request.url).searchParams.get('period') || '');
-        return HttpResponse.json({ period: 'x', summary: { totalOrders: 1 }, daily: [], topItems: [] });
+        return HttpResponse.json({
+          success: true,
+          data: { period: 'x', summary: { totalOrders: 1 }, daily: [], topItems: [] },
+        });
       }),
-      http.get(`${API_BASE}/analytics/visits`, () => HttpResponse.json({ data: {} })),
+      http.get(`${API_BASE}/analytics/visits`, () => HttpResponse.json({ success: true, data: {} })),
     );
     renderPage();
 
@@ -70,7 +104,7 @@ describe('InsightsPage', () => {
   it('shows an error state with retry when analytics fails', async () => {
     server.use(
       http.get(`${API_BASE}/analytics`, () => HttpResponse.json({ message: 'boom' }, { status: 500 })),
-      http.get(`${API_BASE}/analytics/visits`, () => HttpResponse.json({ data: {} })),
+      http.get(`${API_BASE}/analytics/visits`, () => HttpResponse.json({ success: true, data: {} })),
     );
     renderPage();
     expect(await screen.findByRole('alert', {}, { timeout: 4000 })).toHaveTextContent(

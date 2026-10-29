@@ -12,14 +12,21 @@ import { enumLabel } from '@/lib/format';
 import { cn } from '@/lib/cn';
 import type { SupportTicket } from '@/types/support';
 
+/**
+ * Ticket categories the backend accepts. POST /vendor/support silently coerces
+ * any other value to 'other' (`createVendorSupportTicket`), so the app must
+ * offer exactly this list or the vendor's choice would be discarded.
+ */
 const CATEGORIES = [
-  'general',
-  'orders',
-  'payments',
-  'settlements',
-  'menu',
-  'account',
+  'payment',
+  'order',
+  'delivery',
+  'customer_complaint',
   'technical',
+  'account',
+  'document',
+  'policy',
+  'other',
 ];
 
 function ticketId(t: SupportTicket): string {
@@ -86,7 +93,7 @@ function TicketRow({ ticket, onReply }: { ticket: SupportTicket; onReply: (t: Su
 
 function NewTicketSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [subject, setSubject] = useState('');
-  const [category, setCategory] = useState('general');
+  const [category, setCategory] = useState('other');
   const [message, setMessage] = useState('');
   const create = useCreateTicket();
 
@@ -94,7 +101,7 @@ function NewTicketSheet({ open, onClose }: { open: boolean; onClose: () => void 
     if (!subject.trim() || !message.trim()) return;
     await create.mutateAsync({ subject: subject.trim(), category, message: message.trim() });
     setSubject('');
-    setCategory('general');
+    setCategory('other');
     setMessage('');
     onClose();
   }

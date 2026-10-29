@@ -17,12 +17,16 @@ export async function fetchReviews(page = 1, limit = 20): Promise<ReviewsPage> {
   const res = await apiFetch<ReviewsResponse>(`/reviews?page=${page}&limit=${limit}`);
   const rows = Array.isArray(res?.data) ? res.data : [];
   const total = Number(res?.total ?? res?.summary?.reviewCount ?? rows.length) || rows.length;
+  // The backend returns `page` / `pages`; older mirrors used `currentPage` /
+  // `totalPages`. Accept both, then fall back to a computed page count.
+  const raw = res as { page?: number; pages?: number; currentPage?: number; totalPages?: number };
   return {
     rows,
     summary: res?.summary ?? {},
     total,
-    currentPage: Number((res as { currentPage?: number })?.currentPage) || page,
-    totalPages: Number((res as { totalPages?: number })?.totalPages) || Math.max(1, Math.ceil(total / limit)),
+    currentPage: Number(raw?.currentPage ?? raw?.page) || page,
+    totalPages:
+      Number(raw?.totalPages ?? raw?.pages) || Math.max(1, Math.ceil(total / limit)),
   };
 }
 
