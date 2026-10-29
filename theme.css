@@ -26,7 +26,7 @@
   --zp-reply-bubble:#E8F0FE;
   --zp-danger-red:#DC2626;
   --zp-star-gold:#F59E0B;
-  --zp-kpt-fill:#18181B;
+  --zp-kpt-fill:#690D27;
   --zp-kpt-track:#4B4D52;
   --zp-radius-pill:9999px;
   --zp-radius-card:16px;
@@ -69,16 +69,18 @@
 }
 
 :root{
-  --brand:#18181B; --green:#18181B; --green-dark:#18181B; --green-soft:#F3F4F6;
+  /* Eatswada brand palette. Burgundy primary, ivory surfaces, warm page. */
+  --brand:#690D27; --green:#690D27; --green-dark:#690D27; --green-soft:#FBEDF1;
+  --ivory:#FFF5DC; --brand-ink:#FFF5DC; --brand-soft:#FBEDF1;
   --ok:#15803D; --ok-dark:#15803D; --ok-soft:#DCFCE7;
   --ink:#18181B; --ink-soft:#52525B; --ink-faint:#9CA3AF;
-  --page:#F4F5F7; --border:#E4E4E7; --border-soft:#F3F4F6;
+  --page:#FFFBF2; --border:#EADFD6; --border-soft:#F6EEE4;
   --danger:#DC2626; --danger-soft:#FEE2E2;
   --warning:#B45309; --warning-soft:#FEF3C7;
   --blue:#2563EB; --blue-soft:#E8F0FE;
   --surface:#FFFFFF;
   --font-body:var(--zp-font);
-  --card-shadow:0 1px 2px rgba(24,24,27,.04),0 6px 18px rgba(24,24,27,.05);
+  --card-shadow:0 1px 2px rgba(105,13,39,.04),0 6px 18px rgba(105,13,39,.05);
   --nav-h:68px;
 }
 :focus-visible{outline:3px solid rgba(24,24,27,.28);outline-offset:2px}
@@ -111,7 +113,7 @@
 .status-toggle.closed{background:var(--danger-soft);color:var(--danger)}
 
 /* ---- Alarm (new order) ---- */
-.alarm-bar{background:var(--brand);box-shadow:0 8px 20px rgba(215,25,69,.45)}
+.alarm-bar{background:var(--brand);box-shadow:0 8px 20px rgba(105,13,39,.45)}
 .alarm-bar .alarm-stop{color:var(--brand)}
 @media (prefers-reduced-motion:reduce){.alarm-bar,.alarm-bar .alarm-ico{animation:none}}
 
@@ -145,7 +147,7 @@
 .ticket.status-confirmed::before,.ticket.status-preparing::before{background:#F5A524}
 .ticket.status-delivered::before{background:var(--ok)}
 .ticket.status-cancelled::before{background:#B8BBC4}
-.ticket.status-placed{box-shadow:0 0 0 1.5px var(--brand),0 12px 28px rgba(215,25,69,.14)}
+.ticket.status-placed{box-shadow:0 0 0 1.5px var(--brand),0 12px 28px rgba(105,13,39,.14)}
 .ticket-no{font-size:18px;letter-spacing:-.3px}
 .ticket.status-placed .ticket-no::after{content:"New";margin-left:8px;padding:3px 8px;border-radius:6px;background:var(--brand);color:#fff;font-size:11px;vertical-align:2px}
 .ticket-note{border-radius:10px}
@@ -159,7 +161,7 @@
 
 /* ---- Buttons & badges ---- */
 .btn{border-radius:12px}
-.btn.accept,.btn.advance{background:var(--brand);box-shadow:0 6px 14px rgba(215,25,69,.25)}
+.btn.accept,.btn.advance{background:var(--brand);box-shadow:0 6px 14px rgba(105,13,39,.25)}
 .btn.reject,.btn.ghost{color:var(--ink);border-color:#D6D8DE}
 .btn.danger{background:var(--danger)}
 .btn:disabled{opacity:.5;box-shadow:none}
@@ -185,7 +187,7 @@
 .home-status-card{position:relative;overflow:hidden;padding:20px;border:0;border-radius:22px;color:#fff;
   background:linear-gradient(135deg,#27282D,#121316);box-shadow:0 14px 30px rgba(18,19,22,.28);
   --green-dark:#46E0A0;--warning:#FFC555;--danger:#FF7B86}
-.home-status-card::after{content:"";position:absolute;right:-50px;top:-50px;width:180px;height:180px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(215,25,69,.55),transparent 68%)}
+.home-status-card::after{content:"";position:absolute;right:-50px;top:-50px;width:180px;height:180px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(105,13,39,.55),transparent 68%)}
 .home-status-main{position:relative;z-index:1}
 .home-status-icon{border-radius:50%;background:rgba(255,255,255,.1);color:#fff}
 .home-label{font-size:12px;letter-spacing:0;color:rgba(255,255,255,.62)}
@@ -213,7 +215,7 @@
 .modal{position:relative;padding-top:30px;border-radius:24px 24px 0 0}
 .modal::before{content:"";position:absolute;top:10px;left:50%;width:40px;height:4px;margin-left:-20px;border-radius:4px;background:#D9DBE1}
 .modal h3{font-size:20px;letter-spacing:-.3px}
-.modal textarea:focus,.form-field input:focus,.form-field textarea:focus,.form-field select:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 3px rgba(215,25,69,.12)}
+.modal textarea:focus,.form-field input:focus,.form-field textarea:focus,.form-field select:focus{outline:0;border-color:var(--brand);box-shadow:0 0 0 3px rgba(105,13,39,.12)}
 .status-option.current,.prep-chip.selected,.chip.selected{border-color:var(--brand);background:var(--green-soft);color:var(--green-dark)}
 .status-option.current{color:inherit}
 .status-option .so-dot.open{background:var(--ok)}
@@ -246,7 +248,7 @@
   -webkit-tap-highlight-color:transparent;
 }
 .top-more-btn:active{background:var(--page);transform:scale(.97)}
-.top-more-btn:focus-visible{outline:3px solid rgba(215,25,69,.24);outline-offset:2px}
+.top-more-btn:focus-visible{outline:3px solid rgba(105,13,39,.24);outline-offset:2px}
 #bellBtn{height:40px;width:40px;min-width:40px;border-radius:12px;font-size:16px}
 #logoutBtn{height:40px;border-radius:12px;padding:0 13px}
 .topbar-actions{padding-top:1px}
@@ -487,6 +489,8 @@ body{background:var(--zp-bg-canvas)}
   border-radius:var(--zp-radius-btn);background:var(--zp-surface-muted);font-size:16px;font-weight:800;
   color:var(--zp-ink-primary);font-variant-numeric:tabular-nums;margin-bottom:10px}
 .ticket-total::before{content:"Bill total";font-size:12px;font-weight:800;letter-spacing:0;color:var(--zp-ink-secondary)}
+/* Amount + PAID/COD badge sit on the right of the total bar */
+.ticket-total>.pay-badge{margin-left:auto}
 .btn.kpt{position:relative;width:100%;padding:16px;font-size:15px;font-weight:800;border-radius:var(--zp-radius-btn);
   border:0;color:#fff;background:linear-gradient(90deg,var(--zp-kpt-fill) var(--kpt-pct,100%),
     var(--zp-kpt-track) var(--kpt-pct,100%));overflow:hidden;letter-spacing:.01em}
@@ -836,6 +840,201 @@ body{background:var(--zp-bg-canvas)}
   font-size:14px;font-weight:700;white-space:nowrap}
 .tab::after{content:none}
 .tab .count{background:var(--border-soft);color:#18181B;border-radius:50%}
-.tab[aria-selected="true"]{background:#18181B;color:#FFFFFF;border-color:#18181B;box-shadow:none}
+.tab[aria-selected="true"]{background:var(--brand);color:var(--ivory);border-color:var(--brand);box-shadow:none}
 .tab[aria-selected="true"]::after{content:none}
-.tab[aria-selected="true"] .count{background:#FFFFFF;color:#18181B;border-radius:50%}
+.tab[aria-selected="true"] .count{background:rgba(255,255,255,.28);color:#FFFFFF;border-radius:50%}
+
+/* ==========================================================================
+   Phase 2b + 3 — Eatswada Partner mobile shell.
+   Appended last so every rule below only adds new selectors or tightens an
+   existing one. Still strictly one column, phone-first, max 480px.
+   Palette: burgundy #690D27, ivory #FFF5DC, page #FFFBF2.
+   Motion is opt-in and fully disabled under prefers-reduced-motion. The
+   new-order alarm (.alarm-bar) and the pop-up are deliberately excluded from
+   every animation below.
+   ========================================================================== */
+
+/* ---- Top bar: big Online/Offline toggle --------------------------------- */
+.online-toggle{
+  display:inline-flex;align-items:center;gap:9px;cursor:pointer;
+  border:0;border-radius:var(--zp-radius-pill);padding:9px 15px 9px 12px;
+  font:800 13.5px var(--zp-font);letter-spacing:.01em;
+  background:var(--ok-soft);color:var(--ok-dark);
+  box-shadow:0 1px 2px rgba(105,13,39,.05);
+  -webkit-tap-highlight-color:transparent;
+}
+.online-toggle .ot-dot{width:10px;height:10px;border-radius:50%;background:currentColor;flex:none}
+.online-toggle.is-offline{background:var(--danger-soft);color:var(--danger)}
+.online-toggle.is-busy{background:var(--warning-soft);color:var(--warning)}
+.online-toggle:active{transform:scale(.95)}
+.online-toggle:focus-visible{outline:3px solid rgba(105,13,39,.24);outline-offset:2px}
+
+/* ---- Bottom nav: Orders / Menu / Insights / Growth ----------------------
+   The legacy tabs (home/earnings/more/reviews) stay in the DOM for the
+   existing handlers and the DOM smoke test, but are removed from the visible
+   rail; the new partner tabs are injected by JS. */
+.section-rail .section-tab.legacy-hidden{display:none}
+
+/* ---- "You have N new order" away-from-Orders bar ------------------------ */
+.neworder-bar{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(var(--nav-h) + 12px + env(safe-area-inset-bottom,0px));
+  z-index:135;display:flex;align-items:center;gap:9px;cursor:pointer;
+  width:calc(100% - 32px);max-width:448px;border:0;text-align:left;
+  background:var(--brand);color:var(--ivory);
+  font:800 13.5px var(--zp-font);padding:12px 15px;border-radius:14px;
+  box-shadow:0 12px 28px rgba(105,13,39,.32);
+}
+.neworder-bar[hidden]{display:none}
+.neworder-bar .nb-dot{width:9px;height:9px;border-radius:50%;background:var(--ivory);flex:none}
+.neworder-bar .nb-go{margin-left:auto;font-size:12px;opacity:.9}
+.neworder-bar:active{transform:translateX(-50%) scale(.98)}
+
+/* ---- Insights (business report) ---------------------------------------- */
+.insights-hero{
+  border-radius:20px;padding:18px 18px 16px;color:#fff;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#7E1230,#690D27 62%,#4E0819);
+  box-shadow:0 14px 30px rgba(105,13,39,.28);
+}
+.insights-hero::after{content:"";position:absolute;right:-46px;top:-46px;width:170px;height:170px;
+  border-radius:50%;background:radial-gradient(circle,rgba(255,245,220,.20),transparent 70%);pointer-events:none}
+.insights-hero .ih-kicker{display:block;font-size:11px;font-weight:800;letter-spacing:.12em;color:rgba(255,245,220,.72)}
+.insights-hero .ih-label{margin-top:8px;font-size:12.5px;font-weight:700;color:rgba(255,245,220,.82)}
+.insights-hero .ih-value{margin-top:2px;font-size:34px;font-weight:800;letter-spacing:-.6px;font-variant-numeric:tabular-nums;color:#fff}
+.insights-hero .ih-sub{margin-top:8px;font-size:12px;color:rgba(255,245,220,.82);line-height:1.45}
+.insights-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.insights-metric{background:var(--zp-surface-card);border:1px solid var(--zp-border);border-radius:16px;padding:14px}
+.insights-metric .im-label{font-size:11.5px;font-weight:800;color:var(--zp-ink-muted)}
+.insights-metric .im-value{font-size:21px;font-weight:800;margin-top:5px;letter-spacing:-.4px;font-variant-numeric:tabular-nums;color:var(--zp-ink-primary)}
+.insights-metric .im-note{font-size:11px;color:var(--zp-ink-muted);margin-top:3px}
+.insights-block{background:var(--zp-surface-card);border:1px solid var(--zp-border);border-radius:16px;padding:16px;margin-bottom:14px}
+.insights-block h3{margin:0;font-size:15px;font-weight:800;letter-spacing:-.2px}
+.insights-block .ib-sub{font-size:11.5px;color:var(--zp-ink-muted);margin:4px 0 12px;line-height:1.45}
+.insights-bars{width:100%;height:auto;display:block;overflow:visible}
+.insights-bars .bar{fill:var(--brand);rx:3}
+.insights-bars .bar.empty{fill:var(--border)}
+.insights-bars .bar-lbl{fill:var(--zp-ink-muted);font-size:8.5px;font-family:var(--zp-font)}
+.insights-bars .bar-axis{stroke:var(--zp-border);stroke-width:1}
+.insights-top-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--zp-border)}
+.insights-top-row:last-child{border-bottom:0}
+.insights-top-row .it-rank{width:24px;height:24px;flex:none;display:grid;place-items:center;border-radius:50%;
+  background:var(--zp-surface-muted);color:var(--zp-ink-secondary);font-size:12px;font-weight:800}
+.insights-top-row .it-main{flex:1;min-width:0}
+.insights-top-row .it-name{font-size:13.5px;font-weight:800;color:var(--zp-ink-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.insights-top-row .it-sub{font-size:11.5px;color:var(--zp-ink-muted);margin-top:2px}
+.insights-top-row .it-amount{font-size:13.5px;font-weight:800;color:var(--zp-green-veg);font-variant-numeric:tabular-nums;white-space:nowrap}
+.insights-blocked{display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:12px;
+  background:var(--zp-surface-muted);color:var(--zp-ink-secondary);font-size:12px;line-height:1.45}
+.insights-blocked .ibk-ico{font-size:15px;flex:none}
+.insights-blocked strong{color:var(--zp-ink-primary)}
+
+/* ---- Hub / Quick links grid -------------------------------------------- */
+.hub-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+@media (max-width:360px){.hub-grid{grid-template-columns:repeat(3,1fr)}}
+.hub-tile{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;border:1px solid var(--zp-border);
+  background:var(--zp-surface-card);border-radius:16px;padding:13px 6px;font-family:var(--zp-font);
+  -webkit-tap-highlight-color:transparent}
+.hub-tile:active{background:var(--zp-surface-muted)}
+.hub-tile .ht-ico{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;
+  background:var(--brand-soft);color:var(--brand);font-size:18px}
+.hub-tile strong{font-size:10.5px;font-weight:800;color:var(--zp-ink-primary);text-align:center;line-height:1.25}
+
+/* ---- Payouts (settlement breakdown) ------------------------------------ */
+.payouts-hero{background:var(--zp-surface-card);border:1px solid var(--zp-border);border-radius:18px;padding:18px;margin-bottom:14px}
+.payouts-hero .ph-label{font-size:11.5px;font-weight:800;color:var(--zp-ink-muted);text-transform:uppercase;letter-spacing:.04em}
+.payouts-hero .ph-value{font-size:30px;font-weight:800;letter-spacing:-.6px;margin-top:6px;font-variant-numeric:tabular-nums;color:var(--zp-ink-primary)}
+.payouts-hero .ph-sub{font-size:12px;color:var(--zp-ink-muted);margin-top:5px;line-height:1.45}
+.payouts-hero .ph-btn{width:100%;margin-top:14px;padding:14px;font-size:14px;border-radius:12px}
+.payouts-split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.payouts-cell{background:var(--zp-surface-card);border:1px solid var(--zp-border);border-radius:14px;padding:13px}
+.payouts-cell .pc-label{font-size:11px;font-weight:800;color:var(--zp-ink-muted)}
+.payouts-cell .pc-value{font-size:17px;font-weight:800;margin-top:5px;font-variant-numeric:tabular-nums;color:var(--zp-ink-primary)}
+.payout-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--zp-border)}
+.payout-row:last-child{border-bottom:0}
+.payout-row .pr-main{flex:1;min-width:0}
+.payout-row .pr-title{font-size:13.5px;font-weight:800;color:var(--zp-ink-primary)}
+.payout-row .pr-sub{font-size:11.5px;color:var(--zp-ink-muted);margin-top:3px;line-height:1.45;word-break:break-word}
+.payout-row .pr-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
+.payout-row .pr-amount{font-size:14px;font-weight:800;color:var(--zp-ink-primary);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---- Reviews: filter chips --------------------------------------------- */
+.rv-chips{display:flex;gap:8px;margin:0 0 12px}
+.rv-chip{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:1px solid var(--zp-border);
+  background:var(--zp-surface-card);border-radius:var(--zp-radius-pill);padding:8px 14px;
+  font:800 12.5px var(--zp-font);color:var(--zp-ink-primary)}
+.rv-chip[aria-pressed="true"]{background:var(--brand);color:var(--ivory);border-color:var(--brand)}
+.rv-chip:active{transform:scale(.97)}
+
+/* ---- Store illustration (inline SVG empty state) ----------------------- */
+.empty-illus{width:132px;height:132px;margin:0 auto 6px;display:block}
+.empty-illus .ei-roof{fill:var(--brand)}
+.empty-illus .ei-body{fill:var(--brand-soft)}
+.empty-illus .ei-line{stroke:var(--brand);stroke-width:3;fill:none;stroke-linecap:round}
+.empty-illus .ei-door{fill:var(--brand)}
+.empty-illus .ei-window{fill:var(--ivory);stroke:var(--brand);stroke-width:2.5}
+.empty-illus .ei-awning{fill:var(--ivory);stroke:var(--brand);stroke-width:2.5}
+.empty-illus .ei-ground{stroke:var(--border);stroke-width:3;stroke-linecap:round}
+
+/* ---- Motion: page/tab fade, card slide-in, count-up --------------------
+   Pure CSS, <=250 ms. All of it is removed under reduced-motion, and the
+   alarm bar + new-order pop-up are excluded by selector. */
+@keyframes esFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes esSlideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes esCountPop{from{transform:scale(.94)}to{transform:scale(1)}}
+.dashboard-section:not([hidden]){animation:esFadeIn .22s ease both}
+.dashboard-section:not([hidden]) .ticket,
+.dashboard-section:not([hidden]) .insights-block,
+.dashboard-section:not([hidden]) .hub-tile,
+.dashboard-section:not([hidden]) .payouts-hero{animation:esSlideIn .24s cubic-bezier(.2,.8,.2,1) both}
+.count-pop{animation:esCountPop .2s ease both}
+@media (prefers-reduced-motion:reduce){
+  .dashboard-section:not([hidden]),
+  .dashboard-section:not([hidden]) .ticket,
+  .dashboard-section:not([hidden]) .insights-block,
+  .dashboard-section:not([hidden]) .hub-tile,
+  .dashboard-section:not([hidden]) .payouts-hero,
+  .count-pop{animation:none!important}
+  .online-toggle:active,.hub-tile:active,.rv-chip:active,.neworder-bar:active{transform:none}
+}
+
+
+/* ---- Orders pipeline pills (Preparing / Ready / Picked up / New) -------- */
+.pill-rail{display:flex;gap:8px;margin:-4px 0 12px;overflow-x:auto;scrollbar-width:none;
+  overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.pill-rail::-webkit-scrollbar{display:none}
+.pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  padding:9px 15px;border-radius:var(--zp-radius-pill);border:1px solid var(--zp-border);
+  background:var(--zp-surface-card);color:var(--zp-ink-primary);
+  font:800 13.5px var(--zp-font);white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.pill[aria-selected="true"]{background:var(--brand);color:var(--ivory);border-color:var(--brand)}
+.pill .pill-count{min-width:20px;height:20px;padding:0 6px;border-radius:50%;display:inline-grid;place-items:center;
+  background:var(--zp-surface-muted);color:var(--zp-ink-secondary);font-size:11px;font-weight:800}
+.pill[aria-selected="true"] .pill-count{background:rgba(255,255,255,.28);color:#fff}
+.pill:active{transform:scale(.97)}
+
+/* "All order views" disclosure keeps every legacy tab reachable */
+.orders-more-tabs{margin:0 0 14px}
+.orders-more-tabs>summary{cursor:pointer;list-style:none;font:800 12px var(--zp-font);color:var(--brand);
+  display:flex;align-items:center;gap:6px;padding:4px 0}
+.orders-more-tabs>summary::-webkit-details-marker{display:none}
+.orders-more-tabs>summary::after{content:"›";transform:rotate(90deg);transition:transform .16s ease;font-size:14px}
+.orders-more-tabs[open]>summary::after{transform:rotate(-90deg)}
+.orders-more-tabs .tab-rail{margin:8px 0 0}
+@media (prefers-reduced-motion:reduce){.orders-more-tabs>summary::after{transition:none}.pill:active{transform:none}}
+
+/* ---- Growth: account status card --------------------------------------- */
+.growth-account{display:flex;align-items:center;gap:12px;padding:15px;border:1px solid var(--zp-border);
+  border-radius:16px;background:var(--zp-surface-card);margin-bottom:16px}
+.growth-account .ga-ico{width:44px;height:44px;flex:none;display:grid;place-items:center;border-radius:13px;
+  background:var(--brand-soft);color:var(--brand);font-size:20px}
+.growth-account .ga-main{flex:1;min-width:0}
+.growth-account .ga-title{font-size:14.5px;font-weight:800;color:var(--zp-ink-primary)}
+.growth-account .ga-sub{font-size:12px;color:var(--zp-ink-muted);margin-top:3px;line-height:1.4}
+.ins-tabs{display:flex;gap:4px;background:var(--zp-surface-muted);padding:4px;border-radius:var(--zp-radius-pill)}
+.ins-tab{flex:1;border:0;background:transparent;cursor:pointer;border-radius:var(--zp-radius-pill);
+  padding:10px 8px;font:800 12.5px var(--zp-font);color:var(--zp-ink-secondary);white-space:nowrap}
+.ins-tab[aria-selected="true"]{background:var(--zp-surface-card);color:var(--zp-ink-primary);box-shadow:var(--card-shadow)}
+/* PAID / COD badge next to the order total */
+.pay-badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:6px;font-size:10.5px;font-weight:800;letter-spacing:.03em;margin-left:2px}
+.pay-badge.paid{background:var(--ok-soft);color:var(--ok-dark)}
+.pay-badge.cod{background:var(--warning-soft);color:var(--warning)}

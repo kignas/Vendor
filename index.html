@@ -15,7 +15,7 @@
     --ink: #111827;
     --ink-soft: #4b5563;
     --ink-faint: #9ca3af;
-    --page: #f9fafb;
+    --page: #FFFBF2;
     --surface: #ffffff;
     --border: #e5e7eb;
     --border-soft: #f3f4f6;
@@ -209,7 +209,11 @@
   .btn.reject { background: var(--surface); color: var(--danger); border-color: var(--border); }
   .btn.danger { background: var(--danger); color: #fff; }
   .btn.ghost { background: var(--surface); color: var(--ink-soft); border-color: var(--border); }
-  .btn:active { transform: scale(0.97); }
+  .btn:active { transform: scale(0.95); }
+  /* Eatswada press effect: any element can opt in with .tap. */
+  .tap { transition: transform .12s ease; }
+  .tap:active { transform: scale(0.95); }
+  @media (prefers-reduced-motion:reduce){ .tap,.btn{transition:none} .tap:active,.btn:active{transform:none} }
   .btn:disabled { opacity: 0.6; pointer-events: none; }
 
   .badge { display: inline-flex; align-items: center; font-size: 12px; font-weight: 800; padding: 6px 12px; border-radius: 999px; }
@@ -494,7 +498,7 @@
 
 </style>
 <link rel="stylesheet" href="./theme.css">
-<meta name="theme-color" content="#D71945">
+<meta name="theme-color" content="#690D27">
 </head>
 <body>
 
@@ -505,6 +509,8 @@
     <span class="alarm-text" id="alarmText">New order waiting — accept or reject</span>
     <button class="alarm-stop" id="alarmStopBtn" type="button">Stop</button>
   </div>
+
+  <button class="neworder-bar" id="newOrderBar" type="button" hidden><span class="nb-dot" aria-hidden="true"></span><span id="newOrderBarText">You have 1 new order</span><span class="nb-go" aria-hidden="true">View ›</span></button>
 
   <div class="app-shell">
     <header class="topbar">
@@ -519,6 +525,7 @@
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex:none;">
+          <button class="online-toggle is-online" id="onlineToggle" type="button" aria-label="Restaurant online status" title="Restaurant availability"><span class="ot-dot" aria-hidden="true"></span><span id="onlineToggleLabel">Online</span></button>
           <button class="logout-btn" id="bellBtn" type="button" aria-label="Notifications" style="position:relative;">🔔<span id="bellCount" style="display:none;position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border-radius:999px;padding:1px 6px;font-size:10px;font-weight:800;">0</span></button>
           <button class="top-more-btn" id="headerSettingsBtn" type="button" aria-label="Settings" title="Settings"><span aria-hidden="true">⚙</span></button>
           <button class="top-more-btn" id="topMoreBtn" type="button" aria-label="Open menu" title="Open menu"><span aria-hidden="true">☰</span></button>
@@ -545,11 +552,13 @@
     <div class="platform-banner" id="platformBanner" role="status" aria-live="polite" hidden></div>
 
     <nav class="section-rail" role="tablist" aria-label="Dashboard sections">
-      <button class="section-tab" role="tab" data-section="home" aria-selected="true" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21v-6h6v6"/></svg><span>Home</span></button>
-      <button class="section-tab" role="tab" data-section="orders" aria-selected="false" aria-label="Orders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span>Orders</span></button>
+      <button class="section-tab legacy-hidden" role="tab" data-section="home" aria-selected="false" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21v-6h6v6"/></svg><span>Home</span></button>
+      <button class="section-tab" role="tab" data-section="orders" aria-selected="true" aria-label="Orders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span>Orders</span></button>
       <button class="section-tab" role="tab" data-section="menu" aria-selected="false" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v7M8 4v7M6 4v16M16 4c-2 3-2 7 0 9h4V4M18 13v7"/></svg><span>Menu</span></button>
-      <button class="section-tab" role="tab" data-section="earnings" aria-selected="false" aria-label="Finance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.1 1.3-2 3-2s3 .7 3 1.8c0 2.4-6 1-6 3.4 0 1.1 1.3 1.8 3 1.8s3-.9 3-2"/></svg><span>Finance</span></button>
-      <button class="section-tab" role="tab" data-section="more" aria-selected="false" aria-label="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>More</span></button>
+      <button class="section-tab" role="tab" data-section="insights" aria-selected="false" aria-label="Insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Insights</span></button>
+      <button class="section-tab" role="tab" data-section="growth" aria-selected="false" aria-label="Growth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M5 8l7-5 7 5"/><path d="M5 21h14"/><path d="M9 12l3 3 3-3"/></svg><span>Growth</span></button>
+      <button class="section-tab legacy-hidden" role="tab" data-section="earnings" aria-selected="false" aria-label="Finance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.1 1.3-2 3-2s3 .7 3 1.8c0 2.4-6 1-6 3.4 0 1.1 1.3 1.8 3 1.8s3-.9 3-2"/></svg><span>Finance</span></button>
+      <button class="section-tab legacy-hidden" role="tab" data-section="more" aria-selected="false" aria-label="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>More</span></button>
     </nav>
 
     <!-- SECTION: OVERVIEW -->
@@ -620,14 +629,23 @@
 
     <!-- SECTION: ORDERS -->
     <section class="dashboard-section" id="section-orders" hidden>
-      <nav class="tab-rail" role="tablist">
-        <button class="tab" role="tab" data-tab="new" aria-selected="true">New <span class="count" id="countNew">0</span></button>
-        <button class="tab" role="tab" data-tab="preparing" aria-selected="false">Preparing <span class="count" id="countPreparing">0</span></button>
-        <button class="tab" role="tab" data-tab="ready" aria-selected="false">Ready <span class="count" id="countReady">0</span></button>
-        <button class="tab" role="tab" data-tab="dispatch" aria-selected="false">Out for delivery <span class="count" id="countDispatch">0</span></button>
-        <button class="tab" role="tab" data-tab="scheduled" aria-selected="false">Scheduled <span class="count" id="countScheduled">0</span></button>
-        <button class="tab" role="tab" data-tab="history" aria-selected="false">History</button>
+      <div id="ordersHomeCard"></div>
+      <nav class="pill-rail" id="orderPillRail" role="tablist" aria-label="Order pipeline">
+        <button class="pill" role="tab" data-pill="preparing" aria-selected="false">Preparing <span class="pill-count" id="pillPreparing">0</span></button>
+        <button class="pill" role="tab" data-pill="ready" aria-selected="false">Ready <span class="pill-count" id="pillReady">0</span></button>
+        <button class="pill" role="tab" data-pill="dispatch" aria-selected="false">Picked up <span class="pill-count" id="pillDispatch">0</span></button>
       </nav>
+      <details class="orders-more-tabs">
+        <summary>All order views</summary>
+        <nav class="tab-rail" role="tablist">
+          <button class="tab" role="tab" data-tab="new" aria-selected="true">New <span class="count" id="countNew">0</span></button>
+          <button class="tab" role="tab" data-tab="preparing" aria-selected="false">Preparing <span class="count" id="countPreparing">0</span></button>
+          <button class="tab" role="tab" data-tab="ready" aria-selected="false">Ready <span class="count" id="countReady">0</span></button>
+          <button class="tab" role="tab" data-tab="dispatch" aria-selected="false">Out for delivery <span class="count" id="countDispatch">0</span></button>
+          <button class="tab" role="tab" data-tab="scheduled" aria-selected="false">Scheduled <span class="count" id="countScheduled">0</span></button>
+          <button class="tab" role="tab" data-tab="history" aria-selected="false">History</button>
+        </nav>
+      </details>
 
       <div class="toolbar-row">
         <span id="lastUpdated">Loading…</span>
@@ -771,6 +789,10 @@
         <button class="rv-tab" role="tab" data-rv-tab="complaints" aria-selected="false">Complaints <span class="rv-count" id="rvComplaintCount">0</span></button>
         <button class="rv-tab" role="tab" data-rv-tab="reviews" aria-selected="true">Reviews</button>
       </nav>
+      <div class="rv-chips" id="rvChips" role="group" aria-label="Review filters">
+        <button class="rv-chip" type="button" data-rv-chip="filters" aria-pressed="true"><span aria-hidden="true">⚙</span> Filters</button>
+        <button class="rv-chip" type="button" data-rv-chip="latest" aria-pressed="true">Latest</button>
+      </div>
       <div class="rv-toolbar">
         <span class="rv-search">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--ink-faint);flex:none;"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
@@ -880,6 +902,51 @@
       <div class="list-card" id="analytics-daily-card" hidden><div class="list-card-head">Daily totals</div><div id="analytics-daily"></div></div>
       <div class="list-card" id="analytics-top-card" hidden><div class="list-card-head">Top-selling items</div><div id="analytics-top"></div></div>
       <div id="analytics-empty"></div>
+    </section>
+
+    <!-- SECTION: INSIGHTS (business report; real data only) -->
+    <section class="dashboard-section" id="section-insights" hidden>
+      <div class="toolbar-row">
+        <span id="insightsPeriodLabel">Business report</span>
+        <select class="earnings-select" id="insights-period" aria-label="Insights period">
+          <option value="7d" selected>Last 7 days</option>
+          <option value="30d">Last 30 days</option>
+          <option value="90d">Last 90 days</option>
+        </select>
+      </div>
+      <nav class="ins-tabs" role="tablist" aria-label="Insights views" style="margin-bottom:14px;">
+        <button class="ins-tab" role="tab" data-ins-tab="report" aria-selected="true">Business report</button>
+        <button class="ins-tab" role="tab" data-ins-tab="payouts" aria-selected="false">Payouts</button>
+      </nav>
+      <div id="insightsReportPane">
+        <div id="insightsBody"><div class="state-panel">Loading insights…</div></div>
+      </div>
+      <div id="insightsPayoutsPane" hidden>
+        <div id="payoutsPanel"><div class="state-panel">Loading payouts…</div></div>
+      </div>
+    </section>
+
+    <!-- SECTION: GROWTH (hub / quick links) -->
+    <section class="dashboard-section" id="section-growth" hidden>
+      <div class="section-title">Grow your restaurant</div>
+      <div class="section-sub">Everything you need to run and grow, in one place.</div>
+      <div id="growthAccountCard"></div>
+      <div class="home-section-heading" style="margin:4px 1px 10px;"><div><span class="home-kicker">QUICK LINKS</span><h3>Manage</h3></div></div>
+      <div class="hub-grid" id="hubGrid">
+        <button class="hub-tile tap" type="button" data-hub="history"><span class="ht-ico" aria-hidden="true">🧾</span><strong>Order history</strong></button>
+        <button class="hub-tile tap" type="button" data-hub="payouts"><span class="ht-ico" aria-hidden="true">💰</span><strong>Payouts</strong></button>
+        <button class="hub-tile tap" type="button" data-hub="complaints"><span class="ht-ico" aria-hidden="true">⚠️</span><strong>Complaints</strong></button>
+        <button class="hub-tile tap" type="button" data-hub="reviews"><span class="ht-ico" aria-hidden="true">⭐</span><strong>Reviews</strong></button>
+        <button class="hub-tile tap" type="button" data-hub="support"><span class="ht-ico" aria-hidden="true">💬</span><strong>Support</strong></button>
+        <button class="hub-tile tap" type="button" data-hub="settings"><span class="ht-ico" aria-hidden="true">⚙️</span><strong>Settings</strong></button>
+        <button class="hub-tile tap" type="button" data-hub="store"><span class="ht-ico" aria-hidden="true">🕒</span><strong>Store hours</strong></button>
+        <button class="hub-tile tap" type="button" data-hub="inventory"><span class="ht-ico" aria-hidden="true">📦</span><strong>Inventory</strong></button>
+      </div>
+      <div class="home-section-heading" style="margin:6px 1px 10px;"><div><span class="home-kicker">MORE</span><h3>Business tools</h3></div></div>
+      <div class="list-card" style="margin-bottom:0;">
+        <button class="more-row" type="button" data-more="analytics"><span class="mi-ico">📈</span><span><strong>Analytics</strong><small>Customer views, orders and sales</small></span><b>›</b></button>
+        <button class="more-row" type="button" data-more="notifications"><span class="mi-ico">🔔</span><span><strong>Notifications</strong><small>Important updates and alerts</small></span><b>›</b></button>
+      </div>
     </section>
 
     <!-- SECTION: SUPPORT -->
@@ -1349,7 +1416,7 @@
     orderSearch: '', orderQueryRequest: 0, orderQueryResults: null, prepTimer: null,
     historyPage: 1, historyTotalPages: 1, historyTotal: 0,
     pendingSupportOrder: null, pendingSupportKind: null, capabilities: caps,
-    reviews: [], rvTab: 'reviews', rvSearch: '', rvFilter: 'all', reviewReplyBusy: false,
+    reviews: [], rvTab: 'reviews', rvSearch: '', rvFilter: 'all', reviewReplyBusy: false, rvLatest: true,
     restockScheduledAt: null,
     extendedPrep: new Set(), pendingReadyUndo: null, kptTimer: null, undoReadyTimer: null, riderTimer: null,
     pendingRestockItemId: null, pendingRestockWasInStock: null, reviewViewId: null, rvDetailed: false,
@@ -1358,9 +1425,9 @@
     financeTab: 'ledger', payouts: [], payoutBusy: false, earningsRows: [],
     serverAlerts: null, serverActivity: null, onboarding: null, dashboard: null,
     policies: null, activeStatuses: null,
-    menuReorderMode: false, menuOrder: []
+    menuReorderMode: false, menuOrder: [],
+    insightsTab: 'report', insightsBusy: false
   };
-
   const el = {
     restaurantName: document.getElementById('restaurantName'), connectionPill: document.getElementById('connectionPill'),
     connectionLabel: document.getElementById('connectionLabel'), offlineBanner: document.getElementById('offlineBanner'),
@@ -1465,6 +1532,7 @@
       if (area) areaText.textContent = area;
     }
     renderOutletMenuChip();
+    renderOnlineToggle();
   }
 
   function renderOutletMenuChip() {
@@ -1960,17 +2028,45 @@
         const remaining = deadline - Date.now();
         const label = btn.querySelector('[data-kpt-label]');
         if (remaining <= 0) {
-          if (label) label.textContent = 'Order Ready (00:00)';
+          if (label) label.textContent = 'Order ready (00:00)';
           btn.style.setProperty('--kpt-pct', '100%');
           return;
         }
         const secs = Math.ceil(remaining / 1000);
-        if (label) label.textContent = 'Order Ready (' + String(Math.floor(secs / 60)).padStart(2, '0') + ':' + String(secs % 60).padStart(2, '0') + ')';
+        if (label) label.textContent = 'Order ready (' + String(Math.floor(secs / 60)).padStart(2, '0') + ':' + String(secs % 60).padStart(2, '0') + ')';
         if (order) btn.style.setProperty('--kpt-pct', kptPct(deadline, order) + '%');
       });
     };
     tick();
     state.kptTimer = setInterval(tick, 1000);
+  }
+
+  /* Status chip for the order card (Zomato-style pipeline chip). Reads only
+     the order's existing status value; no new state is derived. */
+  function orderStatusChipHtml(order) {
+    const st = String((order && order.status) || '').toLowerCase();
+    const map = {
+      placed: ['New order', 'dispatch'],
+      accepted: ['Accepted', 'pending'],
+      preparing: ['Preparing', 'pending'],
+      ready: ['Ready', 'approved'],
+      out_for_delivery: ['Out for delivery', 'dispatch'],
+      delivered: ['Delivered', 'approved'],
+      cancelled: ['Cancelled', 'rejected'],
+      rejected: ['Rejected', 'rejected']
+    };
+    const hit = map[st];
+    if (!hit) return '';
+    return `<span class="badge ${hit[1]}">${hit[0]}</span>`;
+  }
+
+  /* PAID / COD badge next to the total. Reuses the existing payment-mode
+     helper so it can never disagree with the bill breakdown. */
+  function payBadgeHtml(order) {
+    const mode = typeof paymentModeOf === 'function' ? paymentModeOf(order) : null;
+    if (mode === 'upi') return '<span class="pay-badge paid">PAID</span>';
+    if (mode === 'cod') return '<span class="pay-badge cod">COD</span>';
+    return '';
   }
 
   function renderTicket(order) {
@@ -1990,10 +2086,10 @@
     else if (order.status === 'preparing') {
       const deadline = prepDeadlineOf(order);
       if (caps.prepCountdown && deadline !== null && deadline > Date.now()) {
-        footHtml = `<button class="btn kpt" type="button" data-action="ready" data-kpt-deadline="${deadline}" style="--kpt-pct:${kptPct(deadline, order)}%"><span data-kpt-label>Order Ready (--:--)</span></button>` +
+        footHtml = `<button class="btn kpt" type="button" data-action="ready" data-kpt-deadline="${deadline}" style="--kpt-pct:${kptPct(deadline, order)}%"><span data-kpt-label>Order ready (--:--)</span></button>` +
           `<p class="kpt-hint">Tap when the food is packed and ready for pickup.</p>`;
       } else {
-        footHtml = `<button class="btn kpt" type="button" data-action="ready" style="--kpt-pct:100%"><span data-kpt-label>Order Ready</span></button>`;
+        footHtml = `<button class="btn kpt" type="button" data-action="ready" style="--kpt-pct:100%"><span data-kpt-label>Order ready</span></button>`;
       }
     }
     else if (order.status === 'waiting_for_rider') footHtml = `<span class="badge dispatch" title="Food is marked ready; Eatswada is looking for an available rider.">Food ready · Finding a rider…</span>`;
@@ -2037,7 +2133,7 @@
     el.innerHTML = `
       <header class="ticket-head">
         <div class="ticket-head-main">
-          <div class="ticket-meta-row">${pickupHtml}${dietPill}${orderCountChipHtml(order)}</div>
+          <div class="ticket-meta-row">${pickupHtml}${dietPill}${orderStatusChipHtml(order)}${orderCountChipHtml(order)}</div>
           <span class="ticket-no">#${escapeHtml(ref)}</span>
           <div class="ticket-loyalty"><strong>${loyalty}</strong>${stamp ? `<time>${escapeHtml(stamp)}</time>` : ''}</div>
           ${order.status === 'placed' ? `<div class="ticket-response-window${responseExpired ? ' expired' : ''}" data-response-deadline="${responseDeadline || ''}">${responseExpired ? 'Response window expired · updating…' : 'Respond within 5:00'}</div>` : ''}
@@ -2052,7 +2148,7 @@
       ${stripHtml}
       ${riderStatusHtml(order)}
       <footer class="ticket-foot">
-        <span class="ticket-total">${formatMoney(total)}</span>
+        <span class="ticket-total">${formatMoney(total)}${payBadgeHtml(order)}</span>
         ${footHtml}
       </footer>
       ${billDetailsHtml(order)}
@@ -2066,7 +2162,7 @@
   }
 
   const EMPTY_COPY = {
-    new: ['No new orders yet', 'New orders will land here.'],
+    new: ['You are online - waiting for new orders', 'New orders will appear here the moment a customer orders.'],
     preparing: ['Nothing in the kitchen', 'Accepted orders waiting to go out will show up here.'],
     ready: ['No orders waiting for a rider', 'Orders you mark ready appear here until a rider is assigned.'],
     dispatch: ['No orders out for delivery', 'Orders move here once they are handed to a delivery partner.'],
@@ -2075,9 +2171,25 @@
     menu: ['No menu items yet', 'Add your first item to start selling.']
   };
 
+  /* Simple Eatswada storefront illustration, inline SVG only (no images). */
+  function storeIllustrationSvg() {
+    return '<svg class="empty-illus" viewBox="0 0 120 120" role="img" aria-label="Store waiting for orders">' +
+      '<rect class="ei-body" x="22" y="52" width="76" height="50" rx="8"/>' +
+      '<path class="ei-roof" d="M16 52 L60 22 L104 52 Z"/>' +
+      '<rect class="ei-awning" x="18" y="50" width="84" height="12" rx="4"/>' +
+      '<path class="ei-awning" d="M18 62 h84" />' +
+      '<rect class="ei-window" x="30" y="70" width="22" height="20" rx="3"/>' +
+      '<rect class="ei-door" x="70" y="70" width="18" height="32" rx="3"/>' +
+      '<circle class="ei-line" cx="84" cy="87" r="1.6"/>' +
+      '<path class="ei-line" d="M60 14 v6"/>' +
+      '<path class="ei-ground" d="M14 104 h92"/>' +
+      '</svg>';
+  }
+
   function renderEmpty(tab) {
     const [title, body] = EMPTY_COPY[tab] || ['Nothing here', 'Nothing to show right now.']; const div = document.createElement('div'); div.className = 'state-panel';
-    div.innerHTML = `<h3>${title}</h3><p>${body}</p>`; return div;
+    const illus = (tab === 'new') ? storeIllustrationSvg() : '';
+    div.innerHTML = illus + `<h3>${title}</h3><p>${body}</p>`; return div;
   }
 
   /* An order is "scheduled" when the backend gives it a future slot or a
@@ -2182,6 +2294,9 @@
     if (el.countScheduled) el.countScheduled.textContent = state.queue.filter(isScheduledOrder).length;
     refreshOverviewCounts();
     renderOutletMenuChip();
+    updateOrderPills();
+    renderNewOrderBar();
+    renderOrdersHomeCard();
   }
 
   const Alarm = (function () {
@@ -2917,6 +3032,9 @@
     let pool = (state.reviews || []);
     if (state.rvDetailed) pool = pool.filter(r => reviewItemRatings(r).length);
     const rows = pool.filter(r => reviewMatches(r, q, filter));
+    if (state.rvLatest) {
+      rows.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    }
     if (!(state.reviews || []).length) {
       listEl.innerHTML = '<div class="state-panel"><h3>No customer reviews yet</h3><p>Reviews from completed orders will appear here.</p></div>';
       return;
@@ -3194,7 +3312,7 @@
     const orderSearchWrap = document.getElementById('orderSearchWrap');
     if (orderSearchWrap) orderSearchWrap.hidden = name !== 'orders';
     if (['store', 'inventory', 'analytics', 'support', 'settings'].indexOf(name) >= 0) {
-      el.sectionTabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.section === 'more')));
+      el.sectionTabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.section === 'growth')));
     }
     if (name === 'home') loadOverview();
     if (name === 'orders') { renderActiveTab(); if (state.activeTab !== 'history') { startPrepTimer(); startKptTimer(); startRiderTimer(); } }
@@ -3206,6 +3324,11 @@
     if (name === 'analytics') loadAnalytics();
     if (name === 'support') loadSupport();
     if (name === 'settings') { renderRushMode(); loadSettings(); }
+    if (name === 'insights') { if (state.insightsTab === 'payouts') setInsightsTab('payouts'); else loadInsights(); }
+    if (name === 'growth') { renderGrowthAccount(); renderOnlinePill(); }
+    updateOrderPills();
+    renderNewOrderBar();
+    renderOrdersHomeCard();
   }
 
   async function menuFetch(path, options = {}) {
@@ -4086,6 +4209,333 @@
     const top = Array.isArray(d.topItems) ? d.topItems : [];
     if (top.length) { const card = document.getElementById('analytics-top-card'); if (card) card.hidden = false; document.getElementById('analytics-top').innerHTML = top.map((t, i) => { const nm = t.name || t.itemName || t._id || 'Item'; const q = num(t.quantity != null ? t.quantity : t.count); const sales = num(t.sales); return '<div class="list-row"><div class="lr-main"><div class="lr-title">' + (i + 1) + '. ' + escapeHtml(nm) + '</div><div class="lr-sub">' + (q !== null ? q + ' sold' : '') + (sales !== null ? (q !== null ? ' · ' : '') + money(sales) : '') + '</div></div></div>'; }).join(''); }
   }
+  /* ====================================================================
+     PHASE 2b + 3 — Eatswada Partner shell
+     Top-bar Online toggle, order pipeline pills, away-from-Orders bar,
+     Growth hub, Insights report and the Payouts page. Everything below
+     reads only endpoints the backend already mounts, and nothing here
+     touches the Alarm, the new-order pop-up, the push/service-worker
+     files or scripts/*.
+     ==================================================================== */
+
+  /* ---- Home summary card shown at the top of Orders -------------------
+     Carries the useful parts of the old Home screen (status + what needs
+     attention) so Home stays reachable after it left the bottom nav. The
+     full dashboard is one tap away via the existing Home section. */
+  function renderOrdersHomeCard() {
+    const box = document.getElementById('ordersHomeCard');
+    if (!box) return;
+    const r = state.restaurant || {};
+    const status = state.currentStatus || (r.availability && r.availability.status) || (r.isOpen === false ? 'temporarily_closed' : 'open');
+    const isOpen = status === 'open' || status === 'busy';
+    const pending = newOrdersWaiting();
+    const statusLabel = isOpen ? (status === 'busy' ? 'Busy' : 'Online') : (STATUS_LABEL[status] || 'Offline');
+    const sub = (isOpen ? 'Accepting orders' : 'Not accepting orders') + (pending ? ' · ' + pending + ' new order' + (pending === 1 ? '' : 's') + ' waiting' : '');
+    box.innerHTML = '<div class="growth-account"><span class="ga-ico" aria-hidden="true">' + (isOpen ? '🟢' : '🔴') + '</span>' +
+      '<span class="ga-main"><span class="ga-title">' + escapeHtml(r.name || 'Your restaurant') + ' · ' + escapeHtml(statusLabel) + '</span>' +
+      '<span class="ga-sub">' + escapeHtml(sub) + '</span></span>' +
+      '<button class="rv-chip tap" type="button" id="ordersHomeFull">Dashboard</button></div>';
+    const btn = document.getElementById('ordersHomeFull');
+    if (btn) btn.addEventListener('click', () => switchSection('home'));
+  }
+
+  /* ---- Top-bar big Online/Offline toggle -------------------------------
+     Reflects the same availability state as the existing status pill and
+     opens the existing status sheet, so the availability write stays the
+     single `PUT /restaurant/availability` call. */
+  function renderOnlineToggle() {
+    const btn = document.getElementById('onlineToggle');
+    const label = document.getElementById('onlineToggleLabel');
+    if (!btn) return;
+    const r = state.restaurant || {};
+    const status = state.currentStatus || (r.availability && r.availability.status) || (r.isOpen === false ? 'temporarily_closed' : 'open');
+    const isOpen = status === 'open' || status === 'busy';
+    btn.className = 'online-toggle ' + (isOpen ? (status === 'busy' ? 'is-busy' : 'is-online') : 'is-offline');
+    if (label) label.textContent = isOpen ? (status === 'busy' ? 'Busy' : 'Online') : 'Offline';
+  }
+
+  /* ---- Order pipeline pills + away-from-Orders bar -------------------- */
+  function updateOrderPills() {
+    const set = (id, n) => { const node = document.getElementById(id); if (node) node.textContent = String(n); };
+    set('pillPreparing', state.queue.filter(isPreparingOrder).length);
+    set('pillReady', state.queue.filter(isReadyOrder).length);
+    set('pillDispatch', state.queue.filter(o => o.status === 'out_for_delivery').length);
+    document.querySelectorAll('#orderPillRail .pill').forEach(p => p.setAttribute('aria-selected', String(p.dataset.pill === state.activeTab)));
+  }
+
+  function newOrdersWaiting() {
+    return state.queue.filter(o => o.status === 'placed' && !isScheduledOrder(o)).length;
+  }
+  function renderNewOrderBar() {
+    const bar = document.getElementById('newOrderBar');
+    const text = document.getElementById('newOrderBarText');
+    if (!bar) return;
+    const n = newOrdersWaiting();
+    const away = state.activeSection !== 'orders';
+    if (!n || !away) { bar.hidden = true; return; }
+    if (text) text.textContent = 'You have ' + n + ' new order' + (n === 1 ? '' : 's');
+    bar.hidden = false;
+  }
+
+  /* ---- Insights: business report (real data only) ---------------------
+     Every figure below comes from GET /analytics, /analytics/visits or
+     /earnings/summary. Fields the backend does not return are listed in
+     notes/backend-needed.md and rendered as an explicit blocked card — a
+     number is never invented. Daily bars are plain inline SVG. */
+  function insightsBarChart(rows) {
+    const pts = (rows || []).slice(-14).map(r => {
+      const label = str(r.date || r.day || r._id).slice(5, 10);
+      const value = firstNumber(r.deliveredSales, r.sales, r.orders, r.count, 0) || 0;
+      return { label: label, value: Math.max(0, value) };
+    });
+    if (!pts.length) return '';
+    const W = 320, H = 132, pad = 22, gap = 4;
+    const max = Math.max.apply(null, pts.map(p => p.value)) || 1;
+    const n = pts.length;
+    const bw = (W - pad * 2 - gap * (n - 1)) / n;
+    const bars = pts.map((p, i) => {
+      const h = Math.max(2, Math.round((p.value / max) * (H - pad - 18)));
+      const x = pad + i * (bw + gap);
+      const y = H - 18 - h;
+      const cls = p.value > 0 ? 'bar' : 'bar empty';
+      const lbl = (n <= 8 || i % 2 === 0) ? '<text class="bar-lbl" x="' + (x + bw / 2).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + escapeHtml(p.label) + '</text>' : '';
+      return '<rect class="' + cls + '" x="' + x.toFixed(1) + '" y="' + y + '" width="' + bw.toFixed(1) + '" height="' + h + '" rx="3"></rect>' + lbl;
+    }).join('');
+    return '<svg class="insights-bars" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Daily sales bars">' +
+      '<line class="bar-axis" x1="' + pad + '" y1="' + (H - 18) + '" x2="' + (W - pad) + '" y2="' + (H - 18) + '"></line>' + bars + '</svg>';
+  }
+
+  function insightsBlockedCard(title, detail) {
+    return '<div class="insights-blocked"><span class="ibk-ico" aria-hidden="true">🔒</span><span><strong>' + escapeHtml(title) + '</strong> ' + escapeHtml(detail) + '</span></div>';
+  }
+
+  async function loadInsights() {
+    const body = document.getElementById('insightsBody');
+    if (!body) return;
+    const period = (document.getElementById('insights-period') || {}).value || '7d';
+    const labelEl = document.getElementById('insightsPeriodLabel');
+    const periodLabel = period === '90d' ? 'Last 90 days' : period === '30d' ? 'Last 30 days' : 'Last 7 days';
+    if (labelEl) labelEl.textContent = 'Business report · ' + periodLabel;
+    body.innerHTML = '<div class="state-panel">Loading insights…</div>';
+    let res = null, visits = null;
+    try { res = await apiFetch('/analytics?period=' + encodeURIComponent(period)); } catch (_) { res = null; }
+    try { visits = await apiFetch('/analytics/visits?period=' + encodeURIComponent(period)); } catch (_) { visits = null; }
+    renderInsights(res, visits);
+  }
+
+  function renderInsights(res, visitsRes) {
+    const body = document.getElementById('insightsBody');
+    if (!body) return;
+    const d = (res && res.data) || {};
+    const s = (d.summary && typeof d.summary === 'object') ? d.summary : d;
+    const orders = num(s.totalOrders != null ? s.totalOrders : s.orderCount);
+    const delivered = num(s.deliveredOrders != null ? s.deliveredOrders : s.delivered);
+    const cancelled = num(s.cancelledOrders != null ? s.cancelledOrders : s.cancelled);
+    const sales = num(s.deliveredFoodSales != null ? s.deliveredFoodSales : (s.foodSales != null ? s.foodSales : s.sales));
+    const avg = num(s.averageDeliveredOrderValue != null ? s.averageDeliveredOrderValue : s.avgOrderValue);
+    const vs = visitsRes && visitsRes.data && visitsRes.data.summary;
+    const views = vs ? num(vs.totalViews) : null;
+    const uniques = vs ? num(vs.uniqueVisitors) : null;
+    const daily = Array.isArray(d.daily) ? d.daily : [];
+    const top = Array.isArray(d.topItems) ? d.topItems : [];
+
+    const hero = '<div class="insights-hero">' +
+      '<span class="ih-kicker">DELIVERED SALES</span>' +
+      '<div class="ih-label">Total food sales this period</div>' +
+      '<div class="ih-value" data-countup="' + (sales !== null ? sales : 0) + '" data-countup-money="1">' + (sales !== null ? money(sales) : '—') + '</div>' +
+      '<div class="ih-sub">' + (orders !== null ? orders + ' orders · ' : '') + (delivered !== null ? delivered + ' delivered' : '') + '</div>' +
+      '</div>';
+
+    const metric = (label, value, note) => '<div class="insights-metric"><div class="im-label">' + escapeHtml(label) + '</div>' +
+      '<div class="im-value">' + value + '</div>' + (note ? '<div class="im-note">' + escapeHtml(note) + '</div>' : '') + '</div>';
+    const metrics = '<div class="insights-metrics">' +
+      metric('Orders', orders !== null ? String(orders) : '—', null) +
+      metric('Delivered', delivered !== null ? String(delivered) : '—', null) +
+      metric('Cancelled', cancelled !== null ? String(cancelled) : '—', null) +
+      metric('Avg order value', avg !== null ? money(avg) : '—', null) +
+      metric('Menu views', views !== null ? String(views) : '—', null) +
+      metric('Unique visitors', uniques !== null ? String(uniques) : '—', null) +
+      '</div>';
+
+    const barsBlock = '<div class="insights-block"><h3>Daily sales</h3>' +
+      '<div class="ib-sub">Delivered sales per day, from GET /analytics.</div>' +
+      (daily.length ? insightsBarChart(daily) : '<div class="insights-blocked"><span class="ibk-ico" aria-hidden="true">📊</span><span>No daily breakdown returned for this period yet.</span></div>') +
+      '</div>';
+
+    const topBlock = '<div class="insights-block"><h3>Top-selling items</h3>' +
+      '<div class="ib-sub">Ranked by the server\u2019s own item totals.</div>' +
+      (top.length
+        ? top.slice(0, 8).map((t, i) => {
+            const nm = t.name || t.itemName || t._id || 'Item';
+            const q = num(t.quantity != null ? t.quantity : t.count);
+            const amount = num(t.sales);
+            return '<div class="insights-top-row"><span class="it-rank">' + (i + 1) + '</span>' +
+              '<span class="it-main"><span class="it-name">' + escapeHtml(nm) + '</span>' +
+              (q !== null ? '<span class="it-sub">' + q + ' sold</span>' : '') + '</span>' +
+              (amount !== null ? '<span class="it-amount">' + money(amount) + '</span>' : '') + '</div>';
+          }).join('')
+        : '<div class="insights-blocked"><span class="ibk-ico" aria-hidden="true">🍽️</span><span>No item sales returned for this period yet.</span></div>') +
+      '</div>';
+
+    const blocked = '<div class="insights-block"><h3>Not available yet</h3>' +
+      '<div class="ib-sub">These need backend support. They are listed in notes/backend-needed.md rather than faked.</div>' +
+      insightsBlockedCard('Hour-by-hour chart', 'No hourly sales endpoint is mounted.') +
+      insightsBlockedCard('Growth vs last period', 'GET /analytics returns a single period with no comparison field.') +
+      insightsBlockedCard('Repeat customers', 'No new-vs-returning customer split is returned.') +
+      insightsBlockedCard('Acceptance rate', 'Accepted / received is not returned by GET /analytics.') +
+      '</div>';
+
+    const empty = !d.summary && !daily.length && !top.length && !(vs && vs.totalViews);
+    body.innerHTML = hero + metrics + barsBlock + topBlock + blocked +
+      (empty ? '<div class="stat-note">No analytics recorded for this period yet.</div>' : '');
+    runCountUps(body);
+  }
+
+  /* ---- Growth hub: account status card -------------------------------- */
+  function renderGrowthAccount() {
+    const box = document.getElementById('growthAccountCard');
+    if (!box) return;
+    const r = state.restaurant || {};
+    const bits = [];
+    if (r.fssaiLicenseNumber || r.fssai) bits.push('FSSAI on file');
+    if (typeof r.isVerified === 'boolean') bits.push(r.isVerified ? 'Verified' : 'Verification pending');
+    if (r.applicationStatus) bits.push('Application: ' + String(r.applicationStatus).replace(/_/g, ' '));
+    const sub = bits.length ? bits.join(' · ') : 'Verification details are managed by Eatswada admin.';
+    box.innerHTML = '<div class="growth-account"><span class="ga-ico" aria-hidden="true">🏪</span>' +
+      '<span class="ga-main"><span class="ga-title">' + escapeHtml(r.name || 'Your restaurant') + '</span>' +
+      '<span class="ga-sub">' + escapeHtml(sub) + '</span></span></div>';
+  }
+
+  /* ---- Payouts page (settlement breakdown) ----------------------------
+     Built only from GET /settlements/summary + /settlements/withdrawals.
+     The payout request reuses the existing /settlements/withdraw write. */
+  async function loadPayoutsPage() {
+    const box = document.getElementById('payoutsPanel');
+    if (!box) return;
+    box.innerHTML = '<div class="state-panel">Loading payouts…</div>';
+    let summary = null, rows = [];
+    try { const res = await apiFetch('/settlements/summary'); summary = (res && res.data) || res || {}; } catch (_) { summary = null; }
+    try {
+      const res = await apiFetch('/settlements/withdrawals');
+      rows = Array.isArray(res && res.data) ? res.data : (Array.isArray(res) ? res : []);
+    } catch (_) { rows = []; }
+    v2.finance = summary; v2.withdrawals = rows;
+    renderPayoutsPage(summary, rows);
+  }
+
+  function renderPayoutsPage(summary, rows) {
+    const box = document.getElementById('payoutsPanel');
+    if (!box) return;
+    summary = summary || {};
+    rows = Array.isArray(rows) ? rows : [];
+    const eligible = num(summary.eligibleBalance);
+    const available = num(summary.availableForWithdrawal);
+    const active = summary.activePayoutRequest || null;
+    const paid = rows.filter(w => String(w.status).toLowerCase() === 'paid');
+    const last = paid.length ? paid[0] : null;
+    const lastAmt = last ? num(last.amount) : null;
+    const lastDate = last ? (last.paidAt || last.processedAt || last.createdAt) : null;
+    const utr = last ? (last.bankUtr || last.reference) : '';
+
+    const hero = '<div class="payouts-hero">' +
+      '<div class="ph-label">Available for payout</div>' +
+      '<div class="ph-value" data-countup="' + (available !== null ? available : (eligible !== null ? eligible : 0)) + '" data-countup-money="1">' +
+        (available !== null ? money2(available) : eligible !== null ? money2(eligible) : '₹—') + '</div>' +
+      '<div class="ph-sub">' + (summary.settlementSchedule ? 'Payout schedule: ' + enumLabel(summary.settlementSchedule) + '. ' : '') +
+        (active ? 'A payout request is already in progress.' : 'Eatswada reviews and processes payouts in a fixed cycle — this is not an instant withdrawal.') + '</div>' +
+      '<button class="btn accept ph-btn" id="payoutsPageBtn" type="button"' + ((available !== null && available <= 0) || active ? ' disabled' : '') + '>Request payout</button>' +
+      '</div>';
+
+    const cells = '<div class="payouts-split">' +
+      '<div class="payouts-cell"><div class="pc-label">Eligible balance</div><div class="pc-value">' + (eligible !== null ? money2(eligible) : '₹—') + '</div></div>' +
+      '<div class="payouts-cell"><div class="pc-label">Last payout</div><div class="pc-value">' + (lastAmt !== null ? money2(lastAmt) : '₹—') + '</div>' +
+        (lastDate ? '<div class="pc-label" style="margin-top:6px;font-weight:700;">' + escapeHtml(new Date(lastDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })) + '</div>' : '') + '</div>' +
+      '</div>';
+
+    const utrBlock = utr ? '<div class="payouts-hero" style="padding:14px 16px;"><div class="ph-label">Bank reference (UTR)</div>' +
+      '<div class="ph-sub" style="font-size:14px;font-weight:800;color:var(--zp-ink-primary);margin-top:6px;">' + escapeHtml(String(utr)) + '</div></div>' : '';
+
+    const list = rows.length
+      ? rows.map(w => {
+          const amt = num(w.amount != null ? w.amount : w.requestedAmount);
+          const status = String(w.status || 'requested').toLowerCase();
+          const cls = /paid|completed|credited|success/.test(status) ? 'approved' : /reject|fail|cancel/.test(status) ? 'rejected' : 'pending';
+          const when = w.paidAt || w.processedAt || w.requestedAt || w.createdAt;
+          const ref = w.bankUtr || w.reference;
+          return '<div class="payout-row"><div class="pr-main"><div class="pr-title">' + (amt !== null ? money2(amt) : 'Payout request') + '</div>' +
+            '<div class="pr-sub">' + [when ? new Date(when).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '', ref ? 'Ref ' + escapeHtml(String(ref)) : '', w.adminNote ? escapeHtml(w.adminNote) : ''].filter(Boolean).join(' · ') + '</div></div>' +
+            '<div class="pr-right"><span class="pr-amount"></span><span class="badge ' + cls + '">' + enumLabel(w.status || 'requested') + '</span></div></div>';
+        }).join('')
+      : '<div class="state-panel" style="border:0;box-shadow:none;"><h3>No payouts yet</h3><p>Payout requests and their settlement status will appear here.</p></div>';
+
+    const listBlock = '<div class="insights-block"><h3>Payout history</h3>' +
+      '<div class="ib-sub">Your own payout requests from GET /settlements/withdrawals.</div>' + list + '</div>';
+
+    box.innerHTML = hero + cells + utrBlock + listBlock;
+    runCountUps(box);
+    const btn = document.getElementById('payoutsPageBtn');
+    if (btn) btn.addEventListener('click', openPayoutSheet);
+  }
+
+  /* ---- Light count-up animation on numbers ----------------------------
+     CSS-only friendly: reads a data-countup target and eases to it with
+     requestAnimationFrame. Skipped entirely under reduced-motion. */
+  function prefersReducedMotion() {
+    try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (_) { return false; }
+  }
+  function runCountUps(root) {
+    if (!root || prefersReducedMotion()) return;
+    const nodes = root.querySelectorAll('[data-countup]');
+    nodes.forEach(node => {
+      const target = Number(node.dataset.countup || 0);
+      if (!Number.isFinite(target) || target === 0) return;
+      const isMoney = node.dataset.countupMoney === '1';
+      const dur = 600; const start = performance.now();
+      const fmt = (v) => isMoney ? money(v) : String(Math.round(v));
+      const step = (now) => {
+        const t = Math.min(1, (now - start) / dur);
+        const eased = 1 - Math.pow(1 - t, 3);
+        node.textContent = fmt(target * eased);
+        if (t < 1) requestAnimationFrame(step); else { node.textContent = fmt(target); node.classList.add('count-pop'); }
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
+  /* ---- Insights tab switch + hub + period wiring ---------------------- */
+  function setInsightsTab(tab) {
+    state.insightsTab = tab === 'payouts' ? 'payouts' : 'report';
+    document.querySelectorAll('.ins-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.insTab === state.insightsTab)));
+    const report = document.getElementById('insightsReportPane');
+    const payouts = document.getElementById('insightsPayoutsPane');
+    if (report) report.hidden = state.insightsTab !== 'report';
+    if (payouts) payouts.hidden = state.insightsTab !== 'payouts';
+    if (state.insightsTab === 'payouts') loadPayoutsPage();
+  }
+
+  function openHub(target) {
+    if (target === 'history') { switchSection('orders'); setActiveTab('history'); return; }
+    if (target === 'payouts') { switchSection('insights'); setInsightsTab('payouts'); return; }
+    if (target === 'complaints') { switchSection('reviews'); setReviewTab('complaints'); return; }
+    switchSection(target);
+  }
+
+  /* Sets the active orders tab through the same path the tab buttons use, so
+     pill taps and tab taps can never diverge. */
+  function setActiveTab(tab) {
+    const btn = el.tabs.find(t => t.dataset.tab === tab);
+    if (btn) btn.click(); else { state.activeTab = tab; renderActiveTab(); }
+  }
+
+  document.getElementById('onlineToggle')?.addEventListener('click', openStatusSheet);
+  document.getElementById('newOrderBar')?.addEventListener('click', () => switchSection('orders'));
+  document.querySelectorAll('#orderPillRail .pill').forEach(p => p.addEventListener('click', () => {
+    setActiveTab(p.dataset.pill);
+    updateOrderPills();
+  }));
+  document.querySelectorAll('.ins-tab').forEach(b => b.addEventListener('click', () => setInsightsTab(b.dataset.insTab)));
+  document.getElementById('insights-period')?.addEventListener('change', loadInsights);
+  document.querySelectorAll('#hubGrid [data-hub]').forEach(b => b.addEventListener('click', () => openHub(b.dataset.hub)));
 
   /* ---- Settlements & withdrawals ----
      Backend contract (routes/vendorRoutes.js → vendorMarketplaceController):
@@ -5021,6 +5471,23 @@
     if (chip) { chip.classList.toggle('active', state.rvDetailed); chip.setAttribute('aria-pressed', String(state.rvDetailed)); }
     renderReviewsList();
   });
+  /* Zomato-style Filters / Latest chips. "Filters" toggles the existing
+     search + rating/replied toolbar (no new query); "Latest" sorts the
+     already-loaded reviews by date, newest first. */
+  document.querySelectorAll('#rvChips .rv-chip').forEach(chip => chip.addEventListener('click', () => {
+    const kind = chip.dataset.rvChip;
+    if (kind === 'filters') {
+      const on = chip.getAttribute('aria-pressed') !== 'true';
+      chip.setAttribute('aria-pressed', String(on));
+      const tb = document.querySelector('#section-reviews .rv-toolbar');
+      if (tb) tb.hidden = !on;
+    } else {
+      const on = chip.getAttribute('aria-pressed') !== 'true';
+      chip.setAttribute('aria-pressed', String(on));
+      state.rvLatest = on;
+      renderReviewsList();
+    }
+  }));
   document.getElementById('reviewViewBack')?.addEventListener('click', closeReviewView);
   document.getElementById('reviewViewReplySend')?.addEventListener('click', submitReviewViewReply);
   document.getElementById('reviewViewReplyInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submitReviewViewReply(); } });
@@ -5043,6 +5510,7 @@
     renderOnlinePill();
     setConnectionState(navigator.onLine ? 'checking' : 'offline');
     await Promise.all([loadRestaurant(), loadQueue(true)]);
+    switchSection('orders');
     loadOverview();
     loadNotifications(false);
     loadPlatformSettings();
