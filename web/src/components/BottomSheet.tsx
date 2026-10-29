@@ -1,5 +1,6 @@
 import { Drawer } from 'vaul';
 import { cn } from '@/lib/cn';
+import { useOverlayBack } from '@/hooks/useOverlayBack';
 
 export interface BottomSheetProps {
   open: boolean;
@@ -12,7 +13,8 @@ export interface BottomSheetProps {
 
 /**
  * Bottom sheet (vaul). AGENTS.md: bottom sheets instead of modals. The handle
- * bar and drag-to-dismiss come from vaul; the body is scrollable.
+ * bar and drag-to-dismiss come from vaul; the body is scrollable. While open it
+ * registers with the overlay back-stack so the Android back gesture closes it.
  */
 export function BottomSheet({
   open,
@@ -22,6 +24,7 @@ export function BottomSheet({
   children,
   className,
 }: BottomSheetProps) {
+  useOverlayBack(open, () => onOpenChange(false));
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange}>
       <Drawer.Portal>

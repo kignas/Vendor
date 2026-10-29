@@ -1,6 +1,10 @@
+import { useEffect } from 'react';
+import { pushOverlay } from '@/app/overlayStack';
+
 /**
  * Lightweight bottom sheet used for order actions. Mirrors the legacy sheet
  * markup (backdrop button + slide-up panel) and keeps a 44px+ close target.
+ * Registered with the overlay back-stack so the Android back gesture closes it.
  */
 export function Sheet({
   title,
@@ -13,6 +17,7 @@ export function Sheet({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  useEffect(() => pushOverlay(onClose), [onClose]);
   return (
     <div className="fixed inset-0 z-50 flex items-end" role="dialog" aria-modal="true" aria-label={title}>
       <button
