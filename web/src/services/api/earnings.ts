@@ -62,9 +62,27 @@ export async function fetchEarningsOrders(page = 1, limit = 20): Promise<Earning
   return Array.isArray(res?.data) ? res.data : [];
 }
 
+export interface ActivePayoutRequest {
+  amount?: number;
+  status?: string;
+  requestedAt?: string;
+  createdAt?: string;
+  bankUtr?: string;
+  reference?: string;
+  transactionReference?: string;
+  [key: string]: unknown;
+}
+
 export interface SettlementSummary {
+  currency?: string;
+  /** Total earned and not yet paid out (gross, before any pending withdrawal). */
   eligibleBalance?: number;
-  availableBalance?: number;
+  /** Actually withdrawable right now (the backend field name). */
+  availableForWithdrawal?: number;
+  /** Vendor payout cadence: 'weekly' | 'monthly'. */
+  settlementSchedule?: string;
+  joinDate?: string;
+  activePayoutRequest?: ActivePayoutRequest | null;
   [key: string]: unknown;
 }
 
