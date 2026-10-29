@@ -74,6 +74,15 @@ const server = http.createServer((req, res) => {
     return send(res, 200, { success: true, token: 'mock-token', user: { name: 'Vendor' }, restaurant });
   }
   if (path === '/api/vendor/restaurant') return send(res, 200, { data: restaurant });
+  if (path === '/api/vendor/restaurant/availability' && req.method === 'PUT') {
+    return send(res, 200, { data: { availability: 'temporarily_closed' } });
+  }
+  if (path === '/api/vendor/restaurant/hours' && req.method === 'PUT') {
+    return send(res, 200, { success: true });
+  }
+  if (path === '/api/vendor/restaurant/profile' && req.method === 'PUT') {
+    return send(res, 200, { data: restaurant });
+  }
   if (path === '/api/vendor/orders') {
     if (url.searchParams.get('view') === 'history') return send(res, 200, { data: { rows: [], total: 0 } });
     return send(res, 200, { data: orders });
