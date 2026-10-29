@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { BottomNav } from './BottomNav';
 import { TopBar } from './TopBar';
 import { useConnectionWatcher } from './useConnectionWatcher';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 /**
  * App shell: a single centred 480px column, sticky top bar, fixed bottom nav,
@@ -9,6 +10,7 @@ import { useConnectionWatcher } from './useConnectionWatcher';
  */
 export function AppShell() {
   useConnectionWatcher();
+  usePushNotifications();
 
   return (
     <div className="min-h-full bg-canvas">

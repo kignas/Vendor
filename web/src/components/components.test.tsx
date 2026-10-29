@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { makeQueryClient } from '@/lib/queryClient';
 import { KpiCard } from '@/components/KpiCard';
 import { StatusPill } from '@/components/StatusPill';
 import { EmptyState } from '@/components/EmptyState';
@@ -95,13 +97,15 @@ describe('shared components', () => {
 describe('AppShell', () => {
   it('renders the top bar, primary nav and outlet content', () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
-        <AppShell />
-      </MemoryRouter>,
+      <QueryClientProvider client={makeQueryClient()}>
+        <MemoryRouter initialEntries={['/']}>
+          <AppShell />
+        </MemoryRouter>
+      </QueryClientProvider>,
     );
     expect(screen.getByRole('navigation', { name: /primary/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument();
-    for (const label of ['Home', 'Orders', 'Menu', 'Insights', 'More']) {
+    for (const label of ['Home', 'Orders', 'Menu', 'Finance', 'More']) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
   });

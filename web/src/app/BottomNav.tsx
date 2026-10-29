@@ -1,4 +1,4 @@
-import { BarChart3, Home, MoreHorizontal, Receipt, UtensilsCrossed } from 'lucide-react';
+import { Home, MoreHorizontal, Receipt, UtensilsCrossed, Wallet } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/cn';
 
@@ -12,7 +12,7 @@ const ITEMS: NavItem[] = [
   { to: '/', label: 'Home', icon: Home },
   { to: '/orders', label: 'Orders', icon: Receipt },
   { to: '/menu', label: 'Menu', icon: UtensilsCrossed },
-  { to: '/insights', label: 'Insights', icon: BarChart3 },
+  { to: '/finance', label: 'Finance', icon: Wallet },
   { to: '/more', label: 'More', icon: MoreHorizontal },
 ];
 

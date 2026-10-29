@@ -26,9 +26,27 @@
     --es-info: #2563eb;
     --es-info-bg: #e8f0fe;
     --es-star: #f59e0b;
-    --es-brand: #d71945;
+    --es-brand: #690d27;
+    --es-brand-soft: #8a1533;
+    --es-ivory: #fff5dc;
 
     color-scheme: light;
+  }
+
+  /* Dark theme. Applied via html[data-theme="dark"], toggled from Settings.
+     Only surface/ink tokens flip; status colours stay legible on both. */
+  html[data-theme='dark'] {
+    --es-canvas: #17171a;
+    --es-card: #222226;
+    --es-ink: #f4f4f5;
+    --es-ink-soft: #c4c4c9;
+    --es-ink-faint: #8b8b93;
+    --es-border: #33333a;
+    --es-success-bg: #10321c;
+    --es-warning-bg: #3a2a08;
+    --es-danger-bg: #3a1416;
+    --es-info-bg: #10233f;
+    color-scheme: dark;
   }
 
   html {

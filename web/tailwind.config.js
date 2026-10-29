@@ -20,7 +20,11 @@ export default {
         danger: { DEFAULT: '#DC2626', bg: '#FEE2E2' },
         info: { DEFAULT: '#2563EB', bg: '#E8F0FE' },
         star: '#F59E0B',
-        brand: '#D71945',
+        brand: {
+          DEFAULT: '#690D27',
+          soft: '#8A1533',
+        },
+        ivory: '#FFF5DC',
       },
       fontFamily: {
         sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],

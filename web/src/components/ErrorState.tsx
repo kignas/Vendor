@@ -3,12 +3,12 @@ import { cn } from '@/lib/cn';
 
 export interface ErrorStateProps {
   /** Human-readable message. Defaults to a neutral network message. */
-  message?: string;
+  message?: string | undefined;
   /** Retry handler. When omitted the Retry button is not rendered. */
-  onRetry?: () => void;
+  onRetry?: (() => void) | undefined;
   /** Disable the Retry button while a retry is in flight. */
-  retrying?: boolean;
-  className?: string;
+  retrying?: boolean | undefined;
+  className?: string | undefined;
 }
 
 /**
