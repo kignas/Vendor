@@ -131,6 +131,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Vendor-APK-debug
+          name: Eatswada-Vendor-Latest-UI-Debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
