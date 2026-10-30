@@ -321,6 +321,59 @@ export function loyaltySubtitle(order: Order): string {
   return `${first}\u2019s order`;
 }
 
+/**
+ * The "1st order by Asha" line for the accept sheet (Phase 3, Step 4). Unlike
+ * `loyaltySubtitle`, it returns null when the server sent NO customer-order
+ * count at all, so the line is shown only when the data really exists rather
+ * than falling back to a bare "{name}'s order" for a first-time customer.
+ */
+export function loyaltyLine(order: Order): string | null {
+  const count = orderCountWithRestaurant(order);
+  if (count === null || count <= 0) return null;
+  const name = order.customerName || (order.user && order.user.name) || '';
+  const first = String(name).trim().split(/\s+/)[0];
+  if (!first) return null;
+  return `${ordinal(count)} order by ${first}`;
+}
+
+/** Mirrors legacy `isPlacedOrder()`. */
+export function isPlacedOrder(order: Order): boolean {
+  return order.status === ORDER_STATUS.placed;
+}
+
+/**
+ * Whether the order clearly asks for NO cutlery. Reads the same aliases the
+ * legacy cutlery strip does (`sendCutlery`/`cutlery`/`cutleryPreference`/
+ * `cutleryRequired`). The semantics of `cutlery`/`cutleryPreference` are not
+ * pinned down by VENDOR-API-CONTRACT.md, so a boolean `false` — or a
+ * preference string that explicitly says no / skip / don't send — is treated as
+ * an opt-out; anything else (including a "yes" preference) is not. The accept
+ * sheet therefore shows its red "Don't send cutlery…" tag only on an explicit
+ * opt-out. See docs/rebuild/OPEN_QUESTIONS.md (Q18).
+ */
+export function cutleryOptOut(order: Order): boolean {
+  if (order.sendCutlery === false || order.cutleryRequired === false) return true;
+  if (order.cutlery === false) return true;
+  const pref = String(order.cutleryPreference ?? '').trim().toLowerCase();
+  if (pref && /(no|skip|not|none|without|don'?t|dont|never)/.test(pref)) return true;
+  return false;
+}
+
+/**
+ * Per-item price. Reads only fields the order item may carry; the backend order
+ * item shape is not pinned down by VENDOR-API-CONTRACT.md (it names menu-item
+ * `price`, not the order-item field), so this returns null — and the UI shows
+ * nothing — when the server sent no usable figure (AGENTS.md rules 2 & 5).
+ */
+export function itemPriceOf(item: OrderItem): number | null {
+  const line = firstNumber(item.itemTotal, item.totalPrice, item.lineTotal, item.totalAmount);
+  if (line !== null) return line;
+  const unit = firstNumber(item.unitPrice, item.price, item.itemPrice, item.rate, item.amount);
+  if (unit === null) return null;
+  const qty = firstNumber(item.quantity, item.qty) ?? 1;
+  return unit * qty;
+}
+
 /** Mirrors legacy `ordinal()`. */
 export function ordinal(n: number): string {
   const k = n % 100;

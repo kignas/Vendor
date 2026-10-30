@@ -5,6 +5,8 @@ import { ORDER_STATUS, type Order } from '@/types/order';
 export interface AcceptanceWindow {
   /** Server deadline (epoch ms) or 0 when the order has none. */
   deadline: number;
+  /** Full window length in ms (deadline − created), or 0 when unknown. */
+  total: number;
   /** ms remaining, floored at 0. */
   remaining: number;
   /** True once the window has closed. */
@@ -26,7 +28,9 @@ export function useAcceptanceWindow(order: Order): AcceptanceWindow {
   const active = isPlaced && deadline > 0;
   const now = useNow(1000, active);
   const remaining = active ? Math.max(0, deadline - now) : 0;
-  return { deadline, remaining, expired: active && remaining <= 0, active };
+  const createdMs = new Date(order.createdAt ?? '').getTime();
+  const total = active && Number.isFinite(createdMs) && deadline > createdMs ? deadline - createdMs : 0;
+  return { deadline, total, remaining, expired: active && remaining <= 0, active };
 }
 
 /** `mm:ss` for the countdown. */

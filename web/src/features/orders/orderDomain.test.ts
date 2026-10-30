@@ -5,11 +5,15 @@ import {
   billRows,
   commissionPctOf,
   dietOf,
+  cutleryOptOut,
+  isPlacedOrder,
   isReadyOrder,
   isPreparingOrder,
   isResponseExpired,
   isScheduledOrder,
   isSelfDeliveryOrder,
+  itemPriceOf,
+  loyaltyLine,
   loyaltySubtitle,
   orderMatchesQuery,
   orderRef,
@@ -185,5 +189,46 @@ describe('orderDomain — search and self-delivery gate', () => {
       new Date(accepted).getTime(),
     );
     expect(prepStartedAtOf(makeOrder({ createdAt: created }))).toBe(new Date(created).getTime());
+  });
+});
+
+describe('orderDomain — Phase 3 Step 4 helpers', () => {
+  it('loyaltyLine shows "Nth order by {name}" only when a count exists', () => {
+    expect(
+      loyaltyLine(makeOrder({ customerName: 'Asha Rao', customerOrderCount: 1 })),
+    ).toBe('1st order by Asha');
+    expect(
+      loyaltyLine(makeOrder({ customerName: 'Asha Rao', customerOrderCount: 3 })),
+    ).toBe('3rd order by Asha');
+    // No count at all: nothing is invented for a first-time customer.
+    expect(loyaltyLine(makeOrder({ customerName: 'Asha Rao' }))).toBeNull();
+    expect(loyaltyLine(makeOrder({ customerName: 'Asha Rao', customerOrderCount: 0 }))).toBeNull();
+    expect(loyaltyLine(makeOrder({ customerOrderCount: 2 }))).toBeNull();
+  });
+
+  it('cutleryOptOut only fires on an explicit no', () => {
+    expect(cutleryOptOut(makeOrder({ sendCutlery: false }))).toBe(true);
+    expect(cutleryOptOut(makeOrder({ cutleryRequired: false }))).toBe(true);
+    expect(cutleryOptOut(makeOrder({ cutlery: false }))).toBe(true);
+    expect(cutleryOptOut(makeOrder({ cutleryPreference: 'No cutlery please' }))).toBe(true);
+    expect(cutleryOptOut(makeOrder({ cutleryPreference: "Don't send cutlery" }))).toBe(true);
+    // Not an opt-out.
+    expect(cutleryOptOut(makeOrder({}))).toBe(false);
+    expect(cutleryOptOut(makeOrder({ sendCutlery: true }))).toBe(false);
+    expect(cutleryOptOut(makeOrder({ cutleryPreference: 'yes' }))).toBe(false);
+  });
+
+  it('itemPriceOf reads a line total first, then unit price × qty', () => {
+    expect(itemPriceOf({ name: 'A', itemTotal: 260 })).toBe(260);
+    expect(itemPriceOf({ name: 'A', unitPrice: 130, quantity: 2 })).toBe(260);
+    expect(itemPriceOf({ name: 'A', price: 130 })).toBe(130);
+    expect(itemPriceOf({ name: 'A', price: 130, qty: 3 })).toBe(390);
+    // No price at all: null, never a fabricated 0.
+    expect(itemPriceOf({ name: 'A' })).toBeNull();
+  });
+
+  it('isPlacedOrder is true only for the placed status', () => {
+    expect(isPlacedOrder(makeOrder({ status: 'placed' }))).toBe(true);
+    expect(isPlacedOrder(makeOrder({ status: 'confirmed' }))).toBe(false);
   });
 });

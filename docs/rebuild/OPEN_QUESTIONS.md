@@ -126,3 +126,16 @@ lower slot otherwise) and `ProfilePage` shows the list variant. *Safest
 assumption:* Step 2 only restyles the header; the Home/Profile controls are left
 untouched for now. Confirm whether those in-page controls should be removed so
 the header is genuinely the only place to change availability.
+
+**Q18. Cutlery field semantics (Step 4 / Step 5 tag).** The legacy app builds the
+"Send cutlery" strip from `order.sendCutlery ?? order.cutlery ??
+order.cutleryPreference ?? order.cutleryRequired` and shows it when the value is
+truthy. For the new "Don't send cutlery, tissues and straws" tag we need the
+*opposite* signal — an explicit opt-out — so `cutleryOptOut()` in `orderDomain.ts`
+fires only when one of those fields is the boolean `false`, or a
+`cutleryPreference` string that reads as a negative ("no", "don't", "without",
+"opt out"). `VENDOR-API-CONTRACT.md` does not state the type or the string
+vocabulary of `cutleryPreference`. *Safest assumption:* treat an explicit boolean
+`false` as the only certain opt-out and also accept an obvious negative string;
+when every field is absent or truthy the tag is hidden (never guessed). Confirm
+the real field type and allowed values so the string heuristic can be dropped.

@@ -29,8 +29,29 @@ export function useOrderActions() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.orders('queue') });
   }, [queryClient]);
 
+  /**
+   * Whether the queue currently says the order is still `placed`. Reads the
+   * cache fresh (not a render closure) so it reflects the authoritative refetch
+   * after a failed accept — a stale answer would mislabel a real error.
+   */
+  const isStillPlaced = useCallback(
+    (id: string) => {
+      const rows = queryClient.getQueryData<Order[]>(queryKeys.orders('queue'));
+      return Array.isArray(rows) && rows.some((o) => o._id === id && o.status === 'placed');
+    },
+    [queryClient],
+  );
+
   const run = useCallback(
-    async (id: string, task: () => Promise<unknown>, successMsg: string): Promise<boolean> => {
+    async (
+      id: string,
+      task: () => Promise<unknown>,
+      successMsg: string,
+      options?: {
+        /** When set, a failure re-checks the order and may show `goneMessage`. */
+        goneMessage?: string | undefined;
+      },
+    ): Promise<boolean> => {
       if (busyRef.current.has(id)) return false;
       busyRef.current.add(id);
       setBusyIds(new Set(busyRef.current));
@@ -42,6 +63,16 @@ export function useOrderActions() {
         refresh();
         return true;
       } catch (err) {
+        if (options?.goneMessage) {
+          // Refetch first, then read the cache fresh: the order left `placed`
+          // while we were sending (accepted elsewhere) only if the authoritative
+          // queue now says so. Otherwise this is a real error and we show it.
+          await queryClient.refetchQueries({ queryKey: queryKeys.orders('queue') });
+          if (!isStillPlaced(id)) {
+            toast(options.goneMessage, { style: { background: '#18181B', color: '#FFFFFF' } });
+            return false;
+          }
+        }
         toast.error(err instanceof Error ? err.message : 'Action failed. Please try again.');
         return false;
       } finally {
@@ -49,13 +80,15 @@ export function useOrderActions() {
         setBusyIds(new Set(busyRef.current));
       }
     },
-    [refresh],
+    [refresh, isStillPlaced, queryClient],
   );
 
   return {
     busyIds,
     accept: (id: string, prepMinutes: number) =>
-      run(id, () => acceptOrder(id, prepMinutes), `Order accepted · ${prepMinutes} min`),
+      run(id, () => acceptOrder(id, prepMinutes), `Order accepted · ${prepMinutes} min`, {
+        goneMessage: 'Order already accepted',
+      }),
     reject: (id: string, reason: string) => run(id, () => rejectOrder(id, reason), 'Order rejected'),
     advance: (order: Order) => {
       const next = ADVANCE_TARGET[order.status];

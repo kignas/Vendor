@@ -4,7 +4,7 @@ import { Receipt, Search, Loader2, X } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { OrderCard } from '@/features/orders/OrderCard';
-import { ordersForTab, orderMatchesQuery } from '@/features/orders/orderDomain';
+import { isPlacedOrder, ordersForTab, orderMatchesQuery } from '@/features/orders/orderDomain';
 import { useOrderActions } from '@/features/orders/useOrderActions';
 import { useOrderQueue } from '@/hooks/useOrders';
 import { useRestaurant } from '@/hooks/useRestaurant';
@@ -15,7 +15,6 @@ import { NewOrderBanner } from '@/features/orders/NewOrderBanner';
 import { OfflineBanner } from '@/features/orders/OfflineBanner';
 import { AcceptOrderSheet } from '@/features/orders/AcceptOrderSheet';
 import { SuccessFlash } from '@/features/orders/SuccessFlash';
-import { orderAlarm } from '@/services/notifications/alarm';
 import { Sheet } from '@/components/Sheet';
 import { OrderChips, type OrderChip } from '@/features/orders/OrderChips';
 import { printKot } from '@/features/orders/kot';
@@ -42,6 +41,8 @@ export function OrdersPage() {
   const { defaultPrepMinutes } = useRushMode();
 
   const [prepOrder, setPrepOrder] = useState<Order | null>(null);
+  // Index into the waiting (placed) orders for the one-of-N pager in the sheet.
+  const [prepIndex, setPrepIndex] = useState(0);
   const [rejectOrder, setRejectOrder] = useState<Order | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [otpOrder, setOtpOrder] = useState<Order | null>(null);
@@ -81,8 +82,18 @@ export function OrdersPage() {
 
   const deliveryMode = restaurant.data?.deliveryMode;
 
+  // The orders waiting for acceptance, in the order the sheet pages through them.
+  const waiting = useMemo(() => queueRows.filter(isPlacedOrder), [queueRows]);
+
   function openPrep(order: Order) {
+    setPrepIndex(Math.max(0, waiting.findIndex((o) => o._id === order._id)));
     setPrepOrder(order);
+  }
+
+  /** Open the sheet at the first waiting order (the new-order bar's tap action). */
+  function openNewOrderSheet() {
+    setPrepIndex(0);
+    setPrepOrder(waiting[0] ?? null);
   }
 
   /** Replays the confirmation flash with a fresh key. Called only on success. */
@@ -92,6 +103,8 @@ export function OrdersPage() {
   }
 
   async function confirmAccept(order: Order, minutes: number) {
+    // A refused accept triggers an authoritative refetch inside the action; if
+    // the order was accepted elsewhere the vendor sees "Order already accepted".
     const ok = await actions.accept(order._id, minutes);
     if (ok) {
       setPrepOrder(null);
@@ -177,12 +190,11 @@ export function OrdersPage() {
 
       <NewOrderBanner
         orders={queueRows}
-        onStop={() => {
-          orderAlarm.stop();
-          setPrepOrder(queueRows.find((o) => o.status === 'placed') ?? null);
-        }}
+        onStop={openNewOrderSheet}
         onExpired={() => void queue.refetch()}
       />
+      {/* Reserve space so the fixed new-order bar never covers the list. */}
+      {waiting.length ? <div aria-hidden="true" className="h-16" /> : null}
 
       {searchOpen ? (
         <label className="relative block">
@@ -257,12 +269,24 @@ export function OrdersPage() {
         order={prepOrder}
         busy={prepOrder ? actions.busyIds.has(prepOrder._id) : false}
         defaultMinutes={defaultPrepMinutes}
+        index={prepIndex}
+        total={waiting.length}
         onAccept={(ord, minutes) => void confirmAccept(ord, minutes)}
         onReject={(ord) => {
           setPrepOrder(null);
           setRejectOrder(ord);
         }}
         onClose={() => setPrepOrder(null)}
+        onPrev={() => {
+          const i = Math.max(0, prepIndex - 1);
+          setPrepIndex(i);
+          setPrepOrder(waiting[i] ?? null);
+        }}
+        onNext={() => {
+          const i = Math.min(waiting.length - 1, prepIndex + 1);
+          setPrepIndex(i);
+          setPrepOrder(waiting[i] ?? null);
+        }}
       />
 
       {rejectOrder ? (

@@ -11,11 +11,14 @@ export function Sheet({
   description,
   onClose,
   children,
+  hideHeader = false,
 }: {
   title: string;
   description?: string;
   onClose: () => void;
   children: React.ReactNode;
+  /** Suppress the built-in heading; the caller renders its own (e.g. a colour band). */
+  hideHeader?: boolean;
 }) {
   useEffect(() => pushOverlay(onClose), [onClose]);
   return (
@@ -27,9 +30,11 @@ export function Sheet({
         className="absolute inset-0 bg-scrim/60"
       />
       <div className="app-column safe-bottom relative z-10 rounded-t-card bg-card p-5 animate-slide-up">
-        <h2 className="text-base font-bold text-ink">{title}</h2>
-        {description ? <p className="mt-1 text-xs text-ink-soft">{description}</p> : null}
-        <div className="mt-3">{children}</div>
+        {hideHeader ? null : <h2 className="text-base font-bold text-ink">{title}</h2>}
+        {!hideHeader && description ? (
+          <p className="mt-1 text-xs text-ink-soft">{description}</p>
+        ) : null}
+        <div className={hideHeader ? '' : 'mt-3'}>{children}</div>
       </div>
     </div>
   );

@@ -18,6 +18,18 @@ export interface OrderItem {
   size?: string;
   variantName?: string;
   portion?: string;
+  /* Price aliases read by `itemPriceOf`. The order-item shape is not pinned
+     down by VENDOR-API-CONTRACT.md, so every candidate is optional. */
+  price?: number;
+  unitPrice?: number;
+  itemPrice?: number;
+  rate?: number;
+  amount?: number;
+  qty?: number;
+  itemTotal?: number;
+  totalPrice?: number;
+  lineTotal?: number;
+  totalAmount?: number;
   addons?: unknown;
   options?: unknown;
   customizations?: unknown;

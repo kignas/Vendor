@@ -1,24 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
-import { BellRing } from 'lucide-react';
+import { ChevronUp } from 'lucide-react';
 import { useNow } from '@/hooks/useNow';
 import { responseDeadlineOf } from '@/features/orders/orderDomain';
 import { orderAlarm } from '@/services/notifications/alarm';
 import { ORDER_STATUS, type Order } from '@/types/order';
 
 /**
- * Prominent new-order banner. Mirrors the legacy `#alarmBar`: it appears while
- * new (placed, unscheduled) orders are waiting, names how many, and disappears
- * once nothing is waiting.
+ * Fixed new-order bar (Phase 3, Step 4). A restyle of the previous banner, not
+ * a rewrite: it still appears while new (`placed`) orders are waiting, still
+ * names how many, and still asks the page to refresh the moment an acceptance
+ * window lapses. The chime/vibration stays owned by `orderAlarm`.
  *
- * Two actions, because they are different intents:
- *   - "View order(s)" is the main one. It calls `onStop`, which the Orders page
- *     uses to silence the alarm AND jump to the New tab — the vendor wants to
- *     see the order, not just stop the noise.
- *   - "Stop alarm" only silences the chime/vibration and stays on the current
- *     view, for a vendor who is mid-task and will get to the order in a moment.
- *
- * The chime/vibration itself is owned by `orderAlarm`; this only renders it and
- * asks the page to refresh the moment an acceptance window lapses.
+ * Tapping the bar (or swiping up on it) silences the alarm and opens the
+ * new-order sheet — the vendor wants to see the order, not just stop the noise.
+ * It sits above the bottom nav; the Orders page reserves space for it.
  */
 export function NewOrderBanner({
   orders,
@@ -26,7 +21,7 @@ export function NewOrderBanner({
   onExpired,
 }: {
   orders: Order[];
-  /** Silence the alarm and show the waiting orders (the main action). */
+  /** Silence the alarm and open the new-order sheet (the main action). */
   onStop: () => void;
   onExpired?: () => void;
 }) {
@@ -58,41 +53,46 @@ export function NewOrderBanner({
     onExpired?.();
   }, [expired, onExpired]);
 
+  // A short upward swipe opens the sheet, matching the reference gesture. The
+  // tap path is unchanged, so this only ADDS an affordance.
+  const touchStartY = useRef<number | null>(null);
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartY.current = e.touches[0]?.clientY ?? null;
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    const start = touchStartY.current;
+    touchStartY.current = null;
+    const end = e.changedTouches[0]?.clientY;
+    if (start !== null && end !== undefined && start - end > 24) openSheet();
+  }
+
   if (count === 0) return null;
 
-  return (
-    <div
-      key={count}
-      className="-mx-4 mb-1 rounded-card bg-warning px-4 py-3 text-white shadow-md motion-safe:animate-attention-pulse"
-    >
-      <p role="alert" aria-live="assertive" className="flex items-center gap-3 text-base font-extrabold">
-        <BellRing className="h-6 w-6 shrink-0" aria-hidden="true" />
-        <span className="flex-1">
-          {count > 1 ? `${count} new orders waiting` : 'New order waiting'}
-          {expired ? <span className="font-semibold"> · updating…</span> : null}
-        </span>
-      </p>
+  function openSheet() {
+    orderAlarm.stop();
+    setSilencedFor(count);
+    onStop();
+  }
 
-      <div className="mt-3 flex gap-2">
-        <button
-          type="button"
-          onClick={onStop}
-          className="min-h-[48px] flex-[2] rounded-btn bg-white text-base font-extrabold text-warning"
-        >
-          {count > 1 ? 'View orders' : 'View order'}
-        </button>
-        <button
-          type="button"
-          disabled={silenced}
-          onClick={() => {
-            orderAlarm.stop();
-            setSilencedFor(count);
-          }}
-          className="min-h-[48px] flex-1 rounded-btn border-2 border-white/70 text-sm font-bold text-white disabled:opacity-70"
-        >
-          {silenced ? 'Alarm stopped' : 'Stop alarm'}
-        </button>
-      </div>
-    </div>
+  return (
+    <button
+      type="button"
+      key={count}
+      onClick={openSheet}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      aria-label={`${count > 1 ? `${count} new orders` : 'New order'} — open`}
+      className="press fixed inset-x-0 z-20 bg-success text-white shadow-[0_8px_20px_rgba(0,0,0,0.28)] motion-safe:animate-attention-pulse"
+      style={{ bottom: 'calc(4.25rem + env(safe-area-inset-bottom, 0px))' }}
+    >
+      <span className="app-column safe-x flex min-h-tap items-center justify-center gap-2 py-3 text-base font-extrabold">
+        <ChevronUp className="h-5 w-5 shrink-0" aria-hidden="true" />
+        <span aria-live="assertive">
+          {count > 1 ? `You have ${count} new orders` : 'You have 1 new order'}
+        </span>
+        {expired ? <span className="font-semibold"> · updating…</span> : null}
+        <span className="sr-only">{silenced ? ', alarm silenced' : ''}</span>
+      </span>
+    </button>
   );
 }

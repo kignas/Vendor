@@ -3,6 +3,7 @@ import { render, screen, waitFor, within, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/server';
 import { API_BASE } from '@/lib/api';
@@ -16,6 +17,9 @@ function renderPage() {
       <MemoryRouter>
         <OrdersPage />
       </MemoryRouter>
+      {/* Toasts are part of the feedback contract; render the real Toaster so
+          the "already accepted" / error paths are asserted as the user sees them. */}
+      <Toaster />
     </QueryClientProvider>,
   );
 }
@@ -46,7 +50,7 @@ function queueHandlers(orders: unknown[]) {
 
 /** New orders no longer live in a list tab; the new-order bar opens their sheet. */
 async function openNewOrderSheet(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(await screen.findByRole('button', { name: /View order/i }));
+  await user.click(await screen.findByRole('button', { name: /new orders? — open/i }));
   return screen.findByRole('dialog', { name: /Accept order/i });
 }
 
@@ -136,8 +140,9 @@ describe('OrdersPage', () => {
     renderPage();
 
     const sheet = await openNewOrderSheet(user);
-    await user.click(within(sheet).getByRole('button', { name: /^25 min$/ }));
-    await user.click(within(sheet).getByRole('button', { name: /^Accept$/ }));
+    // The stepper is a bordered [-]/[+] control: step 20 -> 25.
+    await user.click(within(sheet).getByRole('button', { name: /Increase prep time/i }));
+    await user.click(within(sheet).getByRole('button', { name: /^Accept/ }));
 
     // The queue refetches and the order moves to "preparing" — proven by the
     // authoritative server state landing under the default chip.
@@ -185,7 +190,7 @@ describe('OrdersPage', () => {
     renderPage();
 
     const sheet = await openNewOrderSheet(user);
-    const confirm = within(sheet).getByRole('button', { name: /^Accept$/ });
+    const confirm = within(sheet).getByRole('button', { name: /^Accept/ });
     await user.click(confirm);
     await user.click(confirm);
     await user.click(confirm);
@@ -238,12 +243,72 @@ describe('OrdersPage', () => {
     renderPage();
 
     const sheet = await openNewOrderSheet(user);
-    await user.click(within(sheet).getByRole('button', { name: /^Accept$/ }));
+    await user.click(within(sheet).getByRole('button', { name: /^Accept/ }));
 
     // The server rejected it, so nothing advances: the order is still waiting
     // (the new-order bar is present) and the sheet stays open for a retry.
-    await waitFor(() => expect(screen.getByText(/New order waiting/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /new orders? — open/i })).toBeInTheDocument(),
+    );
     expect(screen.getByRole('dialog', { name: /Accept order/i })).toBeInTheDocument();
+  });
+
+  it('pages between several waiting orders with "1 of N"', async () => {
+    const user = userEvent.setup();
+    queueHandlers([
+      { ...placedOrder, _id: 'ord_1', publicOrderId: 'SW-1001' },
+      { ...placedOrder, _id: 'ord_2', publicOrderId: 'SW-2002' },
+    ]);
+    renderPage();
+
+    const sheet = await openNewOrderSheet(user);
+    expect(within(sheet).getByText('2 new orders')).toBeInTheDocument();
+    expect(within(sheet).getByText(/ID: SW-1001/)).toBeInTheDocument();
+
+    await user.click(within(sheet).getByRole('button', { name: /^Next$/ }));
+    expect(within(sheet).getByText(/ID: SW-2002/)).toBeInTheDocument();
+  });
+
+  it('shows the dark "Order already accepted" toast when the refetch says it moved on', async () => {
+    const user = userEvent.setup();
+    // The order is accepted elsewhere: the accept 409s and the refetched queue
+    // no longer lists it as `placed`.
+    let movedOn = false;
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
+      http.get(`${API_BASE}/orders`, () =>
+        HttpResponse.json({ data: movedOn ? [] : [placedOrder] }),
+      ),
+      http.put(`${API_BASE}/orders/ord_1/accept`, () => {
+        movedOn = true;
+        return HttpResponse.json({ message: 'Order already accepted' }, { status: 409 });
+      }),
+    );
+    renderPage();
+
+    const sheet = await openNewOrderSheet(user);
+    await user.click(within(sheet).getByRole('button', { name: /^Accept/ }));
+
+    expect(await screen.findByText('Order already accepted')).toBeInTheDocument();
+  });
+
+  it('shows the real error message when a failed accept is NOT an already-accepted order', async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
+      // The order is still placed after the refetch, so this is a genuine error.
+      http.get(`${API_BASE}/orders`, () => HttpResponse.json({ data: [placedOrder] })),
+      http.put(`${API_BASE}/orders/ord_1/accept`, () =>
+        HttpResponse.json({ message: 'Kitchen is closed' }, { status: 400 }),
+      ),
+    );
+    renderPage();
+
+    const sheet = await openNewOrderSheet(user);
+    await user.click(within(sheet).getByRole('button', { name: /^Accept/ }));
+
+    expect(await screen.findByText('Kitchen is closed')).toBeInTheDocument();
+    expect(screen.queryByText('Order already accepted')).not.toBeInTheDocument();
   });
 
   it('an expired acceptance window disables Accept', async () => {
@@ -258,7 +323,7 @@ describe('OrdersPage', () => {
 
     const sheet = await openNewOrderSheet(user);
     expect(within(sheet).getByText(/Response window expired/i)).toBeInTheDocument();
-    expect(within(sheet).getByRole('button', { name: /^Accept$/ })).toBeDisabled();
+    expect(within(sheet).getByRole('button', { name: /^Accept/ })).toBeDisabled();
   });
 
   it('marking ready opens the 15-second undo window and undo calls the endpoint', async () => {
@@ -335,7 +400,7 @@ describe('OrdersPage', () => {
     renderPage();
 
     const sheet = await openNewOrderSheet(user);
-    await user.click(within(sheet).getByRole('button', { name: /^Accept$/ }));
+    await user.click(within(sheet).getByRole('button', { name: /^Accept/ }));
 
     // Request in flight: no success flash yet.
     expect(screen.queryByText(/Order accepted/i)).not.toBeInTheDocument();
