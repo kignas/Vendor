@@ -108,3 +108,13 @@ some of them by name, so the test must be updated in lockstep).
 - Status strings are rendered raw and never remapped, per `AGENTS.md` rule 3 —
   including `ready_for_pickup` and `otp_verified`, even though only some appear
   in the contract's flow diagram.
+
+## Phase 3 questions
+
+**Q16. Where should HomePage (Overview) live after Orders becomes the home
+screen?** Step 1 says "Make `/` redirect to `/orders`… remove it from the nav
+(it may be reached from the grid menu as 'Overview')." I kept `HomePage` and
+mounted it at a new `/home` route (the root `/` redirects to `/orders`). The
+Step 2 grid sheet will link "Overview" to `/home`. *Safest assumption:* a
+dedicated `/home` route; confirm the path/label, or say if Overview should be
+folded into the header menu without its own route.
