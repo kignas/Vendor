@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { Skeleton } from './Skeletons';
 import { cn } from '@/lib/cn';
@@ -12,14 +13,35 @@ export interface KpiCardProps {
   loading?: boolean;
   /** Optional helper line under the value. */
   hint?: string | null;
+  /** Optional small leading icon in a tinted badge (Analytics KPIs). */
+  icon?: LucideIcon;
+  /** Tint for the icon badge. */
+  tone?: 'brand' | 'success' | 'info' | 'warning' | 'danger';
   className?: string;
 }
+
+const TONE_BG: Record<NonNullable<KpiCardProps['tone']>, string> = {
+  brand: 'bg-brand/10 text-brand-ink',
+  success: 'bg-success-bg text-success-ink',
+  info: 'bg-info-bg text-info-ink',
+  warning: 'bg-warning-bg text-warning-ink',
+  danger: 'bg-danger-bg text-danger-ink',
+};
 
 /**
  * KPI card. Loading shows a skeleton, never a placeholder number
  * (AGENTS.md rule 5). A `null` value is an explicit "no data" em dash.
  */
-export function KpiCard({ label, value, delta, loading = false, hint, className }: KpiCardProps) {
+export function KpiCard({
+  label,
+  value,
+  delta,
+  loading = false,
+  hint,
+  icon: Icon,
+  tone = 'brand',
+  className,
+}: KpiCardProps) {
   const deltaPositive = typeof delta === 'string' && delta.trim().startsWith('+');
   const deltaNegative = typeof delta === 'string' && delta.trim().startsWith('-');
 
@@ -38,7 +60,17 @@ export function KpiCard({ label, value, delta, loading = false, hint, className 
 
   return (
     <div className={cn('rounded-card border border-border bg-card p-4', className)}>
-      <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">{label}</p>
+      <div className="flex items-center gap-2">
+        {Icon ? (
+          <span
+            className={cn('flex h-6 w-6 items-center justify-center rounded-pill', TONE_BG[tone])}
+            aria-hidden="true"
+          >
+            <Icon className="h-3.5 w-3.5" />
+          </span>
+        ) : null}
+        <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">{label}</p>
+      </div>
       <p className="mt-1.5 text-2xl font-extrabold tabular-nums text-ink">{value ?? '—'}</p>
       <div className="mt-1 flex items-center gap-2">
         {delta ? (

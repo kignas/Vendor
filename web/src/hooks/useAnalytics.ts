@@ -1,6 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
-import { fetchAnalytics, fetchVisits, type AnalyticsPeriod } from '@/services/api/analytics';
+import {
+  fetchAnalytics,
+  fetchAnalyticsOverview,
+  fetchVisits,
+  type AnalyticsPeriod,
+} from '@/services/api/analytics';
 
 /** Sales/order analytics for a period. Mirrors legacy `loadAnalytics`. */
 export function useAnalytics(period: AnalyticsPeriod) {
@@ -16,6 +21,19 @@ export function useVisitAnalytics(period: AnalyticsPeriod) {
   return useQuery({
     queryKey: ['analytics', 'visits', period] as const,
     queryFn: () => fetchVisits(period),
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * Aggregated analytics for the redesigned page: prefers the single
+ * `/analytics/overview` endpoint and transparently falls back to composing the
+ * legacy endpoints. `data.raw` is normalised by `normalizeOverview`.
+ */
+export function useAnalyticsOverview(period: AnalyticsPeriod) {
+  return useQuery({
+    queryKey: ['analytics', 'overview', period] as const,
+    queryFn: () => fetchAnalyticsOverview(period),
     staleTime: 60_000,
   });
 }

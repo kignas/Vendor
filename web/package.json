@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:online-switch": "vitest run src/features/restaurant/OnlineSwitch.test.tsx",
+    "test:analytics": "vitest run src/features/insights/analyticsDomain.test.ts src/features/insights/InsightsPage.test.tsx",
     "preview": "vite preview"
   },
   "dependencies": {

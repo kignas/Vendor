@@ -259,6 +259,45 @@ const server = http.createServer((req, res) => {
     return send(res, 200, { success: true, data: [] });
   }
 
+  if (path === '/api/vendor/analytics/overview') {
+    const period = url.searchParams.get('period') || '7d';
+    return send(res, 200, {
+      success: true,
+      data: {
+        period,
+        current: { totalOrders: 86, sales: 48250, averageOrderValue: 652, cancelledOrders: 6 },
+        previous: { totalOrders: 70, sales: 40000, averageOrderValue: 600, cancelledOrders: 5 },
+        daily: [
+          { date: '2026-10-24', orders: 8, sales: 4200 },
+          { date: '2026-10-25', orders: 14, sales: 7800 },
+          { date: '2026-10-26', orders: 11, sales: 6100 },
+          { date: '2026-10-27', orders: 19, sales: 10500 },
+          { date: '2026-10-28', orders: 12, sales: 6800 },
+          { date: '2026-10-29', orders: 16, sales: 8900 },
+          { date: '2026-10-30', orders: 6, sales: 3950 },
+        ],
+        paymentMix: [
+          { method: 'online', orders: 60, amount: 34000 },
+          { method: 'cod', orders: 26, amount: 14250 },
+        ],
+        dietMix: [
+          { type: 'veg', orders: 40 },
+          { type: 'non_veg', orders: 46 },
+        ],
+        topItems: [
+          { name: 'Masala Dosa', quantity: 42, sales: 5460, spark: [3, 5, 4, 6, 8, 7, 9] },
+          { name: 'Butter Chicken', quantity: 28, sales: 11760, spark: [6, 4, 5, 3, 4, 6, 5] },
+        ],
+        worstItems: [{ name: 'Garden Salad', quantity: 1, sales: 120 }],
+        peakHours: [
+          { hour: 13, orders: 22 },
+          { hour: 20, orders: 30 },
+          { hour: 9, orders: 4 },
+        ],
+        visits: { totalViews: 320, uniqueVisitors: 180 },
+      },
+    });
+  }
   if (path === '/api/vendor/analytics') {
     const period = url.searchParams.get('period') || '7d';
     return send(res, 200, {

@@ -1,96 +1,108 @@
 import { useMemo, useState } from 'react';
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import { BarChart3, TrendingUp } from 'lucide-react';
+  BarChart3,
+  Clock,
+  IndianRupee,
+  Percent,
+  ReceiptText,
+  ShoppingBag,
+  TrendingDown,
+  Trophy,
+} from 'lucide-react';
 import { ScrollTabs } from '@/components/ScrollTabs';
 import { KpiCard } from '@/components/KpiCard';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { ChartCard } from '@/components/ChartCard';
-import { StatusPill } from '@/components/StatusPill';
-import { useAnalytics, useVisitAnalytics } from '@/hooks/useAnalytics';
+import { GradientBarChart } from '@/components/charts/GradientBarChart';
+import { LineChart } from '@/components/charts/LineChart';
+import { DonutChart } from '@/components/charts/DonutChart';
+import { Sparkline } from '@/components/charts/Sparkline';
+import { useAnalyticsOverview } from '@/hooks/useAnalytics';
 import type { AnalyticsPeriod } from '@/services/api/analytics';
-import { enumLabel, firstNumber, formatMoney, num } from '@/lib/format';
+import { formatMoney } from '@/lib/format';
 import { cn } from '@/lib/cn';
 import {
-  conversionRate,
-  dailySeries,
-  deltaLabel,
-  hasSummaryData,
-  orderRates,
-  peakDay,
-  viewsAreZero,
-  withinPeriodTrend,
-} from './growthDomain';
+  hourLabel,
+  kpiTiles,
+  normalizeOverview,
+  peakHoursTop,
+} from './analyticsDomain';
 
 const PERIODS: { id: AnalyticsPeriod; label: string }[] = [
+  { id: 'today', label: 'Today' },
   { id: '7d', label: '7 days' },
   { id: '30d', label: '30 days' },
-  { id: '90d', label: '90 days' },
-  { id: 'all', label: 'All time' },
 ];
 
-const EVENT_LABELS: Record<string, string> = {
-  menu_view: 'Menu opened',
-  restaurant_view: 'Restaurant page',
-};
+const KPI_ICONS = {
+  orders: ShoppingBag,
+  sales: IndianRupee,
+  aov: ReceiptText,
+  cancellation: Percent,
+} as const;
 
-/** `12 Oct` for a yyyy-mm-dd label, falling back to the raw string. */
+const KPI_TONES = {
+  orders: 'brand',
+  sales: 'success',
+  aov: 'info',
+  cancellation: 'danger',
+} as const;
+
+/** `28 Oct` for a yyyy-mm-dd label, falling back to the raw string. */
 function dayLabel(day: string): string {
   const d = new Date(day);
   if (Number.isNaN(d.getTime())) return day;
   return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
 }
 
+/** `Mon` short weekday for the bar-chart axis. */
+function shortDay(day: string): string {
+  const d = new Date(day);
+  if (Number.isNaN(d.getTime())) return day;
+  return d.toLocaleDateString('en-IN', { weekday: 'short' });
+}
+
 /**
- * Growth & Analytics. Real data from GET /vendor/analytics (+ best-effort
- * /analytics/visits). Every figure is read from the server response; a metric
- * the backend did not send is simply omitted rather than zero-filled
- * (AGENTS.md rule 5). No percentage is shown without a valid comparison basis.
+ * Analytics. Real data from the aggregated `GET /vendor/analytics/overview`
+ * (with a transparent fallback to `/analytics` + `/analytics/visits` until it
+ * deploys). Every figure is read from the server; a metric the backend did not
+ * send is omitted rather than zero-filled (AGENTS.md rule 5). Charts are
+ * lightweight inline SVG — no chart library, no paid service.
  */
 export function InsightsPage() {
   const [period, setPeriod] = useState<AnalyticsPeriod>('7d');
-  const analytics = useAnalytics(period);
-  const visits = useVisitAnalytics(period);
+  const query = useAnalyticsOverview(period);
 
-  const data = analytics.data ?? {};
-  const s = data.summary ?? {};
-  const total = firstNumber(s.totalOrders);
-  const delivered = firstNumber(s.deliveredOrders);
-  const cancelled = firstNumber(s.cancelledOrders);
-  const sales = firstNumber(s.deliveredFoodSales);
-  const avg = firstNumber(s.averageDeliveredOrderValue);
-  const rates = orderRates(s);
+  const source = query.data?.source;
+  const overview = useMemo(() => normalizeOverview(query.data?.raw), [query.data?.raw]);
+  const tiles = useMemo(() => kpiTiles(overview.current, overview.previous), [overview]);
 
-  const daily = useMemo(() => dailySeries(data.daily), [data.daily]);
-  const topItems = Array.isArray(data.topItems) ? data.topItems : [];
-  const trend = useMemo(() => withinPeriodTrend(daily, 'sales'), [daily]);
-  const peak = useMemo(() => peakDay(daily), [daily]);
+  const daily = overview.daily;
+  const barData = daily.slice(-7).map((d) => ({ label: shortDay(d.date), value: d.orders }));
+  const linePoints = daily.map((d) => ({
+    key: d.date,
+    label: dayLabel(d.date),
+    value: d.sales,
+    display: formatMoney(d.sales),
+  }));
+  const topDishes = overview.topItems.slice(0, 5);
+  const worstDishes = overview.worstItems.slice(0, 5);
+  const peaks = peakHoursTop(overview.peakHours, 3);
 
-  const visitSummary = visits.data?.summary;
-  const visitDaily = (visits.data?.daily ?? []).filter((r) => (num(r.views) ?? 0) > 0);
-  const visitTypes = visits.data?.byEventType ?? [];
-  const totalViews = firstNumber(visitSummary?.totalViews);
-  const uniqueVisitors = firstNumber(visitSummary?.uniqueVisitors);
+  const totalViews = overview.visits?.totalViews ?? null;
+  const uniqueVisitors = overview.visits?.uniqueVisitors ?? null;
+  const viewsAreZero = totalViews === 0;
 
-  const conversion = conversionRate(total, totalViews);
-  const noViewsRecorded = viewsAreZero(totalViews);
-
-  const hasKpis = hasSummaryData(s) || totalViews !== null;
-  const periodLabel = PERIODS.find((p) => p.id === period)?.label ?? '';
+  const hasData =
+    (overview.current.totalOrders ?? 0) > 0 ||
+    daily.length > 0 ||
+    topDishes.length > 0 ||
+    (totalViews !== null && totalViews > 0);
 
   return (
     <section className="space-y-4">
-      <h1 className="text-lg font-extrabold text-ink">Growth</h1>
+      <h1 className="text-lg font-extrabold text-ink">Analytics</h1>
 
       <ScrollTabs activeKey={period} label="Analytics period" className="-mx-4 gap-2 px-4">
         {PERIODS.map((p) => (
@@ -111,229 +123,177 @@ export function InsightsPage() {
         ))}
       </ScrollTabs>
 
-      {analytics.isError ? (
+      {query.isError ? (
         <ErrorState
           message="Could not load analytics."
-          onRetry={() => void analytics.refetch()}
-          retrying={analytics.isFetching}
+          onRetry={() => void query.refetch()}
+          retrying={query.isFetching}
         />
       ) : null}
 
-      {!analytics.isError && analytics.isLoading ? (
+      {!query.isError && query.isLoading ? (
         <div className="grid grid-cols-2 gap-3">
-          <KpiCard label="Total orders" value={null} loading />
-          <KpiCard label="Delivered" value={null} loading />
-          <KpiCard label="Delivered sales" value={null} loading />
-          <KpiCard label="Avg order value" value={null} loading />
+          {tiles.map((t) => (
+            <KpiCard key={t.key} label={t.label} value={null} loading />
+          ))}
         </div>
       ) : null}
 
-      {!analytics.isError && analytics.isSuccess && !hasKpis ? (
+      {!query.isError && query.isSuccess && !hasData ? (
         <EmptyState
           title="No analytics for this period"
-          description={`No orders or views were recorded for the last ${periodLabel.toLowerCase()}. Try another period.`}
+          description="No orders or views were recorded for this period. Try another period."
           icon={BarChart3}
         />
       ) : null}
 
-      {!analytics.isError && hasKpis ? (
+      {!query.isError && query.isSuccess && hasData ? (
         <>
           <div className="grid grid-cols-2 gap-3">
-            {sales !== null ? (
+            {tiles.map((t) => (
               <KpiCard
-                label="Delivered sales"
-                value={formatMoney(sales)}
-                delta={deltaLabel(trend.changePct)}
-                hint={trend.changePct !== null ? '2nd half vs 1st half' : null}
-                className="col-span-2"
+                key={t.key}
+                label={t.label}
+                value={t.value}
+                delta={t.delta}
+                icon={KPI_ICONS[t.key]}
+                tone={KPI_TONES[t.key]}
               />
-            ) : null}
-            {total !== null ? <KpiCard label="Total orders" value={String(total)} /> : null}
-            {delivered !== null ? <KpiCard label="Completed orders" value={String(delivered)} /> : null}
-            {avg !== null ? <KpiCard label="Avg order value" value={formatMoney(avg)} /> : null}
-            {rates.cancellationRate !== null ? (
-              <KpiCard label="Cancellation rate" value={`${rates.cancellationRate}%`} />
-            ) : null}
-            {totalViews !== null ? <KpiCard label="Menu views" value={String(totalViews)} /> : null}
-            {uniqueVisitors !== null ? (
-              <KpiCard label="Unique visitors" value={String(uniqueVisitors)} />
-            ) : null}
-            {conversion ? (
-              <KpiCard
-                label="Conversion"
-                value={`${conversion.pct}%`}
-                hint={`orders ÷ ${conversion.denominator}`}
-              />
-            ) : null}
+            ))}
           </div>
 
-          {noViewsRecorded ? (
+          {barData.some((b) => b.value > 0) ? (
+            <section className="rounded-card border border-border bg-gradient-to-br from-brand/10 via-card to-card p-4">
+              <header className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-ink">Orders</h2>
+                <span className="text-[11px] font-semibold text-ink-faint">Last 7 days</span>
+              </header>
+              <GradientBarChart data={barData} ariaLabel="Orders · last 7 days" />
+            </section>
+          ) : null}
+
+          {linePoints.length > 1 ? (
+            <ChartCard
+              title="Sales trend"
+              action={
+                <select
+                  aria-label="Sales trend period"
+                  value={period}
+                  onChange={(e) => setPeriod(e.target.value as AnalyticsPeriod)}
+                  className="min-h-tap rounded-btn border border-border bg-card px-2 text-xs font-semibold text-ink"
+                >
+                  {PERIODS.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              }
+            >
+              <LineChart points={linePoints} ariaLabel="Sales trend" />
+            </ChartCard>
+          ) : null}
+
+          {overview.paymentMix.length ? (
+            <DonutChart
+              title="Payment methods"
+              unit="orders"
+              data={overview.paymentMix.map((r) => ({ key: r.key, label: r.label, value: r.orders }))}
+            />
+          ) : null}
+
+          {overview.dietMix.length ? (
+            <DonutChart
+              title="Veg vs non-veg"
+              unit="orders"
+              data={overview.dietMix.map((r) => ({ key: r.key, label: r.label, value: r.orders }))}
+            />
+          ) : null}
+
+          {topDishes.length ? (
+            <ChartCard title="Top dishes">
+              <ul className="divide-y divide-border-soft">
+                {topDishes.map((item, i) => (
+                  <li key={item.name + i} className="flex items-center justify-between gap-3 py-2">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-pill bg-brand/10 text-[10px] font-bold text-brand-ink">
+                        {i + 1}
+                      </span>
+                      <span className="truncate text-sm text-ink">{item.name}</span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-3">
+                      {item.spark.length > 1 ? (
+                        <Sparkline values={item.spark} ariaLabel={`${item.name} trend`} />
+                      ) : null}
+                      <span className="text-sm font-semibold tabular-nums text-ink-soft">
+                        {item.quantity} orders
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </ChartCard>
+          ) : null}
+
+          {worstDishes.length ? (
+            <ChartCard title="Worst sellers">
+              <ul className="divide-y divide-border-soft">
+                {worstDishes.map((item, i) => (
+                  <li key={item.name + i} className="flex items-center justify-between gap-2 py-2">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <TrendingDown className="h-4 w-4 shrink-0 text-danger-ink" aria-hidden="true" />
+                      <span className="truncate text-sm text-ink">{item.name}</span>
+                    </span>
+                    <span className="shrink-0 text-sm font-semibold tabular-nums text-ink-soft">
+                      {item.quantity} orders
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </ChartCard>
+          ) : null}
+
+          {peaks.length ? (
+            <ChartCard
+              title="Peak hours"
+              action={<Clock className="h-4 w-4 text-ink-faint" aria-hidden="true" />}
+            >
+              <ul className="space-y-2">
+                {peaks.map((p) => (
+                  <li key={p.hour} className="flex items-center justify-between text-sm">
+                    <span className="text-ink-soft">{hourLabel(p.hour)}</span>
+                    <span className="font-semibold tabular-nums text-ink">{p.orders} orders</span>
+                  </li>
+                ))}
+              </ul>
+            </ChartCard>
+          ) : null}
+
+          {totalViews !== null || uniqueVisitors !== null ? (
+            <div className="grid grid-cols-2 gap-3">
+              {totalViews !== null ? (
+                <KpiCard label="Menu views" value={String(totalViews)} icon={Trophy} tone="warning" />
+              ) : null}
+              {uniqueVisitors !== null ? (
+                <KpiCard label="Unique visitors" value={String(uniqueVisitors)} icon={Trophy} tone="warning" />
+              ) : null}
+            </div>
+          ) : null}
+
+          {viewsAreZero ? (
             <p className="rounded-btn bg-info-bg px-3 py-2 text-xs text-info-ink" role="note">
-              Customer menu views are not being recorded yet, so views and conversion stay at
+              Customer menu views are not being recorded yet, so views and unique visitors stay at
               zero. This needs a visit event on the customer app — see BACKEND-GAPS.md. The sales
               and order figures above are real.
             </p>
           ) : null}
 
-          {peak || rates.deliveredRate !== null ? (
-            <div className="rounded-card border border-border bg-card p-4">
-              <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
-                <TrendingUp className="h-4 w-4 text-brand-ink" aria-hidden="true" /> At a glance
-              </h2>
-              <ul className="mt-2 space-y-1.5 text-sm">
-                {rates.deliveredRate !== null ? (
-                  <li className="flex items-center justify-between">
-                    <span className="text-ink-soft">Fulfilment rate</span>
-                    <span className="font-semibold tabular-nums text-ink">
-                      {rates.deliveredRate}%
-                    </span>
-                  </li>
-                ) : null}
-                {peak ? (
-                  <li className="flex items-center justify-between">
-                    <span className="text-ink-soft">Busiest day</span>
-                    <span className="font-semibold text-ink">
-                      {dayLabel(peak.day)} · {peak.orders} orders
-                    </span>
-                  </li>
-                ) : null}
-                {cancelled !== null ? (
-                  <li className="flex items-center justify-between">
-                    <span className="text-ink-soft">Cancelled orders</span>
-                    <span className="font-semibold tabular-nums text-ink">{cancelled}</span>
-                  </li>
-                ) : null}
-              </ul>
-            </div>
+          {source === 'composed' ? (
+            <p className="text-[11px] text-ink-faint" role="note">
+              Comparison and mix charts appear once the aggregated analytics endpoint is deployed.
+            </p>
           ) : null}
         </>
-      ) : null}
-
-      {daily.length ? (
-        <ChartCard title={`Delivered sales · last ${periodLabel.toLowerCase()}`}>
-          <div className="h-44 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={daily} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="salesFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="rgb(var(--es-brand-ink))" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="rgb(var(--es-brand-ink))" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} stroke="rgb(var(--es-border))" strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="day"
-                  tickFormatter={dayLabel}
-                  tickLine={false}
-                  axisLine={false}
-                  fontSize={11}
-                  stroke="rgb(var(--es-ink-faint))"
-                  minTickGap={16}
-                />
-                <YAxis hide />
-                <Tooltip
-                  formatter={(v: number) => formatMoney(v)}
-                  labelFormatter={(l: string) => dayLabel(l)}
-                  contentStyle={{
-                    background: 'rgb(var(--es-card))',
-                    border: '1px solid rgb(var(--es-border))',
-                    borderRadius: 12,
-                    fontSize: 12,
-                    color: 'rgb(var(--es-ink))',
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="sales"
-                  stroke="rgb(var(--es-brand-ink))"
-                  strokeWidth={2}
-                  fill="url(#salesFill)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </ChartCard>
-      ) : null}
-
-      {daily.some((d) => d.orders > 0) ? (
-        <ChartCard title="Orders per day">
-          <div className="h-40 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={daily} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid vertical={false} stroke="rgb(var(--es-border))" strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="day"
-                  tickFormatter={dayLabel}
-                  tickLine={false}
-                  axisLine={false}
-                  fontSize={11}
-                  stroke="rgb(var(--es-ink-faint))"
-                  minTickGap={16}
-                />
-                <YAxis hide allowDecimals={false} />
-                <Tooltip
-                  formatter={(v: number) => [`${v} orders`, 'Orders']}
-                  labelFormatter={(l: string) => dayLabel(l)}
-                  contentStyle={{
-                    background: 'rgb(var(--es-card))',
-                    border: '1px solid rgb(var(--es-border))',
-                    borderRadius: 12,
-                    fontSize: 12,
-                    color: 'rgb(var(--es-ink))',
-                  }}
-                />
-                <Bar dataKey="orders" fill="rgb(var(--es-brand-ink))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </ChartCard>
-      ) : null}
-
-      {topItems.length ? (
-        <ChartCard title="Best-selling items">
-          <ul className="divide-y divide-border-soft">
-            {topItems.map((item, i) => {
-              const name = item.name ?? item.itemName ?? item._id ?? 'Item';
-              const qty = firstNumber(item.quantity, item.count);
-              const itemSales = firstNumber(item.sales);
-              return (
-                <li key={String(name) + i} className="flex items-center justify-between gap-2 py-2 text-sm">
-                  <span className="flex min-w-0 items-center gap-2">
-                    <StatusPill tone={i === 0 ? 'brand' : 'neutral'}>{i + 1}</StatusPill>
-                    <span className="truncate text-ink">{name}</span>
-                  </span>
-                  <span className="shrink-0 tabular-nums text-ink-soft">
-                    {qty !== null ? `${qty} sold` : ''}
-                    {itemSales !== null ? `${qty !== null ? ' · ' : ''}${formatMoney(itemSales)}` : ''}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </ChartCard>
-      ) : null}
-
-      {visitDaily.length || visitTypes.length ? (
-        <ChartCard title="Customer views" loading={visits.isLoading}>
-          <ul className="divide-y divide-border-soft">
-            {visitTypes.map((t) => (
-              <li key={String(t.eventType)} className="flex items-center justify-between py-2 text-sm">
-                <span className="text-ink">
-                  {EVENT_LABELS[String(t.eventType)] ?? enumLabel(t.eventType)}
-                </span>
-                <span className="tabular-nums text-ink-soft">{num(t.count) ?? 0} views</span>
-              </li>
-            ))}
-            {visitDaily.slice(-14).map((row) => (
-              <li key={String(row.day)} className="flex items-center justify-between py-2 text-sm">
-                <span className="text-ink">{dayLabel(String(row.day).slice(0, 10))}</span>
-                <span className="tabular-nums text-ink-soft">
-                  {num(row.views) ?? 0} views · {num(row.uniqueVisitors) ?? 0} unique
-                </span>
-              </li>
-            ))}
-          </ul>
-        </ChartCard>
       ) : null}
     </section>
   );
