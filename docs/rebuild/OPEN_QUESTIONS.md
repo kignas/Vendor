@@ -226,3 +226,42 @@ It is never linked in production, so no user reaches it; the cost is one unused
 ~386 kB (108 kB gzip) chunk. *Confirm* whether the team wants the gallery
 stripped from production builds entirely (e.g. a build-time alias that stubs the
 module when `!DEV`) or is happy to keep the dead chunk for now.
+
+**Q27. `GET /vendor/analytics/overview` is designed but not deployed.**
+The existing Analytics page reads a single aggregated endpoint
+(`docs/rebuild/ANALYTICS_BACKEND.md`), but `routes/vendorRoutes.js` mounts no
+`/analytics/overview` route (confirmed: no route, no controller in the backend).
+The page therefore always takes its 404 fallback. The redesigned page drops the
+invented endpoint entirely and composes from the two real routes
+(`/analytics` + `/analytics/visits`) plus `/performance`. *Confirm* whether the
+overview endpoint is still planned; if it ships later it can be adopted without a
+UI change because the redesign already tolerates the aggregated shape.
+
+**Q28. Custom date range for the vendor visit analytics.**
+`getRestaurantVisitAnalytics` accepts `from`/`to` ISO bounds
+(`analyticsService.periodBounds`), but the vendor route
+(`analyticsController.getVendorMenuAnalytics`) forwards only `period`. A true
+"Custom" range therefore cannot be honoured for a vendor today. The redesign
+offers presets (Today / 7 days / 30 days / 90 days) only. *Confirm* whether the
+vendor route should forward `from`/`to` so a custom picker can be enabled.
+
+**Q29. Per-order settlement wording vs the "customer-funded uplift" model.**
+`GET /vendor/earnings/orders` returns `commissionRate`, `commission`,
+`restaurantNetAmount` and `commissionSource` per order, and
+`services/commissionService.js` defines 15% (self-delivery) / 25% (Eatswada
+rider). The task states the settlement model is a customer-funded uplift with no
+vendor-facing "30% commission". The redesigned Finance view never prints a
+commission-rate *claim*; it shows the per-order base amount (`foodSales`) and the
+net the backend returns. *Confirm* the customer-facing wording for the per-order
+base settlement and whether the returned `commissionRate` should be surfaced to
+vendors at all.
+
+**Q30. No vendor settlement statement / refund-adjustment route.**
+The per-order refund/adjustment ledger (`models/SettlementLedger.js`:
+`vendorDiscountShare`, `penaltyAdjustment`, `netVendorPayable`) is exposed to
+vendors only through the aggregate `eligibleBalance` on
+`/settlements/summary`; the itemised statement route
+(`/settlements/restaurants/:id/statement`) is **admin-only**. Phase 3 therefore
+shows the per-order base settlement from `/earnings/orders` and the payout status
+from `/settlements/summary`, but no per-order refund/adjustment line. *Confirm*
+whether a vendor-scoped statement route should be added.
