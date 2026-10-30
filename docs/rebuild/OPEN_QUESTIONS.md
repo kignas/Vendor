@@ -139,3 +139,26 @@ vocabulary of `cutleryPreference`. *Safest assumption:* treat an explicit boolea
 `false` as the only certain opt-out and also accept an obvious negative string;
 when every field is absent or truthy the tag is hidden (never guessed). Confirm
 the real field type and allowed values so the string heuristic can be dropped.
+
+**Q19. Info-carousel card copy and the settlement/alert thresholds (Step 6).**
+`PHASE-3-ZOMATO-LAYOUT.md` Step 6 lists the card *sources* but not the exact
+copy, the "which screen" link targets, or a minimum amount for the settlement
+card. *Safest assumptions taken, each of which can be re-worded without code
+changes:* (a) alert cards use the server alert *type* only (`out_of_stock`,
+`low_stock`, `menu_pending`, `menu_rejected`) and show the **count of matching
+alerts** — never a per-item title, so no server text is paraphrased; `order_action`
+is deliberately excluded because the new-order bar (Step 4) already owns it;
+(b) the settlement card appears only when `availableForWithdrawal > 0` (an active
+`activePayoutRequest` gets its own "withdrawal in progress" card); (c) link
+targets are the existing routes `/inventory?seg=stock`, `/inventory`,
+`/business?seg=finance`, `/profile`; (d) a profile card is emitted only when the
+server sends an explicit non-verified `fssaiVerificationStatus` (an absent field
+is never shown as "pending"). Confirm the wording and whether the settlement card
+should have a minimum amount.
+
+**Q20. Carousel card copy is derived, not server text.** Related to Q19: the
+title/body strings in `infoCards.ts` are fixed UI copy around real server
+*values* (counts and the `availableForWithdrawal` figure). No number is invented
+and no server prose is rewritten. If the product wants the server's own
+`alert.title`/`alert.message` rendered verbatim instead of the derived copy, say
+so and the builder can switch to those fields.

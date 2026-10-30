@@ -17,6 +17,7 @@ import { AcceptOrderSheet } from '@/features/orders/AcceptOrderSheet';
 import { SuccessFlash } from '@/features/orders/SuccessFlash';
 import { Sheet } from '@/components/Sheet';
 import { OrderChips, type OrderChip } from '@/features/orders/OrderChips';
+import { InfoCarousel } from '@/features/orders/InfoCarousel';
 import { printKot } from '@/features/orders/kot';
 import { speakOrder } from '@/features/orders/voice';
 import { useUiStore } from '@/app/uiStore';
@@ -195,6 +196,9 @@ export function OrdersPage() {
       />
       {/* Reserve space so the fixed new-order bar never covers the list. */}
       {waiting.length ? <div aria-hidden="true" className="h-16" /> : null}
+
+      {/* Real-data info cards (alerts / settlement / profile); hides itself when empty. */}
+      <InfoCarousel />
 
       {searchOpen ? (
         <label className="relative block">
