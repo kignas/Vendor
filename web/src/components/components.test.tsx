@@ -3,7 +3,12 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
+import { server } from '@/test/server';
+import { API_BASE } from '@/lib/api';
 import { makeQueryClient } from '@/lib/queryClient';
+import { resetOverlays } from '@/app/overlayStack';
+import { BottomNav } from '@/app/BottomNav';
 import { KpiCard } from '@/components/KpiCard';
 import { StatusPill } from '@/components/StatusPill';
 import { EmptyState } from '@/components/EmptyState';
@@ -91,6 +96,31 @@ describe('shared components', () => {
     // Falls back to sr-only defaults so Radix never warns and AT always has context.
     expect(screen.getByText('Options')).toBeInTheDocument();
     expect(screen.getByText('Bottom sheet content')).toBeInTheDocument();
+  });
+
+  it('an open BottomSheet hides the primary nav so it cannot cover the sheet', async () => {
+    resetOverlays();
+    server.use(http.get(`${API_BASE}/orders`, () => HttpResponse.json({ data: [] })));
+    const tree = (children: React.ReactNode) => (
+      <QueryClientProvider client={makeQueryClient()}>
+        <MemoryRouter>{children}</MemoryRouter>
+      </QueryClientProvider>
+    );
+    const { rerender } = render(tree(<BottomNav />));
+    expect(screen.getByRole('navigation', { name: /primary/i })).toBeInTheDocument();
+
+    rerender(
+      tree(
+        <>
+          <BottomSheet open onOpenChange={() => undefined} title="Outlet status">
+            <p>Body</p>
+          </BottomSheet>
+          <BottomNav />
+        </>,
+      ),
+    );
+    expect(screen.queryByRole('navigation', { name: /primary/i })).not.toBeInTheDocument();
+    resetOverlays();
   });
 });
 

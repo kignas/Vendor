@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
+import { useOverlayOpen } from '@/hooks/useOverlayOpen';
 import { profileNudgeFor, type ProfileNudgeContent } from '@/features/restaurant/profileField';
 import { NUDGE_BOTTOM, NUDGE_VAR, useMeasuredStackVar } from '@/app/bottomStack';
 
@@ -39,10 +40,12 @@ function writeDismissed(): void {
 export function ProfileNudge() {
   const profile = useProfile();
   const [dismissed, setDismissed] = useState(readDismissed);
+  const overlayOpen = useOverlayOpen();
 
   // Only a successfully loaded profile can tell us a field is missing.
   const content = profile.isSuccess ? profileNudgeFor(profile.data as Record<string, unknown> | null) : null;
-  const visible = !dismissed && content !== null;
+  // Hide while a sheet/dialog is open so the nudge can never sit over it.
+  const visible = !dismissed && content !== null && !overlayOpen;
 
   if (!visible || !content) return null;
 

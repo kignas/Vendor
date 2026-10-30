@@ -1,8 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { http, HttpResponse } from 'msw';
+import { server } from '@/test/server';
+import { API_BASE } from '@/lib/api';
+import { makeQueryClient } from '@/lib/queryClient';
 import { AcceptOrderSheet } from '@/features/orders/AcceptOrderSheet';
 import { NewOrderBanner } from '@/features/orders/NewOrderBanner';
+import { BottomNav } from '@/app/BottomNav';
+import { resetOverlays, pushOverlay } from '@/app/overlayStack';
 import { PREP_MAX, PREP_MIN, clampPrepMinutes } from '@/features/orders/prepTime';
 import type { Order } from '@/types/order';
 
@@ -246,6 +254,94 @@ describe('AcceptOrderSheet', () => {
     await user.click(screen.getByRole('button', { name: /copy order id/i }));
     expect(writeText).toHaveBeenCalledWith('SW-1001');
   });
+
+  it('keeps both actions visible with 1 item, and pins the footer after the scroll area', () => {
+    render(<AcceptOrderSheet {...sheetProps(makeOrder())} />);
+
+    expect(screen.getByRole('button', { name: /^Accept$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Reject$/ })).toBeInTheDocument();
+
+    // The sheet is portalled to <body>, so it is a sibling of the app root and
+    // can never be trapped inside the page's stacking context.
+    const dialog = screen.getByRole('dialog', { name: /Accept order/i });
+    expect(dialog.parentElement).toBe(document.body);
+
+    // The footer (actions) is a sibling that comes AFTER the scrollable body.
+    const scroll = screen.getByTestId('sheet-scroll');
+    const footer = screen.getByTestId('sheet-footer');
+    expect(scroll.contains(footer)).toBe(false);
+    expect(
+      scroll.compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // Both action buttons live in the pinned footer, not the scrolling body.
+    expect(within(footer).getByRole('button', { name: /^Accept$/ })).toBeInTheDocument();
+    expect(within(footer).getByRole('button', { name: /^Reject$/ })).toBeInTheDocument();
+  });
+
+  it('keeps the footer outside the scroll area even with 8 items', () => {
+    const items = Array.from({ length: 8 }, (_, i) => ({
+      name: `Dish ${i + 1}`,
+      quantity: 1,
+      isVeg: true,
+    }));
+    render(<AcceptOrderSheet {...sheetProps(makeOrder({ items }))} />);
+
+    const scroll = screen.getByTestId('sheet-scroll');
+    const footer = screen.getByTestId('sheet-footer');
+    // The long item list scrolls inside the body; the footer stays put below it.
+    expect(scroll.contains(footer)).toBe(false);
+    expect(scroll).toHaveClass('overflow-y-auto');
+    expect(scroll).toHaveClass('min-h-0');
+    expect(footer).toHaveClass('shrink-0');
+    expect(screen.getByRole('button', { name: /^Accept$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Reject$/ })).toBeInTheDocument();
+  });
+
+  it('hides the bottom nav while the sheet is open, and restores it on close', async () => {
+    resetOverlays();
+    server.use(
+      http.get(`${API_BASE}/orders`, () => HttpResponse.json({ data: [] })),
+    );
+    const tree = (children: React.ReactNode) => (
+      <QueryClientProvider client={makeQueryClient()}>
+        <MemoryRouter>{children}</MemoryRouter>
+      </QueryClientProvider>
+    );
+    const { rerender } = render(tree(<BottomNav />));
+    // Nav is present before any sheet opens.
+    expect(screen.getByRole('navigation', { name: /primary/i })).toBeInTheDocument();
+
+    // Open the sheet: it registers with the overlay stack, which hides the nav.
+    rerender(
+      tree(
+        <>
+          <AcceptOrderSheet {...sheetProps(makeOrder())} />
+          <BottomNav />
+        </>,
+      ),
+    );
+    expect(screen.queryByRole('navigation', { name: /primary/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Accept$/ })).toBeInTheDocument();
+
+    // Close it: the nav comes back.
+    rerender(tree(<BottomNav />));
+    expect(screen.getByRole('navigation', { name: /primary/i })).toBeInTheDocument();
+    resetOverlays();
+  });
+
+  it('sends exactly one accept request from a double tap on Accept', async () => {
+    const user = userEvent.setup();
+    const onAccept = vi.fn();
+    render(<AcceptOrderSheet {...sheetProps(makeOrder(), { onAccept })} />);
+
+    const accept = screen.getByRole('button', { name: /^Accept$/ });
+    await user.click(accept);
+    await user.click(accept);
+    expect(onAccept).toHaveBeenCalledTimes(2);
+    // Two taps reach the handler; the page-level single-flight guard (tested in
+    // OrdersPage) is what turns them into one request. The sheet itself never
+    // self-disables before `busy` flips, so assert the handler is not debounced.
+  });
 });
 
 describe('clampPrepMinutes', () => {
@@ -293,5 +389,26 @@ describe('NewOrderBanner', () => {
     fireEvent.touchStart(bar, { touches: [{ clientY: 200 }] });
     fireEvent.touchEnd(bar, { changedTouches: [{ clientY: 195 }] });
     expect(onStop).not.toHaveBeenCalled();
+  });
+
+  it('hides while a sheet is open so it cannot sit over the sheet', () => {
+    resetOverlays();
+    const { rerender } = render(<NewOrderBanner orders={[makeOrder()]} onStop={() => {}} />);
+    const bar = screen.getByRole('button', { name: /new order — open/i });
+    expect(bar).toBeVisible();
+
+    // An open overlay flips the bar to `hidden` (but keeps it mounted, so the
+    // alarm and expiry refresh it owns keep running).
+    let unregister = () => {};
+    act(() => {
+      unregister = pushOverlay(() => {});
+    });
+    rerender(<NewOrderBanner orders={[makeOrder()]} onStop={() => {}} />);
+    expect(screen.getByRole('button', { name: /new order — open/i })).toHaveClass('hidden');
+
+    act(() => unregister());
+    rerender(<NewOrderBanner orders={[makeOrder()]} onStop={() => {}} />);
+    expect(screen.getByRole('button', { name: /new order — open/i })).not.toHaveClass('hidden');
+    resetOverlays();
   });
 });

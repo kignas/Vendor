@@ -3,6 +3,7 @@ import { BarChart3, Boxes, History, Receipt, Star } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { ordersForTab } from '@/features/orders/orderDomain';
 import { useOrderQueue } from '@/hooks/useOrders';
+import { useOverlayOpen } from '@/hooks/useOverlayOpen';
 import { cn } from '@/lib/cn';
 import { NAV_VAR, measureNavHeight, useMeasuredStackVar } from '@/app/bottomStack';
 
@@ -43,6 +44,12 @@ export function BottomNav() {
   // Measure the inner list (content height) so the nudge/bar/bubble offsets can
   // stack above the nav without double-counting the safe-area padding.
   const measureRef = useMeasuredStackVar(NAV_VAR, true, measureNavHeight);
+
+  // A bottom sheet or dialog covers the whole screen; hide the nav so it can
+  // never paint over the sheet's footer (the sheet also portals above it, but
+  // hiding is belt-and-braces and removes it from the a11y tree while open).
+  const overlayOpen = useOverlayOpen();
+  if (overlayOpen) return null;
 
   return (
     <nav
