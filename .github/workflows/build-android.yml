@@ -3,7 +3,7 @@ name: Build Vendor Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [main, master]
+    branches: [main, master, rebuild/phase-2-orders]
 
 permissions:
   contents: read
