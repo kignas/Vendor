@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'sonner';
 import { queryClient } from '@/lib/queryClient';
 import { applyTheme, useUiStore, watchSystemTheme } from '@/app/uiStore';
+import { AppToaster } from '@/app/AppToaster';
 
 /**
  * App-wide providers. TanStack Query wraps everything; sonner provides toasts
@@ -22,11 +22,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <Toaster
-        position="bottom-center"
-        theme={theme}
-        toastOptions={{ style: { fontFamily: 'Manrope, system-ui, sans-serif' } }}
-      />
+      <AppToaster />
     </QueryClientProvider>
   );
 }

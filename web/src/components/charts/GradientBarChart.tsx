@@ -57,7 +57,7 @@ export function GradientBarChart({ data, ariaLabel, height = 120, className }: G
           );
         })}
       </svg>
-      <div className="mt-1 flex justify-between text-[10px] text-ink-faint" aria-hidden="true">
+      <div className="mt-1 flex justify-between text-[10px] text-ink-soft" aria-hidden="true">
         {data.map((d, i) => (
           <span key={d.label + i} className="flex-1 text-center">
             {d.label}

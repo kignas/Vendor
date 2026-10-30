@@ -127,7 +127,7 @@ function InfoCardItem({
           onClick={onDismiss}
           aria-label={`Dismiss: ${card.title}`}
           className={cn(
-            '-mr-1 -mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-btn hover:bg-canvas',
+            '-mr-2 -mt-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-btn hover:bg-canvas',
             tone.close,
           )}
         >

@@ -39,7 +39,7 @@ export function EmptyState({
         <span className="mb-3">{illustration}</span>
       ) : Icon ? (
         <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-pill bg-border-soft">
-          <Icon className="h-6 w-6 text-ink-faint" aria-hidden="true" />
+          <Icon className="h-6 w-6 text-ink-soft" aria-hidden="true" />
         </span>
       ) : null}
       <p className="text-sm font-semibold text-ink">{title}</p>

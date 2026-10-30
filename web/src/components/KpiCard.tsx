@@ -69,7 +69,7 @@ export function KpiCard({
             <Icon className="h-3.5 w-3.5" />
           </span>
         ) : null}
-        <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">{label}</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-ink-soft">{label}</p>
       </div>
       <p className="mt-1.5 text-2xl font-extrabold tabular-nums text-ink">{value ?? '—'}</p>
       <div className="mt-1 flex items-center gap-2">
@@ -87,7 +87,7 @@ export function KpiCard({
             {delta}
           </span>
         ) : null}
-        {hint ? <span className="text-xs text-ink-faint">{hint}</span> : null}
+        {hint ? <span className="text-xs text-ink-soft">{hint}</span> : null}
       </div>
     </div>
   );

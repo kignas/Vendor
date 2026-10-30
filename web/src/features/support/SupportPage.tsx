@@ -146,7 +146,7 @@ function NewTicketSheet({ open, onClose }: { open: boolean; onClose: () => void 
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={4}
-            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand-ink"
+            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink focus-visible:border-brand-ink"
             placeholder="Describe the issue"
           />
         </div>
@@ -192,7 +192,7 @@ function ReplySheet({ ticket, onClose }: { ticket: SupportTicket | null; onClose
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
           aria-label="Message"
-          className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand-ink"
+          className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink focus-visible:border-brand-ink"
           placeholder="Add a message to this ticket"
         />
         <Button

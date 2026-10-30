@@ -69,7 +69,9 @@ export function useOrderActions() {
           // queue now says so. Otherwise this is a real error and we show it.
           await queryClient.refetchQueries({ queryKey: queryKeys.orders('queue') });
           if (!isStillPlaced(id)) {
-            toast(options.goneMessage, { style: { background: '#18181B', color: '#FFFFFF' } });
+            // The dark pill styling lives in the Toaster (index.css `.es-toast`),
+            // so no inline colour is needed here.
+            toast(options.goneMessage);
             return false;
           }
         }

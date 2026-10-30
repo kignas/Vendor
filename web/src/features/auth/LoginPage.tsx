@@ -87,7 +87,7 @@ export function LoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="min-h-tap w-full rounded-btn border border-border bg-card px-3 text-sm text-ink outline-none focus:border-brand-ink"
+            className="min-h-tap w-full rounded-btn border border-border bg-card px-3 text-sm text-ink focus:border-brand-ink"
           />
         </div>
         <div className="space-y-1.5">
@@ -101,7 +101,7 @@ export function LoginPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="min-h-tap w-full rounded-btn border border-border bg-card px-3 text-sm text-ink outline-none focus:border-brand-ink"
+            className="min-h-tap w-full rounded-btn border border-border bg-card px-3 text-sm text-ink focus:border-brand-ink"
           />
         </div>
 

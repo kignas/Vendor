@@ -166,7 +166,7 @@ export function InsightsPage() {
             <section className="rounded-card border border-border bg-gradient-to-br from-brand/10 via-card to-card p-4">
               <header className="mb-3 flex items-center justify-between">
                 <h2 className="text-sm font-bold text-ink">Orders</h2>
-                <span className="text-[11px] font-semibold text-ink-faint">Last 7 days</span>
+                <span className="text-[11px] font-semibold text-ink-soft">Last 7 days</span>
               </header>
               <GradientBarChart data={barData} ariaLabel="Orders · last 7 days" />
             </section>
@@ -289,7 +289,7 @@ export function InsightsPage() {
           ) : null}
 
           {source === 'composed' ? (
-            <p className="text-[11px] text-ink-faint" role="note">
+            <p className="text-[11px] text-ink-soft" role="note">
               Comparison and mix charts appear once the aggregated analytics endpoint is deployed.
             </p>
           ) : null}

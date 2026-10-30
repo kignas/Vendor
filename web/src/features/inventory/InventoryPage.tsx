@@ -35,7 +35,7 @@ function RestockPanel() {
       <p className="mt-0.5 text-xs text-ink-soft">
         Turn an item back on later from the Menu tab: switch it off, then pick a delay.
       </p>
-      <p className="mt-2 text-xs text-ink-faint">
+      <p className="mt-2 text-xs text-ink-soft">
         Restock times are saved per item on the server (autoTurnOnAt) and applied automatically.
       </p>
       {scheduled.length ? (
@@ -182,13 +182,13 @@ function InventorySheet({ item, onClose }: { item: MenuItem | null; onClose: () 
         </label>
 
         <div>
-          <p className="mb-1 text-xs font-extrabold uppercase tracking-wide text-ink-faint">
+          <p className="mb-1 text-xs font-extrabold uppercase tracking-wide text-ink-soft">
             Stock history
           </p>
           {history.isLoading ? (
-            <p className="text-xs text-ink-faint">Loading stock history…</p>
+            <p className="text-xs text-ink-soft">Loading stock history…</p>
           ) : (history.data?.length ?? 0) === 0 ? (
-            <p className="text-xs text-ink-faint">No stock movements recorded yet.</p>
+            <p className="text-xs text-ink-soft">No stock movements recorded yet.</p>
           ) : (
             <div className="space-y-1">
               {history.data?.map((m, i) => {
@@ -345,7 +345,7 @@ export function InventoryPage() {
                 Mark unavailable
               </Button>
             </div>
-            <p className="mt-2 text-xs text-ink-faint">{selected.size} selected</p>
+            <p className="mt-2 text-xs text-ink-soft">{selected.size} selected</p>
           </div>
 
           <RestockPanel />
@@ -392,17 +392,23 @@ export function InventoryPage() {
                       },
                     )
                   }
-                  className={cn(
-                    'relative h-7 w-12 shrink-0 rounded-pill transition-colors',
-                    i.inStock ? 'bg-success' : 'bg-border',
-                  )}
+                  className="inline-flex h-11 w-12 shrink-0 items-center"
                 >
+                  {/* The track stays 28px tall for the iOS-like look; the button
+                      keeps a 44px hit area (AGENTS.md tap-target rule). */}
                   <span
                     className={cn(
-                      'absolute top-0.5 h-6 w-6 rounded-pill bg-white shadow transition-all',
-                      i.inStock ? 'left-5' : 'left-0.5',
+                      'relative h-7 w-12 rounded-pill transition-colors',
+                      i.inStock ? 'bg-success' : 'bg-border',
                     )}
-                  />
+                  >
+                    <span
+                      className={cn(
+                        'absolute top-0.5 h-6 w-6 rounded-pill bg-white shadow transition-all',
+                        i.inStock ? 'left-5' : 'left-0.5',
+                      )}
+                    />
+                  </span>
                 </button>
               </div>
             ))}

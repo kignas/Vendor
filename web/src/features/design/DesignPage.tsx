@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Inbox, Plus } from 'lucide-react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { KpiCard } from '@/components/KpiCard';
@@ -6,6 +7,7 @@ import { StatusPill } from '@/components/StatusPill';
 import { EmptyState } from '@/components/EmptyState';
 import { StorefrontIllustration } from '@/components/StorefrontIllustration';
 import { ordersEmptyCopy } from '@/features/orders/ordersEmptyState';
+import { OrderChips } from '@/features/orders/OrderChips';
 import { ErrorState } from '@/components/ErrorState';
 import { ChartCard } from '@/components/ChartCard';
 import { BottomSheet } from '@/components/BottomSheet';
@@ -25,7 +27,7 @@ const CHART_DATA = [
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="text-xs font-bold uppercase tracking-wide text-ink-faint">{title}</h2>
+      <h2 className="text-xs font-bold uppercase tracking-wide text-ink-soft">{title}</h2>
       {children}
     </section>
   );
@@ -38,7 +40,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
  */
 export function DesignPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [activeChip, setActiveChip] = useState('preparing');
   const connection = useUiStore((s) => s.connection);
+  const CHIPS = [
+    { id: 'preparing', label: 'Preparing', count: 3 },
+    { id: 'ready', label: 'Ready', count: 1 },
+    { id: 'dispatch', label: 'Picked up', count: 0 },
+  ];
 
   return (
     <div className="space-y-8 pb-10">
@@ -73,6 +81,75 @@ export function DesignPage() {
           <StatusPill tone="info">Support</StatusPill>
           <StatusPill tone="brand">New</StatusPill>
         </div>
+      </Section>
+
+      <Section title="Order chips">
+        <OrderChips chips={CHIPS} active={activeChip} onSelect={setActiveChip} />
+        <p className="text-[13px] text-ink-soft">
+          Active chip = brand crimson outline with tinted text; the rest are neutral.
+        </p>
+      </Section>
+
+      <Section title="Typography">
+        <p className="text-base font-bold text-ink">ID: 7500 — order id (16px bold)</p>
+        <p className="text-[15px] font-semibold tabular-nums text-ink">₹1,240 — price (15px semibold)</p>
+        <p className="text-[13px] text-ink-soft">Secondary text (13px, ink-soft)</p>
+        <p className="text-sm text-ink-soft">Body text stays at 14px minimum.</p>
+      </Section>
+
+      <Section title="Actions (colour by meaning)">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="min-h-tap rounded-btn bg-info px-4 text-sm font-bold text-white"
+          >
+            Order ready
+          </button>
+          <button
+            type="button"
+            className="min-h-tap rounded-btn bg-success px-4 text-sm font-bold text-white"
+          >
+            Accept
+          </button>
+          <button
+            type="button"
+            className="min-h-tap rounded-btn border-2 border-danger px-4 text-sm font-bold text-danger-ink"
+          >
+            Reject
+          </button>
+        </div>
+        <p className="text-[13px] text-ink-soft">
+          Forward actions use info blue, accept uses success green, reject is a danger outline.
+        </p>
+      </Section>
+
+      <Section title="Toasts">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => toast.success('Order accepted · 17 min')}
+            className="min-h-tap rounded-btn bg-inverse px-4 text-sm font-semibold text-inverse-ink"
+          >
+            Success
+          </button>
+          <button
+            type="button"
+            onClick={() => toast.error('Kitchen is closed')}
+            className="min-h-tap rounded-btn bg-inverse px-4 text-sm font-semibold text-inverse-ink"
+          >
+            Error
+          </button>
+          <button
+            type="button"
+            onClick={() => toast('Order already accepted')}
+            className="min-h-tap rounded-btn bg-inverse px-4 text-sm font-semibold text-inverse-ink"
+          >
+            Neutral
+          </button>
+        </div>
+        <p className="text-[13px] text-ink-soft">
+          Dark rounded pill with a leading icon, above the nav, nudge and new-order bar.
+        </p>
       </Section>
 
       <Section title="EmptyState">

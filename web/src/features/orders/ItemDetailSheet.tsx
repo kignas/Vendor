@@ -33,7 +33,7 @@ export function ItemDetailSheet({
       <dl className="mt-3 space-y-2.5 text-sm">
         {detail.variant ? (
           <div>
-            <dt className="text-[11px] font-extrabold uppercase tracking-wide text-ink-faint">
+            <dt className="text-[11px] font-extrabold uppercase tracking-wide text-ink-soft">
               Variant
             </dt>
             <dd className="text-ink">{detail.variant}</dd>
@@ -41,7 +41,7 @@ export function ItemDetailSheet({
         ) : null}
         {detail.addons.length ? (
           <div>
-            <dt className="text-[11px] font-extrabold uppercase tracking-wide text-ink-faint">
+            <dt className="text-[11px] font-extrabold uppercase tracking-wide text-ink-soft">
               Add-ons
             </dt>
             <dd className="text-ink">{detail.addons.join(', ')}</dd>
@@ -49,7 +49,7 @@ export function ItemDetailSheet({
         ) : null}
         {detail.note ? (
           <div>
-            <dt className="text-[11px] font-extrabold uppercase tracking-wide text-ink-faint">
+            <dt className="text-[11px] font-extrabold uppercase tracking-wide text-ink-soft">
               Note
             </dt>
             <dd className="text-ink">{detail.note}</dd>

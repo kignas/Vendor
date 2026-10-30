@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 function ReadOnlyRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="border-b border-border-soft py-2.5 last:border-b-0">
-      <p className="text-[10px] font-extrabold uppercase tracking-wide text-ink-faint">
+      <p className="text-[10px] font-extrabold uppercase tracking-wide text-ink-soft">
         {label} · admin-managed
       </p>
       <p className="mt-0.5 text-sm font-semibold text-ink">{value || '—'}</p>
@@ -102,7 +102,7 @@ export function SettingsPage() {
         <label className="mt-3 flex items-center justify-between gap-3">
           <span>
             <span className="block text-sm font-semibold text-ink">Kitchen Rush Mode</span>
-            <span className="block text-xs text-ink-faint">
+            <span className="block text-xs text-ink-soft">
               +5 mins auto-added to the default KPT so busy dine-in hours are handled smoothly.
             </span>
           </span>
@@ -122,7 +122,7 @@ export function SettingsPage() {
             className="h-6 w-11 shrink-0 accent-brand"
           />
         </label>
-        <p className="mt-2 text-xs text-ink-faint">
+        <p className="mt-2 text-xs text-ink-soft">
           {rush
             ? `On. New accepts default to ${defaultPrepMinutes} min (20 min + 5 min rush buffer).`
             : 'Off. Accepted orders use your selected KPT.'}
@@ -187,7 +187,7 @@ export function SettingsPage() {
                 ))}
               </select>
             </div>
-            <p className="text-xs text-ink-faint">
+            <p className="text-xs text-ink-soft">
               Delivery ownership and commission are set by Eatswada admin.
             </p>
             <Button variant="brand" onClick={() => void save()} disabled={update.isPending}>

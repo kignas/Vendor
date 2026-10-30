@@ -25,7 +25,7 @@ function formatAddress(addr: VendorProfile['address']): string {
 function Row({ label, value, admin }: { label: string; value: string; admin?: boolean }) {
   return (
     <div className="border-b border-border-soft py-2.5 last:border-b-0">
-      <p className="text-[10px] font-extrabold uppercase tracking-wide text-ink-faint">
+      <p className="text-[10px] font-extrabold uppercase tracking-wide text-ink-soft">
         {label}
         {admin ? ' · admin-managed' : ''}
       </p>
@@ -122,7 +122,7 @@ function EditSheet({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand-ink"
+            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink focus-visible:border-brand-ink"
           />
         </div>
         <div className="space-y-1">
@@ -134,7 +134,7 @@ function EditSheet({
         <Button variant="brand" onClick={() => void save()} disabled={update.isPending} className="w-full">
           {update.isPending ? 'Saving…' : 'Save profile'}
         </Button>
-        <p className="text-xs text-ink-faint">
+        <p className="text-xs text-ink-soft">
           Commission, verification and ranking are managed by Eatswada admin.
         </p>
       </div>
@@ -196,7 +196,7 @@ function OpeningHoursEditor({ hours }: { hours?: OpeningHours | undefined }) {
               aria-label={`${day} opens at`}
               className="h-9 rounded-btn border border-border bg-card px-2 text-xs text-ink disabled:opacity-50"
             />
-            <span className="text-ink-faint">–</span>
+            <span className="text-ink-soft">–</span>
             <input
               type="time"
               value={d.closesAt}
@@ -302,7 +302,7 @@ export function ProfilePage() {
           </div>
 
           {policyBits.length || versions.length ? (
-            <p className="text-xs text-ink-faint">
+            <p className="text-xs text-ink-soft">
               {policyBits.length ? `Policies: ${policyBits.join(' · ')}. ` : ''}
               {versions.length ? `Accepted versions: ${versions.join(' · ')}.` : ''}
             </p>

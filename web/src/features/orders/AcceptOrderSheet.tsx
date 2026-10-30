@@ -120,7 +120,7 @@ export function AcceptOrderSheet({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-pill text-white hover:bg-white/15"
+            className="-mr-1.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-pill text-white hover:bg-white/15"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -129,18 +129,18 @@ export function AcceptOrderSheet({
         <div className="space-y-3 px-5 pt-3">
           {/* ID + copy, time on the right */}
           <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1.5 text-sm font-bold text-ink">
+            <span className="inline-flex items-center gap-1.5 text-base font-bold text-ink">
               ID: {ref}
               <button
                 type="button"
                 onClick={() => void copyRef()}
                 aria-label="Copy order ID"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-btn text-ink-faint hover:text-ink"
+                className="-my-1.5 -mr-1.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-btn text-ink-soft hover:text-ink"
               >
                 <Copy className="h-4 w-4" aria-hidden="true" />
               </button>
             </span>
-            {stamp ? <time className="text-xs text-ink-soft">{stamp}</time> : null}
+            {stamp ? <time className="text-[13px] text-ink-soft">{stamp}</time> : null}
           </div>
 
           {loyalty ? <p className="text-sm font-semibold text-info-ink">{loyalty}</p> : null}
@@ -164,7 +164,7 @@ export function AcceptOrderSheet({
                     <span className="w-6 shrink-0 font-bold tabular-nums text-ink-soft">{qty}×</span>
                     <span className="min-w-0 flex-1 text-ink">{item.name || 'Item'}</span>
                     {price !== null ? (
-                      <span className="shrink-0 font-semibold tabular-nums text-ink">
+                      <span className="shrink-0 text-[15px] font-semibold tabular-nums text-ink">
                         {formatMoney(price)}
                       </span>
                     ) : null}
@@ -203,7 +203,7 @@ export function AcceptOrderSheet({
                 ) : null}
               </span>
               <span className="inline-flex items-center gap-2">
-                <span className="text-base font-extrabold tabular-nums text-ink">
+                <span className="text-[15px] font-semibold tabular-nums text-ink">
                   {total_amount !== null ? formatMoney(total_amount) : '—'}
                 </span>
                 {rows.length ? (
@@ -212,7 +212,7 @@ export function AcceptOrderSheet({
                     aria-label="Show bill breakdown"
                     aria-expanded={billOpen}
                     onClick={() => setBillOpen((v) => !v)}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-btn text-ink-soft"
+                    className="-my-1 -mr-1 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-btn text-ink-soft"
                   >
                     <ChevronDown
                       className={cn('h-4 w-4 transition-transform duration-200', billOpen && 'rotate-180')}
@@ -336,7 +336,7 @@ export function AcceptOrderSheet({
               >
                 Previous
               </button>
-              <span className="text-xs font-semibold text-ink-faint">
+              <span className="text-xs font-semibold text-ink-soft">
                 {index + 1} of {total}
               </span>
               <button

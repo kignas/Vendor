@@ -159,7 +159,7 @@ export function FinancePage() {
               </div>
             ))}
           </dl>
-          <p className="mt-2 text-[11px] text-ink-faint">
+          <p className="mt-2 text-[11px] text-ink-soft">
             Gross sales minus commission equals your net earnings. Commission and settlement
             amounts are calculated by Eatswada; the app only displays them.
           </p>
@@ -193,13 +193,13 @@ export function FinancePage() {
           <>
             <div className="mt-3 grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs text-ink-faint">Eligible balance</p>
+                <p className="text-xs text-ink-soft">Eligible balance</p>
                 <p className="text-lg font-extrabold tabular-nums text-ink">
                   {formatMoney2(view.eligible)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-ink-faint">Available to withdraw</p>
+                <p className="text-xs text-ink-soft">Available to withdraw</p>
                 <p className="text-lg font-extrabold tabular-nums text-ink">
                   {formatMoney2(view.available)}
                 </p>
@@ -243,9 +243,9 @@ export function FinancePage() {
               </Button>
             </div>
             {eligibility.reason ? (
-              <p className="mt-2 text-[11px] text-ink-faint">{eligibility.reason}</p>
+              <p className="mt-2 text-[11px] text-ink-soft">{eligibility.reason}</p>
             ) : (
-              <p className="mt-2 text-[11px] text-ink-faint">
+              <p className="mt-2 text-[11px] text-ink-soft">
                 Leave the amount blank to request your full available balance. Payouts are processed
                 by Eatswada.
               </p>
@@ -277,7 +277,7 @@ export function FinancePage() {
                   <p className="truncate text-sm font-semibold text-ink">
                     #{o.orderNumber || (o.id || o._id || '').slice(-8).toUpperCase()}
                   </p>
-                  <p className="text-[11px] text-ink-faint">
+                  <p className="text-[11px] text-ink-soft">
                     {o.createdAt
                       ? new Date(o.createdAt).toLocaleDateString('en-IN', {
                           day: '2-digit',
@@ -294,7 +294,7 @@ export function FinancePage() {
             ))}
           </ul>
         ) : (
-          <p className="mt-2 text-xs text-ink-faint">No recent earnings.</p>
+          <p className="mt-2 text-xs text-ink-soft">No recent earnings.</p>
         )}
       </div>
 
@@ -318,7 +318,7 @@ export function FinancePage() {
                     <p className="text-sm font-semibold tabular-nums text-ink">
                       {formatMoney2(w.amount)}
                     </p>
-                    <p className="text-[11px] text-ink-faint">
+                    <p className="text-[11px] text-ink-soft">
                       {w.createdAt
                         ? new Date(w.createdAt).toLocaleDateString('en-IN', {
                             day: '2-digit',

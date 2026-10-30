@@ -78,7 +78,7 @@ export function ProfileNudge() {
           type="button"
           onClick={dismiss}
           aria-label="Dismiss profile reminder"
-          className="-mr-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-btn text-ink-soft hover:bg-card"
+          className="-mr-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-btn text-ink-soft hover:bg-card"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>

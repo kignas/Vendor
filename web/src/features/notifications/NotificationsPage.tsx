@@ -84,7 +84,7 @@ function Row({
           <strong className={cn('text-sm', read ? 'font-medium text-ink-soft' : 'font-bold text-ink')}>
             {notifTitle(notification)}
           </strong>
-          <span className="whitespace-nowrap text-[11px] text-ink-faint">
+          <span className="whitespace-nowrap text-[11px] text-ink-soft">
             {whenLabel(notification.createdAt)}
           </span>
         </span>

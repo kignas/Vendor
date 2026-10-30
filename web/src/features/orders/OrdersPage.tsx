@@ -207,7 +207,7 @@ export function OrdersPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search order no., customer or item"
-            className="min-h-tap w-full rounded-btn border border-border bg-card pl-9 pr-9 text-sm text-ink outline-none focus:border-brand-ink"
+            className="min-h-tap w-full rounded-btn border border-border bg-card pl-9 pr-9 text-sm text-ink focus:border-brand-ink"
             aria-label="Search orders"
             autoFocus
           />
@@ -218,7 +218,7 @@ export function OrdersPage() {
               setSearchOpen(false);
             }}
             aria-label="Close order search"
-            className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-pill text-ink-faint hover:text-ink"
+            className="absolute right-0.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-pill text-ink-soft hover:text-ink"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -303,7 +303,7 @@ export function OrdersPage() {
             onChange={(e) => setRejectReason(e.target.value)}
             rows={3}
             placeholder="Reason (required)"
-            className="w-full rounded-btn border border-border bg-card px-3 py-2 text-sm text-ink outline-none focus:border-brand-ink"
+            className="w-full rounded-btn border border-border bg-card px-3 py-2 text-sm text-ink focus:border-brand-ink"
           />
           <button
             type="button"
@@ -341,7 +341,7 @@ export function OrdersPage() {
             onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
             inputMode="numeric"
             placeholder="4-digit PIN"
-            className="min-h-tap w-full rounded-btn border border-border bg-card px-3 text-center text-lg tracking-widest text-ink outline-none focus:border-brand-ink"
+            className="min-h-tap w-full rounded-btn border border-border bg-card px-3 text-center text-lg tracking-widest text-ink focus:border-brand-ink"
           />
           <button
             type="button"

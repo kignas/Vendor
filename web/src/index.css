@@ -29,7 +29,9 @@
     --es-warning-ink: 146 64 14;
     --es-warning-bg: 254 243 199;
     --es-danger: 220 38 38;
-    --es-danger-ink: 220 38 38;
+    /* Slightly darker than the fill so danger text clears 4.5:1 on the pink
+       `danger-bg` pill (the fill is only ever used behind white text). */
+    --es-danger-ink: 185 28 28;
     --es-danger-bg: 254 226 226;
     --es-info: 37 99 235;
     --es-info-ink: 37 99 235;
@@ -139,14 +141,43 @@
     padding-right: calc(var(--page-x, 1rem) + env(safe-area-inset-right, 0px));
   }
 
-  /* Touch feedback for tappable surfaces. Motion is short; the global
-     reduced-motion rule collapses the duration so it becomes an instant state. */
+  /* Touch feedback for tappable surfaces. Motion is short (Step 9: 150–250ms);
+     the global reduced-motion rule collapses the duration so it becomes an
+     instant state. */
   .press {
-    transition: transform 120ms ease, background-color 120ms ease, opacity 120ms ease;
+    transition: transform 150ms ease, background-color 150ms ease, opacity 150ms ease;
   }
   .press:active {
     transform: scale(0.97);
   }
+}
+
+/*
+ * Sonner toast pill (Phase 3, Step 9). The stock toast is a light card; we
+ * restyle it as a dark rounded pill with a leading icon that sits above the
+ * bottom nav, nudge and new-order bar. Colour comes from the `inverse` token so
+ * the pill stays dark on a light theme and light on a dark theme, and always
+ * contrasts with whatever is behind it. Overrides use !important because
+ * sonner injects its own stylesheet at runtime (later in the cascade).
+ */
+.es-toast[data-sonner-toast] {
+  border-radius: 9999px !important;
+  border: 1px solid rgb(var(--es-border)) !important;
+  background: rgb(var(--es-inverse)) !important;
+  color: rgb(var(--es-inverse-ink)) !important;
+  box-shadow: 0 10px 24px rgb(var(--es-scrim) / 0.35) !important;
+  padding: 0.625rem 1rem !important;
+  font-family: 'Manrope', system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  align-items: center !important;
+}
+.es-toast [data-title],
+.es-toast [data-description] {
+  color: rgb(var(--es-inverse-ink)) !important;
+}
+.es-toast [data-icon] {
+  margin: 0 0.25rem 0 0 !important;
 }
 
 /* Respect reduced motion everywhere (AGENTS.md: subtle motion, honour the OS). */

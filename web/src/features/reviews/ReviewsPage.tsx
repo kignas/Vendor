@@ -70,7 +70,7 @@ function Distribution({ rows }: { rows: Review[] }) {
               style={{ width: `${b.pct}%` }}
             />
           </span>
-          <span className="w-8 shrink-0 text-right tabular-nums text-ink-faint">{b.count}</span>
+          <span className="w-8 shrink-0 text-right tabular-nums text-ink-soft">{b.count}</span>
         </div>
       ))}
     </div>
@@ -111,7 +111,7 @@ function ReviewCard({ review, onOpen }: { review: Review; onOpen: (r: Review) =>
           )}
         </span>
       </div>
-      <p className={cn('mt-3 text-sm', review.comment ? 'text-ink' : 'text-ink-faint')}>
+      <p className={cn('mt-3 text-sm', review.comment ? 'text-ink' : 'text-ink-soft')}>
         {review.comment || 'No written comment.'}
       </p>
       {reviewReplyText(review) ? (
@@ -152,7 +152,7 @@ function ReviewSheet({ review, onClose }: { review: Review | null; onClose: () =
           <p className="text-sm text-ink-soft">{review.comment || 'No written comment.'}</p>
 
           {review.orderNumber || review.publicOrderId ? (
-            <p className="text-[11px] text-ink-faint">
+            <p className="text-[11px] text-ink-soft">
               Order #{review.orderNumber ?? review.publicOrderId}
             </p>
           ) : null}
@@ -176,7 +176,7 @@ function ReviewSheet({ review, onClose }: { review: Review | null; onClose: () =
 
           {dishRatings.length ? (
             <div className="rounded-card border border-border p-3">
-              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-faint">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-soft">
                 Dish ratings
               </p>
               <ul className="space-y-1.5">
@@ -213,10 +213,10 @@ function ReviewSheet({ review, onClose }: { review: Review | null; onClose: () =
                 maxLength={500}
                 rows={3}
                 placeholder="Thank the customer or address their feedback…"
-                className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand-ink"
+                className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink focus-visible:border-brand-ink"
               />
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-ink-faint">{message.length}/500</span>
+                <span className="text-[11px] text-ink-soft">{message.length}/500</span>
                 <Button
                   variant="brand"
                   onClick={() => void submit()}
@@ -291,7 +291,7 @@ export function ReviewsPage() {
 
       <label className="relative block">
         <Search
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft"
           aria-hidden="true"
         />
         <Input
@@ -313,7 +313,7 @@ export function ReviewsPage() {
             aria-selected={filter === f.id}
             onClick={() => setFilter(f.id)}
             className={cn(
-              'min-h-tap shrink-0 rounded-pill px-3 text-sm font-semibold transition-colors',
+              'min-h-tap min-w-tap shrink-0 rounded-pill px-3 text-sm font-semibold transition-colors',
               filter === f.id ? 'bg-brand text-white' : 'bg-border-soft text-ink-soft',
             )}
           >
@@ -332,7 +332,7 @@ export function ReviewsPage() {
             aria-selected={dateFilter === f.id}
             onClick={() => setDateFilter(f.id)}
             className={cn(
-              'min-h-tap shrink-0 rounded-pill px-3 text-xs font-semibold transition-colors',
+              'min-h-tap min-w-tap shrink-0 rounded-pill px-3 text-xs font-semibold transition-colors',
               dateFilter === f.id ? 'bg-inverse text-inverse-ink' : 'bg-border-soft text-ink-soft',
             )}
           >

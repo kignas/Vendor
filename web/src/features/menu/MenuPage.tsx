@@ -168,7 +168,7 @@ function CreateItemSheet({ open, onClose }: { open: boolean; onClose: () => void
             value={draft.description}
             onChange={(e) => set('description', e.target.value)}
             rows={2}
-            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand-ink"
+            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink focus-visible:border-brand-ink"
           />
         </div>
         <div className="space-y-1">
@@ -288,7 +288,7 @@ export function MenuPage() {
 
       <label className="relative block">
         <Search
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft"
           aria-hidden="true"
         />
         <input
@@ -296,7 +296,7 @@ export function MenuPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search items or categories"
-          className="min-h-tap w-full rounded-btn border border-border bg-card pl-9 pr-3 text-sm text-ink outline-none focus:border-brand-ink"
+          className="min-h-tap w-full rounded-btn border border-border bg-card pl-9 pr-3 text-sm text-ink focus:border-brand-ink"
           aria-label="Search menu"
         />
       </label>
@@ -312,7 +312,7 @@ export function MenuPage() {
               aria-selected={category === c}
               onClick={() => setCategory(c)}
               className={cn(
-                'min-h-tap shrink-0 rounded-pill px-3 text-sm font-semibold transition-colors',
+                'min-h-tap min-w-tap shrink-0 rounded-pill px-3 text-sm font-semibold transition-colors',
                 category === c ? 'bg-brand text-white' : 'bg-border-soft text-ink-soft',
               )}
             >
@@ -386,17 +386,23 @@ export function MenuPage() {
                       },
                     );
                   }}
-                  className={cn(
-                    'relative h-7 w-12 shrink-0 rounded-pill transition-colors disabled:opacity-60',
-                    item.inStock ? 'bg-success' : 'bg-border',
-                  )}
+                  className="inline-flex h-11 w-12 shrink-0 items-center disabled:opacity-60"
                 >
+                  {/* The track stays 28px tall for the iOS-like look; the button
+                      keeps a 44px hit area (AGENTS.md tap-target rule). */}
                   <span
                     className={cn(
-                      'absolute top-0.5 h-6 w-6 rounded-pill bg-white shadow transition-all',
-                      item.inStock ? 'left-5' : 'left-0.5',
+                      'relative h-7 w-12 rounded-pill transition-colors',
+                      item.inStock ? 'bg-success' : 'bg-border',
                     )}
-                  />
+                  >
+                    <span
+                      className={cn(
+                        'absolute top-0.5 h-6 w-6 rounded-pill bg-white shadow transition-all',
+                        item.inStock ? 'left-5' : 'left-0.5',
+                      )}
+                    />
+                  </span>
                 </button>
               </li>
             );

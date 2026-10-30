@@ -80,7 +80,7 @@ export function MorePage() {
 
       {GROUPS.map((group) => (
         <div key={group.title}>
-          <h2 className="mb-2 px-1 text-[11px] font-extrabold uppercase tracking-wide text-ink-faint">
+          <h2 className="mb-2 px-1 text-[11px] font-extrabold uppercase tracking-wide text-ink-soft">
             {group.title}
           </h2>
           <nav
@@ -125,7 +125,7 @@ export function MorePage() {
         <span className="text-sm font-semibold">Log out</span>
       </button>
 
-      <p className="text-center text-[11px] text-ink-faint">
+      <p className="text-center text-[11px] text-ink-soft">
         Eatswada Restaurant Partner · {import.meta.env.VITE_APP_VERSION ?? 'dev'}
       </p>
     </section>

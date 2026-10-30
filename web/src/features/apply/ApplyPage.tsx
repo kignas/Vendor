@@ -412,7 +412,7 @@ export function ApplyPage() {
                 maxLength={1000}
                 value={fields.description}
                 onChange={(e) => set('description', e.target.value)}
-                className="w-full rounded-btn border border-border bg-card px-3 py-2 text-sm text-ink outline-none focus:border-brand-ink"
+                className="w-full rounded-btn border border-border bg-card px-3 py-2 text-sm text-ink focus:border-brand-ink"
               />
             </div>
             <div>
@@ -420,7 +420,7 @@ export function ApplyPage() {
                 <MapPin className="h-4 w-4" aria-hidden="true" />
                 Use my current location
               </Button>
-              <p className="mt-1 text-xs text-ink-faint">
+              <p className="mt-1 text-xs text-ink-soft">
                 Stand at the restaurant when using GPS. Coordinates are required for
                 delivery-distance calculations.
               </p>
@@ -691,7 +691,7 @@ function Field({
         autoComplete={autoComplete}
         onChange={(e) => onChange(e.target.value)}
       />
-      {hint ? <p className="text-xs text-ink-faint">{hint}</p> : null}
+      {hint ? <p className="text-xs text-ink-soft">{hint}</p> : null}
     </div>
   );
 }

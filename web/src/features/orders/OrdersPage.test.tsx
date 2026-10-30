@@ -3,12 +3,12 @@ import { render, screen, waitFor, within, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
-import { Toaster } from 'sonner';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/server';
 import { API_BASE } from '@/lib/api';
 import { makeQueryClient } from '@/lib/queryClient';
 import { useUiStore } from '@/app/uiStore';
+import { AppToaster } from '@/app/AppToaster';
 import { OrdersPage } from '@/features/orders/OrdersPage';
 
 function renderPage() {
@@ -19,7 +19,7 @@ function renderPage() {
       </MemoryRouter>
       {/* Toasts are part of the feedback contract; render the real Toaster so
           the "already accepted" / error paths are asserted as the user sees them. */}
-      <Toaster />
+      <AppToaster />
     </QueryClientProvider>,
   );
 }
@@ -293,6 +293,30 @@ describe('OrdersPage', () => {
     await user.click(within(sheet).getByRole('button', { name: /^Accept/ }));
 
     expect(await screen.findByText('Order already accepted')).toBeInTheDocument();
+  });
+
+  it('renders the toast as the shared dark pill (Step 9 styling contract)', async () => {
+    const user = userEvent.setup();
+    let movedOn = false;
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
+      http.get(`${API_BASE}/orders`, () =>
+        HttpResponse.json({ data: movedOn ? [] : [placedOrder] }),
+      ),
+      http.put(`${API_BASE}/orders/ord_1/accept`, () => {
+        movedOn = true;
+        return HttpResponse.json({ message: 'Order already accepted' }, { status: 409 });
+      }),
+    );
+    renderPage();
+
+    const sheet = await openNewOrderSheet(user);
+    await user.click(within(sheet).getByRole('button', { name: /^Accept/ }));
+
+    const text = await screen.findByText('Order already accepted');
+    // The pill class (from AppToaster) is what index.css styles; without it the
+    // toast falls back to sonner's default light card.
+    expect(text.closest('[data-sonner-toast]')).toHaveClass('es-toast');
   });
 
   it('shows the real error message when a failed accept is NOT an already-accepted order', async () => {

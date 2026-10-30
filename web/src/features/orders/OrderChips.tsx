@@ -35,7 +35,7 @@ export function OrderChips({
             aria-selected={isActive}
             onClick={() => onSelect(chip.id)}
             className={cn(
-              'press inline-flex min-h-tap shrink-0 items-center rounded-pill border px-3.5 text-sm font-semibold transition-colors',
+              'press inline-flex min-h-tap min-w-tap shrink-0 items-center justify-center rounded-pill border px-3.5 text-sm font-semibold transition-colors',
               isActive
                 ? 'border-brand-ink bg-brand/5 text-brand-ink'
                 : 'border-border text-ink-soft hover:text-ink',

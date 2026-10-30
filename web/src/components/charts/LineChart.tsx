@@ -93,7 +93,7 @@ export function LineChart({ points, ariaLabel, height = 130, className }: LineCh
           </div>
         ) : null}
       </div>
-      <div className="mt-1 flex justify-between text-[10px] text-ink-faint" aria-hidden="true">
+      <div className="mt-1 flex justify-between text-[10px] text-ink-soft" aria-hidden="true">
         <span>{points[0].label}</span>
         <span>{points[points.length - 1].label}</span>
       </div>

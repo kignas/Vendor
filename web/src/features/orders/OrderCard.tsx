@@ -200,7 +200,7 @@ function ItemRow({ item, onOpenDetail }: { item: OrderItem; onOpenDetail: (item:
         )}
       </span>
       {price !== null ? (
-        <span className="shrink-0 text-sm font-semibold tabular-nums text-ink-soft">
+        <span className="shrink-0 text-[15px] font-semibold tabular-nums text-ink-soft">
           {formatMoney(price)}
         </span>
       ) : null}
@@ -264,7 +264,7 @@ function ActionMenu({
         aria-label="Order actions"
         aria-haspopup="menu"
         aria-expanded={open}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-btn text-ink-soft hover:text-ink"
+        className="-m-1 inline-flex h-11 w-11 items-center justify-center rounded-btn text-ink-soft hover:text-ink"
       >
         <MoreVertical className="h-5 w-5" aria-hidden="true" />
       </button>
@@ -437,7 +437,7 @@ export function OrderCard({
             type="button"
             disabled={placedDisabled}
             onClick={() => onReject(order)}
-            className="min-h-[52px] flex-1 rounded-btn border-2 border-border text-base font-bold text-ink disabled:opacity-50"
+            className="min-h-[52px] flex-1 rounded-btn border-2 border-danger text-base font-bold text-danger-ink disabled:opacity-50"
           >
             Reject
           </button>
@@ -543,19 +543,19 @@ export function OrderCard({
     <article className="w-full bg-card px-4 py-4" aria-label={`Order ${ref}`}>
       {/* Row 1: ID + copy | time | kebab menu */}
       <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex min-w-0 items-center gap-1.5 text-base font-extrabold text-ink">
+        <span className="inline-flex min-w-0 items-center gap-1.5 text-base font-bold text-ink">
           <span className="truncate">ID: {ref}</span>
           <button
             type="button"
             onClick={() => void copyRef()}
             aria-label="Copy order ID"
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-btn text-ink-faint hover:text-ink"
+            className="-m-1.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-btn text-ink-soft hover:text-ink"
           >
             <Copy className="h-4 w-4" aria-hidden="true" />
           </button>
         </span>
         <span className="flex shrink-0 items-center gap-1">
-          {stamp ? <time className="text-xs text-ink-soft">{stamp}</time> : null}
+          {stamp ? <time className="text-[13px] text-ink-soft">{stamp}</time> : null}
           <ActionMenu
             order={order}
             extended={extended}
@@ -603,7 +603,7 @@ export function OrderCard({
             </details>
           ) : (
             <>
-              <p className="text-[11px] font-extrabold uppercase tracking-wide text-ink-faint">
+              <p className="text-[11px] font-extrabold uppercase tracking-wide text-ink-soft">
                 {items.length} item{items.length === 1 ? '' : 's'}
               </p>
               <ul className="divide-y divide-border-soft">
@@ -614,7 +614,7 @@ export function OrderCard({
             </>
           )
         ) : (
-          <p className="text-sm text-ink-faint">No items listed</p>
+          <p className="text-sm text-ink-soft">No items listed</p>
         )}
       </div>
 
@@ -656,7 +656,7 @@ export function OrderCard({
             ) : null}
           </span>
           <span className="inline-flex items-center gap-2">
-            <span className="text-base font-extrabold tabular-nums text-ink">
+            <span className="text-[15px] font-semibold tabular-nums text-ink">
               {total !== null ? formatMoney(total) : '—'}
             </span>
             {rows.length ? (
@@ -666,7 +666,7 @@ export function OrderCard({
                 aria-expanded={billOpen}
                 aria-controls={billId}
                 onClick={() => setBillOpen((v) => !v)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-btn text-ink-soft"
+                className="-my-1 -mr-1 inline-flex h-11 w-11 items-center justify-center rounded-btn text-ink-soft"
               >
                 <ChevronDown
                   className={cn('h-4 w-4 transition-transform duration-200', billOpen && 'rotate-180')}

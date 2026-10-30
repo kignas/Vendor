@@ -125,9 +125,9 @@ export function OrderSupportSheet({
             rows={4}
             aria-label="Describe the issue"
             placeholder="Describe the issue"
-            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink outline-none focus-visible:border-brand-ink"
+            className="w-full rounded-btn border border-border bg-card p-3 text-sm text-ink focus-visible:border-brand-ink"
           />
-          <p className={cn('mt-1 text-right text-[11px]', message.length >= MAX_LEN ? 'text-danger-ink' : 'text-ink-faint')}>
+          <p className={cn('mt-1 text-right text-[11px]', message.length >= MAX_LEN ? 'text-danger-ink' : 'text-ink-soft')}>
             {message.length} / {MAX_LEN}
           </p>
           <button

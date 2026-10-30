@@ -3,11 +3,11 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
-import { Toaster } from 'sonner';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/test/server';
 import { API_BASE } from '@/lib/api';
 import { makeQueryClient } from '@/lib/queryClient';
+import { AppToaster } from '@/app/AppToaster';
 import { OrdersEmptyState } from '@/features/orders/OrdersEmptyState';
 
 function renderState(tab?: 'preparing' | 'ready' | 'dispatch') {
@@ -16,7 +16,7 @@ function renderState(tab?: 'preparing' | 'ready' | 'dispatch') {
       <MemoryRouter>
         {tab ? <OrdersEmptyState tab={tab} /> : <OrdersEmptyState />}
       </MemoryRouter>
-      <Toaster />
+      <AppToaster />
     </QueryClientProvider>,
   );
 }
