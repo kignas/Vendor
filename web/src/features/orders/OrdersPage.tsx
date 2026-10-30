@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Receipt, Search, Loader2 } from 'lucide-react';
+import { Receipt, Search, Loader2, X } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { OrderCard } from '@/features/orders/OrderCard';
@@ -20,6 +20,7 @@ import { Sheet } from '@/components/Sheet';
 import { ScrollTabs } from '@/components/ScrollTabs';
 import { printKot } from '@/features/orders/kot';
 import { speakOrder } from '@/features/orders/voice';
+import { useUiStore } from '@/app/uiStore';
 import { cn } from '@/lib/cn';
 import type { Order, OrderTab } from '@/types/order';
 
@@ -34,7 +35,10 @@ const TABS: { id: OrderTab; label: string }[] = [
 
 export function OrdersPage() {
   const [tab, setTab] = useState<OrderTab>('new');
-  const [query, setQuery] = useState('');
+  const query = useUiStore((s) => s.orderQuery);
+  const searchOpen = useUiStore((s) => s.searchOpen);
+  const setQuery = useUiStore((s) => s.setOrderQuery);
+  const setSearchOpen = useUiStore((s) => s.setSearchOpen);
   const queue = useOrderQueue();
   const history = useOrderHistory(tab === 'history');
   const restaurant = useRestaurant();
@@ -176,17 +180,31 @@ export function OrdersPage() {
         onExpired={() => void queue.refetch()}
       />
 
-      <label className="relative block">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" aria-hidden="true" />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search order no., customer or item"
-          className="min-h-tap w-full rounded-btn border border-border bg-card pl-9 pr-3 text-sm text-ink outline-none focus:border-brand-ink"
-          aria-label="Search orders"
-        />
-      </label>
+      {searchOpen ? (
+        <label className="relative block">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search order no., customer or item"
+            className="min-h-tap w-full rounded-btn border border-border bg-card pl-9 pr-9 text-sm text-ink outline-none focus:border-brand-ink"
+            aria-label="Search orders"
+            autoFocus
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setQuery('');
+              setSearchOpen(false);
+            }}
+            aria-label="Close order search"
+            className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-pill text-ink-faint hover:text-ink"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </label>
+      ) : null}
 
       <ScrollTabs activeKey={tab} label="Order views" className="pb-1">
         {TABS.map((t) => {

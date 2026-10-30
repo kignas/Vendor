@@ -32,52 +32,49 @@ function handlers(availability: unknown, put?: (body: unknown) => Response) {
   return bodies;
 }
 
-describe('OnlineSwitch', () => {
-  it('asks for confirmation before going offline and sends nothing until accepted', async () => {
+describe('OnlineSwitch (header availability pill)', () => {
+  it('shows green Online while accepting orders and opens the status sheet on tap', async () => {
     const user = userEvent.setup();
     const bodies = handlers('open');
     renderSwitch();
 
-    const sw = await screen.findByRole('switch', { name: /online/i });
+    const sw = await screen.findByRole('switch', { name: /availability: online/i });
     expect(sw).toHaveAttribute('aria-checked', 'true');
 
+    // Tapping while online opens the shared sheet; nothing is sent yet.
     await user.click(sw);
-    expect(await screen.findByText('Stop receiving new orders?')).toBeInTheDocument();
-    // No request is sent merely by tapping the switch.
+    expect(await screen.findByText('Outlet status')).toBeInTheDocument();
     expect(bodies).toHaveLength(0);
-
-    await user.click(screen.getByRole('button', { name: /go offline/i }));
-    await waitFor(() => expect(bodies).toEqual([{ status: 'temporarily_closed' }]));
   });
 
-  it('going online needs no confirmation', async () => {
+  it('shows amber Paused when temporarily closed and lets the sheet set a new status', async () => {
     const user = userEvent.setup();
     const bodies = handlers('temporarily_closed');
     renderSwitch();
 
-    const sw = await screen.findByRole('switch', { name: /offline/i });
+    const sw = await screen.findByRole('switch', { name: /availability: paused/i });
     expect(sw).toHaveAttribute('aria-checked', 'false');
 
     await user.click(sw);
+    await user.click(await screen.findByText('Open'));
     await waitFor(() => expect(bodies).toEqual([{ status: 'open' }]));
-    expect(screen.queryByText('Stop receiving new orders?')).not.toBeInTheDocument();
   });
 
-  it('keeps the switch online when the server rejects the change (another vendor cannot toggle)', async () => {
+  it('shows grey Offline for closed_today and resumes orders directly on tap', async () => {
     const user = userEvent.setup();
-    handlers('open', () => HttpResponse.json({ message: 'Forbidden' }, { status: 403 }));
+    const bodies = handlers('closed_today');
     renderSwitch();
 
-    const sw = await screen.findByRole('switch', { name: /online/i });
-    await user.click(sw);
-    await user.click(await screen.findByRole('button', { name: /go offline/i }));
+    const sw = await screen.findByRole('switch', { name: /availability: offline/i });
+    expect(sw).toHaveAttribute('aria-checked', 'false');
 
-    // The optimistic change is rolled back: the server state (open) wins.
-    await waitFor(() => expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true'));
-    expect(screen.getByRole('switch')).toHaveAccessibleName(/online/i);
+    // The only direct shortcut: tapping Offline resumes through the real PUT.
+    await user.click(sw);
+    await waitFor(() => expect(bodies).toEqual([{ status: 'open' }]));
+    expect(screen.queryByText('Outlet status')).not.toBeInTheDocument();
   });
 
-  it('is single-flight: a double tap on the switch sends one request', async () => {
+  it('is single-flight: a double tap from Offline sends one request', async () => {
     const bodies: unknown[] = [];
     let release!: () => void;
     const gate = new Promise<void>((resolve) => {
@@ -85,7 +82,7 @@ describe('OnlineSwitch', () => {
     });
     server.use(
       http.get(`${API_BASE}/restaurant`, () =>
-        HttpResponse.json({ data: { _id: 'r1', name: 'Test Kitchen', availability: 'temporarily_closed' } }),
+        HttpResponse.json({ data: { _id: 'r1', name: 'Test Kitchen', availability: 'closed_today' } }),
       ),
       http.put(`${API_BASE}/restaurant/availability`, async ({ request }) => {
         bodies.push(await request.json());
@@ -95,16 +92,28 @@ describe('OnlineSwitch', () => {
     );
     renderSwitch();
 
-    const sw = await screen.findByRole('switch', { name: /offline/i });
-    // Going online takes no confirm, so two taps in the same tick both reach the
-    // handler; AGENTS.md rule 7 says only one request may leave.
+    const sw = await screen.findByRole('switch', { name: /availability: offline/i });
+    // Both taps land in the same tick; AGENTS.md rule 7 allows only one request.
     fireEvent.click(sw);
     fireEvent.click(sw);
     await waitFor(() => expect(bodies.length).toBeGreaterThan(0));
-    // Give a second in-flight request a chance to arrive before asserting.
     await new Promise((r) => setTimeout(r, 50));
     expect(bodies).toEqual([{ status: 'open' }]);
     release();
-    await waitFor(() => expect(screen.getByRole('switch')).toHaveAccessibleName(/online/i));
+    await waitFor(() =>
+      expect(screen.getByRole('switch')).toHaveAccessibleName(/availability: online/i),
+    );
+  });
+
+  it('rolls back to the server state when the backend rejects the change', async () => {
+    const user = userEvent.setup();
+    handlers('closed_today', () => HttpResponse.json({ message: 'Forbidden' }, { status: 403 }));
+    renderSwitch();
+
+    await user.click(await screen.findByRole('switch', { name: /availability: offline/i }));
+    // Server state (closed_today => Offline) wins after the failure.
+    await waitFor(() =>
+      expect(screen.getByRole('switch')).toHaveAccessibleName(/availability: offline/i),
+    );
   });
 });

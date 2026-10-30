@@ -23,6 +23,30 @@ export const STATUS_TONE: Record<AvailabilityStatus, 'success' | 'warning' | 'da
   temporarily_closed: 'warning',
 };
 
+/**
+ * Header Online-pill label per availability state. Kept short so the switch
+ * reads at a glance: green "Online" only while orders are actually accepted;
+ * amber "Busy"/"Paused" and grey "Offline" otherwise. Mirrors `STATUS_SHORT`
+ * but is the wording the reference header uses.
+ */
+export const STATUS_PILL: Record<AvailabilityStatus, string> = {
+  open: 'Online',
+  busy: 'Busy',
+  closed_today: 'Offline',
+  temporarily_closed: 'Paused',
+};
+
+/**
+ * Which header pill tone a state maps to. Green only when accepting orders,
+ * amber for the two "paused/busy" states, grey for fully offline.
+ */
+export const STATUS_PILL_TONE: Record<AvailabilityStatus, 'online' | 'amber' | 'offline'> = {
+  open: 'online',
+  busy: 'amber',
+  closed_today: 'offline',
+  temporarily_closed: 'amber',
+};
+
 export const STATUS_OPTIONS: { id: AvailabilityStatus; hint: string }[] = [
   { id: 'open', hint: 'Accepting new orders' },
   { id: 'busy', hint: 'High load, longer prep times' },

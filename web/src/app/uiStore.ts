@@ -54,12 +54,18 @@ interface UiState {
   connection: ConnectionState;
   /** Number of unread notifications for the bell badge. */
   unreadCount: number;
+  /** Whether the header's order-search input is showing over the Orders list. */
+  searchOpen: boolean;
+  /** The current order-search text, shared by the header icon and Orders list. */
+  orderQuery: string;
   /** The user's stored choice (may be `system`). */
   themePreference: ThemePreference;
   /** The resolved theme actually applied. */
   theme: Theme;
   setConnection: (state: ConnectionState) => void;
   setUnreadCount: (count: number) => void;
+  setSearchOpen: (open: boolean) => void;
+  setOrderQuery: (query: string) => void;
   setThemePreference: (pref: ThemePreference) => void;
   toggleTheme: () => void;
 }
@@ -74,10 +80,14 @@ export const useUiStore = create<UiState>((set, get) => {
     connection:
       typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'online',
     unreadCount: 0,
+    searchOpen: false,
+    orderQuery: '',
     themePreference: initialPref,
     theme: resolveTheme(initialPref),
     setConnection: (connection) => set({ connection }),
     setUnreadCount: (unreadCount) => set({ unreadCount }),
+    setSearchOpen: (searchOpen) => set({ searchOpen }),
+    setOrderQuery: (orderQuery) => set({ orderQuery }),
     setThemePreference: (themePreference) => {
       const theme = resolveTheme(themePreference);
       applyTheme(theme);

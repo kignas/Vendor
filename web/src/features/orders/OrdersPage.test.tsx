@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '@/test/server';
 import { API_BASE } from '@/lib/api';
 import { makeQueryClient } from '@/lib/queryClient';
+import { useUiStore } from '@/app/uiStore';
 import { OrdersPage } from '@/features/orders/OrdersPage';
 
 function renderPage() {
@@ -314,5 +315,34 @@ describe('OrdersPage', () => {
 
     gate.release?.();
     expect(await screen.findByText(/Order accepted/i)).toBeInTheDocument();
+  });
+
+  it('shows the search input only when opened, and filters the list', async () => {
+    const user = userEvent.setup();
+    queueHandlers([
+      placedOrder,
+      { ...placedOrder, _id: 'ord_2', publicOrderId: 'SW-2002', customerName: 'Bala Iyer' },
+    ]);
+    act(() => useUiStore.setState({ searchOpen: false, orderQuery: '' }));
+    renderPage();
+
+    // Both orders are visible; no search box until the header icon opens it.
+    expect(await screen.findByRole('article', { name: /Order SW-1001/i })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: /Order SW-2002/i })).toBeInTheDocument();
+    expect(screen.queryByRole('searchbox', { name: /search orders/i })).not.toBeInTheDocument();
+
+    // Opening the search reveals the input; typing filters the queue.
+    act(() => useUiStore.setState({ searchOpen: true }));
+    const input = await screen.findByRole('searchbox', { name: /search orders/i });
+    await user.type(input, 'Bala');
+    await waitFor(() =>
+      expect(screen.queryByRole('article', { name: /Order SW-1001/i })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole('article', { name: /Order SW-2002/i })).toBeInTheDocument();
+
+    // The close button clears the query and hides the input again.
+    await user.click(screen.getByRole('button', { name: /close order search/i }));
+    expect(useUiStore.getState().searchOpen).toBe(false);
+    expect(useUiStore.getState().orderQuery).toBe('');
   });
 });

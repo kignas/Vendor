@@ -1,5 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { isOutletOpen, openingStateOf, statusOf, statusReasonOf } from './outletStatus';
+import {
+  isOutletOpen,
+  openingStateOf,
+  STATUS_PILL,
+  STATUS_PILL_TONE,
+  statusOf,
+  statusReasonOf,
+} from './outletStatus';
+
+describe('header pill mapping', () => {
+  it('labels each availability state for the header switch', () => {
+    expect(STATUS_PILL).toEqual({
+      open: 'Online',
+      busy: 'Busy',
+      closed_today: 'Offline',
+      temporarily_closed: 'Paused',
+    });
+  });
+
+  it('is green only when accepting orders', () => {
+    expect(STATUS_PILL_TONE.open).toBe('online');
+    expect(STATUS_PILL_TONE.busy).toBe('amber');
+    expect(STATUS_PILL_TONE.temporarily_closed).toBe('amber');
+    expect(STATUS_PILL_TONE.closed_today).toBe('offline');
+  });
+});
 
 describe('statusOf', () => {
   it('reads the object availability form', () => {

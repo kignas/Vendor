@@ -118,3 +118,11 @@ mounted it at a new `/home` route (the root `/` redirects to `/orders`). The
 Step 2 grid sheet will link "Overview" to `/home`. *Safest assumption:* a
 dedicated `/home` route; confirm the path/label, or say if Overview should be
 folded into the header menu without its own route.
+
+**Q17. The Overview (Home) page also renders a `RestaurantStatusControl`.**
+Step 2 makes the header pill "the ONE availability control". `HomePage` still
+shows the fuller `RestaurantStatusControl` (its top slot when not accepting, a
+lower slot otherwise) and `ProfilePage` shows the list variant. *Safest
+assumption:* Step 2 only restyles the header; the Home/Profile controls are left
+untouched for now. Confirm whether those in-page controls should be removed so
+the header is genuinely the only place to change availability.
