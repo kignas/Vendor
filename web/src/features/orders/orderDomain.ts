@@ -307,6 +307,27 @@ export function riderDispatchAtOf(order: Order): number | null {
   );
 }
 
+/**
+ * Whether the server actually sent any rider data (Phase 3, Step 5). The card
+ * shows the bordered rider box only when this is true — a plain status copy
+ * such as "Waiting for rider assignment" is NOT rider data, and counts like
+ * "5 riders nearby" are never invented.
+ */
+export function hasRiderData(order: Order): boolean {
+  if (riderStatusOf(order) !== '') return true;
+  if (riderPhoneOf(order) !== '') return true;
+  const r = order.rider || order.deliveryPartner || order.deliveryBoy || {};
+  if (order.riderName || order.deliveryPartnerName || r.name || r.fullName) return true;
+  if (riderReachedAtOf(order) !== null || riderDispatchAtOf(order) !== null) return true;
+  if (order.riderArrived || order.riderAtRestaurant || order.riderReached) return true;
+  if (
+    firstNumber(order.riderEtaMinutes, order.etaMinutes, order.riderEta, order.arrivingInMinutes) !== null
+  ) {
+    return true;
+  }
+  return false;
+}
+
 /** Mirrors legacy `loyaltySubtitle()`. */
 export function loyaltySubtitle(order: Order): string {
   const count = firstNumber(
@@ -372,6 +393,46 @@ export function itemPriceOf(item: OrderItem): number | null {
   if (unit === null) return null;
   const qty = firstNumber(item.quantity, item.qty) ?? 1;
   return unit * qty;
+}
+
+/**
+ * Per-item customisation detail for the item sheet (Phase 3, Step 5). Reads the
+ * same aliases the legacy `itemMetaHtml` did — variant, add-ons/options/
+ * customisations, and the item note. Returns null when the item carries none of
+ * them, so the card only offers the detail sheet when there is real data.
+ */
+export interface ItemDetail {
+  variant: string | null;
+  addons: string[];
+  note: string | null;
+}
+
+export function itemDetailOf(item: OrderItem | null | undefined): ItemDetail | null {
+  if (!item) return null;
+  const variantRaw = item.variant || item.size || item.variantName || item.portion;
+  const variant = typeof variantRaw === 'string' && variantRaw.trim() ? variantRaw.trim() : null;
+
+  const raw = item.addons ?? item.options ?? item.customizations ?? item.customisation;
+  const addons: string[] = [];
+  if (Array.isArray(raw)) {
+    for (const a of raw) {
+      const name =
+        a && typeof a === 'object'
+          ? (a as { name?: unknown; label?: unknown; title?: unknown }).name ??
+            (a as { label?: unknown }).label ??
+            (a as { title?: unknown }).title
+          : a;
+      if (typeof name === 'string' && name.trim()) addons.push(name.trim());
+    }
+  } else if (typeof raw === 'string' && raw.trim()) {
+    addons.push(raw.trim());
+  }
+
+  const noteRaw = item.note || item.instructions;
+  const note = typeof noteRaw === 'string' && noteRaw.trim() ? noteRaw.trim() : null;
+
+  if (!variant && !addons.length && !note) return null;
+  return { variant, addons, note };
 }
 
 /** Mirrors legacy `ordinal()`. */

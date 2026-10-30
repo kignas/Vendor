@@ -1,30 +1,36 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import {
   CalendarClock,
+  Bike,
   ChevronDown,
-  Clock3,
+  Copy,
   LifeBuoy,
   MessageSquare,
+  MoreVertical,
   Printer,
   Timer,
   Utensils,
   Volume2,
 } from 'lucide-react';
-import { StatusPill } from '@/components/StatusPill';
 import { DietMark } from '@/components/DietMark';
+import { StatusPill } from '@/components/StatusPill';
 import { enumLabel, formatMoney, kptPct } from '@/lib/format';
 import { cn } from '@/lib/cn';
-import { formatCountdown, useAcceptanceWindow } from '@/features/orders/acceptanceWindow';
 import { caps } from '@/lib/caps';
 import { useNow } from '@/hooks/useNow';
 import { PrepStrip } from '@/features/orders/PrepStrip';
 import { RiderStatus } from '@/features/orders/RiderStatus';
+import { ItemDetailSheet } from '@/features/orders/ItemDetailSheet';
+import { formatCountdown, useAcceptanceWindow } from '@/features/orders/acceptanceWindow';
 import {
   billRows,
   commissionPctOf,
-  loyaltySubtitle,
-  orderBillOf,
-  orderCountWithRestaurant,
+  cutleryOptOut,
+  dietOf,
+  hasRiderData,
+  itemDetailOf,
+  itemPriceOf,
+  loyaltyLine,
   orderRef,
   orderTotalOf,
   paymentModeOf,
@@ -46,6 +52,26 @@ function mmss(ms: number): string {
  */
 const FINISHED_STATUSES = new Set(['delivered', 'cancelled']);
 
+/** Filled status-badge tone per server status. The label is rendered raw. */
+function statusTone(status: string): 'info' | 'warning' | 'success' | 'danger' | 'neutral' {
+  switch (status) {
+    case 'confirmed':
+    case 'preparing':
+      return 'warning';
+    case 'waiting_for_rider':
+    case 'assigned':
+    case 'out_for_delivery':
+      return 'info';
+    case 'otp_verified':
+    case 'delivered':
+      return 'success';
+    case 'cancelled':
+      return 'danger';
+    default:
+      return 'neutral';
+  }
+}
+
 export interface OrderCardProps {
   order: Order;
   /** Restaurant delivery mode, for the self-delivery PIN gate. */
@@ -66,14 +92,14 @@ export interface OrderCardProps {
   onSupport?: (order: Order) => void;
 }
 
-/** Shared sizing for the one main action on every card. */
+/** Shared sizing for the one main action on every card (52px, full width). */
 const PRIMARY_BTN =
   'min-h-[52px] w-full rounded-btn text-base font-extrabold text-white disabled:opacity-50';
 
 /**
  * Ready CTA with the shared prep deadline. Mirrors the legacy split-fill
- * `startKptTimer` label: "Order Ready (mm:ss)" while the deadline is in the
- * future, plain "Order Ready" otherwise. The button is never disabled by the
+ * `startKptTimer` label: "Order ready (mm:ss)" while the deadline is in the
+ * future, plain "Order ready" otherwise. The button is never disabled by the
  * timer — the kitchen can always mark food ready early.
  */
 function ReadyButton({ order, busy, onReady }: { order: Order; busy: boolean; onReady: (order: Order) => void }) {
@@ -90,46 +116,39 @@ function ReadyButton({ order, busy, onReady }: { order: Order; busy: boolean; on
       type="button"
       disabled={busy}
       onClick={() => onReady(order)}
-      className="relative mt-3 min-h-[52px] w-full overflow-hidden rounded-btn border-2 border-brand-ink bg-card text-base font-extrabold text-brand-ink disabled:opacity-50"
+      className={cn(PRIMARY_BTN, 'relative mt-3 overflow-hidden bg-info')}
     >
       <span
-        className="absolute inset-y-0 left-0 bg-brand/10"
+        className="absolute inset-y-0 left-0 bg-white/20"
         style={{ width: `${showTimer ? pct : 100}%` }}
         aria-hidden="true"
       />
       <span className="relative">
-        {showTimer ? `Order Ready (${mmss(remaining)})` : 'Order Ready'}
+        {showTimer ? `Order ready (${mmss(remaining)})` : 'Order ready'}
       </span>
     </button>
   );
 }
 
 /**
- * Cutlery preference and scheduled-slot strips. Mirrors the legacy
- * `renderTicket` stripHtml block: cutlery is read from the several server field
- * aliases and only rendered when explicitly sent; a scheduled slot is shown
- * only for a future delivery time.
+ * Cutlery preference and scheduled-slot strips. Cutlery follows the Step 4/5
+ * rule (an explicit opt-out only); a scheduled slot is shown only for a future
+ * delivery time. Every value is server-sourced.
  */
 function TicketStrips({ order }: { order: Order }) {
-  const cutlery =
-    order.sendCutlery ?? order.cutlery ?? order.cutleryPreference ?? order.cutleryRequired;
+  const cutlery = cutleryOptOut(order);
   const slotAt = scheduledAtOf(order);
   const now = useNow(30_000, slotAt !== null && slotAt > Date.now());
 
-  let cutleryText: string | null = null;
-  if (cutlery === true) cutleryText = 'Send cutlery';
-  else if (cutlery === false) cutleryText = 'No cutlery needed';
-  else if (typeof cutlery === 'string' && cutlery.trim()) cutleryText = `Cutlery: ${cutlery.trim()}`;
-
   const showSlot = slotAt !== null && slotAt > now;
-  if (!cutleryText && !showSlot) return null;
+  if (!cutlery && !showSlot) return null;
 
   return (
     <div className="mt-2 flex flex-wrap gap-2">
-      {cutleryText ? (
-        <p className="inline-flex items-start gap-1.5 rounded-btn bg-canvas px-2.5 py-1.5 text-[13px] text-ink-soft">
+      {cutlery ? (
+        <p className="inline-flex items-start gap-1.5 rounded-btn border border-danger px-2.5 py-1.5 text-[13px] font-semibold text-danger-ink">
           <Utensils className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>{cutleryText}</span>
+          <span>Don&rsquo;t send cutlery, tissues and straws</span>
         </p>
       ) : null}
       {showSlot ? (
@@ -151,34 +170,158 @@ function TicketStrips({ order }: { order: Order }) {
   );
 }
 
-function ItemRow({ item }: { item: OrderItem }) {
+/**
+ * One item row. The name is a dashed-underline button (opens the item sheet)
+ * only when the item carries real customisation data; otherwise it is plain
+ * text with no tap target.
+ */
+function ItemRow({ item, onOpenDetail }: { item: OrderItem; onOpenDetail: (item: OrderItem) => void }) {
   const qty = Number(item.quantity) || 1;
+  const price = itemPriceOf(item);
+  const hasDetail = itemDetailOf(item) !== null;
+  const name = item.name || 'Item';
+
   return (
     <li className="flex items-start gap-2.5 py-2">
       <DietMark item={item} />
       <span className="w-8 shrink-0 text-base font-extrabold tabular-nums text-ink">{qty}×</span>
-      <span className="min-w-0 flex-1 text-[15px] font-semibold leading-snug text-ink">
-        {item.name || 'Item'}
+      <span className="min-w-0 flex-1">
+        {hasDetail ? (
+          <button
+            type="button"
+            onClick={() => onOpenDetail(item)}
+            aria-label={`View details for ${name}`}
+            className="text-left text-[15px] font-semibold leading-snug text-ink underline decoration-dashed decoration-ink-faint underline-offset-2"
+          >
+            {name}
+          </button>
+        ) : (
+          <span className="text-[15px] font-semibold leading-snug text-ink">{name}</span>
+        )}
       </span>
+      {price !== null ? (
+        <span className="shrink-0 text-sm font-semibold tabular-nums text-ink-soft">
+          {formatMoney(price)}
+        </span>
+      ) : null}
     </li>
   );
 }
 
-function ItemList({ items }: { items: OrderItem[] }) {
+/**
+ * Row-1 action menu (kebab). Holds the reference-only actions that used to sit
+ * in the card body: Print KOT, Read aloud, Extend prep (one-time) and Get help.
+ */
+function ActionMenu({
+  order,
+  extended,
+  busy,
+  onKot,
+  onSpeak,
+  onSupport,
+  onExtendPrep,
+}: {
+  order: Order;
+  extended: boolean;
+  busy: boolean;
+  onKot?: ((order: Order) => void) | undefined;
+  onSpeak?: ((order: Order) => void) | undefined;
+  onSupport?: ((order: Order) => void) | undefined;
+  onExtendPrep: (order: Order) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocPointer(e: PointerEvent) {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('pointerdown', onDocPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDocPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const itemCls =
+    'flex w-full items-center gap-2 rounded-btn px-3 py-2 text-left text-sm font-semibold text-ink hover:bg-canvas disabled:opacity-50';
+
+  function run(fn: ((order: Order) => void) | undefined) {
+    setOpen(false);
+    fn?.(order);
+  }
+
   return (
-    <ul className="divide-y divide-border-soft">
-      {items.map((item, i) => (
-        <ItemRow key={i} item={item} />
-      ))}
-    </ul>
+    <div ref={rootRef} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Order actions"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-btn text-ink-soft hover:text-ink"
+      >
+        <MoreVertical className="h-5 w-5" aria-hidden="true" />
+      </button>
+      {open ? (
+        <div
+          role="menu"
+          className="absolute right-0 top-10 z-20 w-48 rounded-btn border border-border bg-card py-1 shadow-lg animate-fade-in"
+        >
+          <button type="button" role="menuitem" className={itemCls} onClick={() => run(onKot)}>
+            <Printer className="h-4 w-4" aria-hidden="true" /> Print KOT
+          </button>
+          <button type="button" role="menuitem" className={itemCls} onClick={() => run(onSpeak)}>
+            <Volume2 className="h-4 w-4" aria-hidden="true" /> Read aloud
+          </button>
+          {order.status === 'preparing' ? (
+            <button
+              type="button"
+              role="menuitem"
+              disabled={extended || busy}
+              className={itemCls}
+              onClick={() => run(onExtendPrep)}
+            >
+              <Timer className="h-4 w-4" aria-hidden="true" />
+              {extended ? 'Extend prep (+5 min added)' : 'Extend prep (+5 min)'}
+            </button>
+          ) : null}
+          <button type="button" role="menuitem" className={itemCls} onClick={() => run(onSupport)}>
+            <LifeBuoy className="h-4 w-4" aria-hidden="true" /> Get help
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
 /**
- * Response countdown for a new order. Calm amber while there is time, red in the
- * final minute and once it lapses, with a thin bar that drains so the urgency is
- * visible at a glance. The bar is derived from the same server deadline; it is
- * omitted when the order has no usable created time.
+ * Rider box (Phase 3, Step 5). A bordered row with a scooter icon wrapping the
+ * existing `RiderStatus` copy. Shown ONLY when the server actually sent rider
+ * data — never for a bare "waiting" status, and never with an invented count.
+ */
+function RiderBox({ order }: { order: Order }) {
+  if (!hasRiderData(order)) return null;
+  return (
+    <div className="mt-2 flex items-start gap-2 rounded-btn border border-border px-3 py-2">
+      <Bike className="mt-0.5 h-4 w-4 shrink-0 text-ink-soft" aria-hidden="true" />
+      <div className="min-w-0 flex-1">
+        <RiderStatus order={order} />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Response countdown for a new (placed) order, shown for scheduled orders that
+ * still render as a card. Calm amber while there is time, red in the final
+ * minute and once it lapses, with a thin bar that drains. Derived from the same
+ * server deadline; omitted when the order has no usable created time.
  */
 function ResponseCountdown({
   order,
@@ -225,14 +368,11 @@ function ResponseCountdown({
 }
 
 /**
- * A single order card. Renders only fields the server supplies — the total,
- * bill breakdown, payment mode, commission and rider state each appear only
- * when the corresponding server data exists (never invented).
- *
- * Layout, top to bottom: what the kitchen must cook (items, then the customer
- * note) comes first, then the total, then ONE main action. Reference material
- * (bill breakdown, KOT, voice readout, help) sits behind a "More" toggle so it
- * does not push the main action off screen.
+ * A single order card, rebuilt as a flat full-width section (Phase 3, Step 5):
+ * no coloured left edge, no card radius or shadow. Renders only fields the
+ * server supplies — the total, bill breakdown, payment mode, commission and
+ * rider state each appear only when the corresponding server data exists
+ * (never invented).
  */
 export function OrderCard({
   order,
@@ -250,8 +390,9 @@ export function OrderCard({
   onSpeak,
   onSupport,
 }: OrderCardProps) {
-  const [moreOpen, setMoreOpen] = useState(false);
-  const moreId = useId();
+  const [billOpen, setBillOpen] = useState(false);
+  const [detailItem, setDetailItem] = useState<OrderItem | null>(null);
+  const billId = useId();
 
   const items = Array.isArray(order.items) ? order.items : [];
   const ref = orderRef(order);
@@ -259,18 +400,32 @@ export function OrderCard({
   const code = pickupCodeOf(order);
   const responseWindow = useAcceptanceWindow(order);
   const expired = responseWindow.expired;
-  const rows = billRows(order);
-  const bill = orderBillOf(order) ?? {};
+  // Commission is a bill-breakdown figure; the row is dropped when the backend
+  // capability is off, so an unverified commission is never shown (Step 5).
+  const rows = billRows(order).filter((r) => caps.billBreakdown || r.label !== 'Platform commission');
   const pct = commissionPctOf(order);
   const mode = paymentModeOf(order);
-  const count = orderCountWithRestaurant(order);
+  const loyalty = loyaltyLine(order);
   const stamp = ticketStamp(order);
   const note =
     order.customerInstructions || order.instructions || order.deliveryInstructions || order.restaurantNote;
   const selfDelivery = deliveryMode === 'self_delivery' || order.deliveryModeSnapshot === 'self_delivery';
   const finished = FINISHED_STATUSES.has(order.status);
+  const extended = extendedIds?.has(order._id) ?? false;
 
-  const disabled = busy || expired;
+  const known = items.map((i) => dietOf(i)).filter(Boolean) as ('veg' | 'nonveg')[];
+  const vegOnly = known.length > 0 && known.every((d) => d === 'veg');
+  // A lapsed response window blocks accept/reject on a placed card, matching the
+  // legacy disabled state; the scheduled card's sheet handles its own gating.
+  const placedDisabled = busy || expired;
+
+  async function copyRef() {
+    try {
+      await navigator.clipboard?.writeText(ref);
+    } catch {
+      /* clipboard unavailable — nothing to do */
+    }
+  }
 
   let footer: React.ReactNode = null;
   if (hideFooter) footer = null;
@@ -280,7 +435,7 @@ export function OrderCard({
         <div className="mt-3 flex gap-2">
           <button
             type="button"
-            disabled={disabled}
+            disabled={placedDisabled}
             onClick={() => onReject(order)}
             className="min-h-[52px] flex-1 rounded-btn border-2 border-border text-base font-bold text-ink disabled:opacity-50"
           >
@@ -289,7 +444,7 @@ export function OrderCard({
           {/* Accept is twice the width of Reject: the likelier tap gets the bigger target. */}
           <button
             type="button"
-            disabled={disabled}
+            disabled={placedDisabled}
             onClick={() => onAccept(order)}
             className="min-h-[52px] flex-[2] rounded-btn bg-success text-base font-extrabold text-white shadow-sm disabled:opacity-50"
           >
@@ -304,7 +459,7 @@ export function OrderCard({
           type="button"
           disabled={busy}
           onClick={() => onAdvance(order)}
-          className={cn(PRIMARY_BTN, 'mt-3 bg-brand')}
+          className={cn(PRIMARY_BTN, 'mt-3 bg-info')}
         >
           Start preparing
         </button>
@@ -338,7 +493,7 @@ export function OrderCard({
             type="button"
             disabled={busy}
             onClick={() => onVerifyOtp(order)}
-            className={cn(PRIMARY_BTN, 'mt-3 bg-brand')}
+            className={cn(PRIMARY_BTN, 'mt-3 bg-info')}
           >
             Verify delivery PIN
           </button>
@@ -356,7 +511,7 @@ export function OrderCard({
           type="button"
           disabled={busy}
           onClick={() => onAdvance(order)}
-          className={cn(PRIMARY_BTN, 'mt-3 bg-brand')}
+          className={cn(PRIMARY_BTN, 'mt-3 bg-info')}
         >
           Mark delivered
         </button>
@@ -385,29 +540,44 @@ export function OrderCard({
   }
 
   return (
-    <article
-      className={cn(
-        'w-full bg-card px-4 py-4',
-        order.status === 'placed' && 'shadow-sm',
-      )}
-      aria-label={`Order ${ref}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="truncate text-xl font-extrabold text-ink">#{ref}</h3>
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[13px] text-ink-soft">
-            <span className="font-semibold text-ink">{loyaltySubtitle(order)}</span>
-            {stamp ? (
-              <time className="inline-flex items-center gap-1">
-                <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
-                {stamp}
-              </time>
-            ) : null}
-            {count !== null ? <span className="text-ink-faint">{count} with you</span> : null}
-          </div>
-        </div>
+    <article className="w-full bg-card px-4 py-4" aria-label={`Order ${ref}`}>
+      {/* Row 1: ID + copy | time | kebab menu */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="inline-flex min-w-0 items-center gap-1.5 text-base font-extrabold text-ink">
+          <span className="truncate">ID: {ref}</span>
+          <button
+            type="button"
+            onClick={() => void copyRef()}
+            aria-label="Copy order ID"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-btn text-ink-faint hover:text-ink"
+          >
+            <Copy className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </span>
+        <span className="flex shrink-0 items-center gap-1">
+          {stamp ? <time className="text-xs text-ink-soft">{stamp}</time> : null}
+          <ActionMenu
+            order={order}
+            extended={extended}
+            busy={busy}
+            onKot={onKot}
+            onSpeak={onSpeak}
+            onSupport={onSupport}
+            onExtendPrep={onExtendPrep}
+          />
+        </span>
+      </div>
+
+      {/* Row 2: filled status badge (server text, raw) + loyalty line */}
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+        <StatusPill tone={statusTone(order.status)} className="uppercase">
+          {enumLabel(order.status)}
+        </StatusPill>
+        {loyalty ? <span className="text-[13px] font-semibold text-info-ink">{loyalty}</span> : null}
         {code ? <StatusPill tone="neutral">PICKUP #{code}</StatusPill> : null}
       </div>
+
+      <TicketStrips order={order} />
 
       {order.status === 'placed' && responseWindow.active ? (
         <ResponseCountdown
@@ -425,20 +595,32 @@ export function OrderCard({
               <summary className="min-h-tap cursor-pointer py-2 text-sm font-semibold text-ink-soft">
                 {items.length} item{items.length === 1 ? '' : 's'}
               </summary>
-              <ItemList items={items} />
+              <ul className="divide-y divide-border-soft">
+                {items.map((item, i) => (
+                  <ItemRow key={i} item={item} onOpenDetail={setDetailItem} />
+                ))}
+              </ul>
             </details>
           ) : (
             <>
               <p className="text-[11px] font-extrabold uppercase tracking-wide text-ink-faint">
                 {items.length} item{items.length === 1 ? '' : 's'}
               </p>
-              <ItemList items={items} />
+              <ul className="divide-y divide-border-soft">
+                {items.map((item, i) => (
+                  <ItemRow key={i} item={item} onOpenDetail={setDetailItem} />
+                ))}
+              </ul>
             </>
           )
         ) : (
           <p className="text-sm text-ink-faint">No items listed</p>
         )}
       </div>
+
+      {vegOnly ? (
+        <p className="mt-2 text-sm font-extrabold uppercase tracking-wide text-success-ink">Veg only order</p>
+      ) : null}
 
       {note ? (
         <p className="mt-2 flex items-start gap-2 rounded-btn bg-warning-bg px-3 py-2 text-sm font-semibold text-warning-ink">
@@ -447,15 +629,8 @@ export function OrderCard({
         </p>
       ) : null}
 
-      <PrepStrip
-        order={order}
-        extended={extendedIds?.has(order._id) ?? false}
-        onExtend={onExtendPrep}
-        busy={busy}
-      />
-
-      <TicketStrips order={order} />
-      <RiderStatus order={order} />
+      <PrepStrip order={order} />
+      <RiderBox order={order} />
 
       {order.status === 'cancelled' && order.cancelReason ? (
         <p className="mt-2 rounded-btn bg-danger-bg px-3 py-2 text-sm text-danger-ink">
@@ -464,94 +639,69 @@ export function OrderCard({
         </p>
       ) : null}
 
-      <div className="mt-3 flex items-center justify-between gap-3 border-t border-border-soft pt-3">
-        <span className="text-2xl font-extrabold tabular-nums text-ink">
-          {total !== null ? formatMoney(total) : '—'}
-        </span>
-        {mode ? (
-          <StatusPill tone={mode === 'upi' ? 'success' : 'neutral'}>
-            {mode === 'upi' ? 'Paid online' : 'COD'}
-          </StatusPill>
+      {/* Total bill + payment chip + expandable breakdown */}
+      <div className="mt-3 rounded-btn border border-border-soft">
+        <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+          <span className="inline-flex items-center gap-2 text-sm font-bold text-ink">
+            Total Bill
+            {mode ? (
+              <span
+                className={cn(
+                  'rounded-pill px-2 py-0.5 text-[11px] font-extrabold uppercase',
+                  mode === 'upi' ? 'bg-success-bg text-success-ink' : 'bg-warning-bg text-warning-ink',
+                )}
+              >
+                {mode === 'upi' ? 'PAID' : 'COD'}
+              </span>
+            ) : null}
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="text-base font-extrabold tabular-nums text-ink">
+              {total !== null ? formatMoney(total) : '—'}
+            </span>
+            {rows.length ? (
+              <button
+                type="button"
+                aria-label="Show bill breakdown"
+                aria-expanded={billOpen}
+                aria-controls={billId}
+                onClick={() => setBillOpen((v) => !v)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-btn text-ink-soft"
+              >
+                <ChevronDown
+                  className={cn('h-4 w-4 transition-transform duration-200', billOpen && 'rotate-180')}
+                  aria-hidden="true"
+                />
+              </button>
+            ) : null}
+          </span>
+        </div>
+        {billOpen && rows.length ? (
+          <dl id={billId} className="space-y-1.5 border-t border-border-soft px-3 py-2 text-sm">
+            {rows.map((row) => (
+              <div key={row.label} className="flex justify-between gap-3">
+                <dt className={cn('text-ink-soft', row.kind === 'total' && 'font-bold text-ink')}>
+                  {row.label}
+                  {row.label === 'Platform commission' && pct !== null ? ` (${pct}%)` : ''}
+                </dt>
+                <dd
+                  className={cn(
+                    'tabular-nums',
+                    row.kind === 'total' ? 'font-bold text-ink' : 'text-ink-soft',
+                  )}
+                >
+                  {row.kind === 'neg' ? '−' : ''}
+                  {formatMoney(Math.abs(row.value))}
+                </dd>
+              </div>
+            ))}
+          </dl>
         ) : null}
       </div>
 
       {footer}
 
-      <button
-        type="button"
-        onClick={() => setMoreOpen((v) => !v)}
-        aria-expanded={moreOpen}
-        aria-controls={moreId}
-        className="mt-1 flex min-h-tap w-full items-center justify-center gap-1 text-[13px] font-semibold text-ink-soft"
-      >
-        {moreOpen ? 'Less' : 'More'}
-        <ChevronDown
-          className={cn('h-4 w-4 transition-transform duration-200', moreOpen && 'rotate-180')}
-          aria-hidden="true"
-        />
-      </button>
-
-      {moreOpen ? (
-        <div id={moreId} className="border-t border-border-soft pt-3">
-          {rows.length ? (
-            <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-wide text-ink-faint">
-                Bill breakdown
-              </p>
-              <dl className="mt-1.5 space-y-1.5 text-sm">
-                {rows.map((row) => (
-                  <div key={row.label} className="flex justify-between gap-3">
-                    <dt className={cn('text-ink-soft', row.kind === 'total' && 'font-bold text-ink')}>
-                      {row.label}
-                      {row.label === 'Platform commission' && pct !== null ? ` (${pct}%)` : ''}
-                    </dt>
-                    <dd
-                      className={cn(
-                        'tabular-nums',
-                        row.kind === 'total' ? 'font-bold text-ink' : 'text-ink-soft',
-                      )}
-                    >
-                      {row.kind === 'neg' ? '−' : ''}
-                      {formatMoney(Math.abs(row.value))}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          ) : (
-            <p className="text-xs text-ink-faint">
-              {Object.keys(bill).length ? null : 'A detailed breakdown is not available for this order.'}
-            </p>
-          )}
-
-          <div className="mt-3 flex gap-2 text-[13px]">
-            <button
-              type="button"
-              onClick={() => onKot?.(order)}
-              className="inline-flex min-h-tap flex-1 items-center justify-center gap-1.5 rounded-btn border border-border font-semibold text-ink-soft"
-              aria-label="Print KOT"
-            >
-              <Printer className="h-4 w-4" aria-hidden="true" /> KOT
-            </button>
-            <button
-              type="button"
-              onClick={() => onSpeak?.(order)}
-              className="inline-flex min-h-tap flex-1 items-center justify-center gap-1.5 rounded-btn border border-border font-semibold text-ink-soft"
-              aria-label="Voice readout"
-            >
-              <Volume2 className="h-4 w-4" aria-hidden="true" /> Read
-            </button>
-            <button
-              type="button"
-              onClick={() => onSupport?.(order)}
-              className="inline-flex min-h-tap flex-1 items-center justify-center gap-1.5 rounded-btn border border-border font-semibold text-ink-soft"
-              aria-label="Order support"
-            >
-              <LifeBuoy className="h-4 w-4" aria-hidden="true" /> Help
-            </button>
-          </div>
-        </div>
-      ) : null}
+      {detailItem ? <ItemDetailSheet item={detailItem} onClose={() => setDetailItem(null)} /> : null}
     </article>
   );
 }

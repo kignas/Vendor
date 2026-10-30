@@ -81,9 +81,14 @@ describe('OrderCard — cutlery and scheduled strips', () => {
     );
   }
 
-  it('renders the cutlery preference only when explicitly sent', () => {
+  it('renders the cutlery opt-out tag only when the server says no cutlery', () => {
+    renderCard({ sendCutlery: false });
+    expect(screen.getByText(/Don.t send cutlery/i)).toBeInTheDocument();
+  });
+
+  it('does not render a cutlery tag when cutlery is requested', () => {
     renderCard({ sendCutlery: true });
-    expect(screen.getByText(/Send cutlery/i)).toBeInTheDocument();
+    expect(screen.queryByText(/cutlery/i)).not.toBeInTheDocument();
   });
 
   it('renders a scheduled slot only for a future delivery time', () => {

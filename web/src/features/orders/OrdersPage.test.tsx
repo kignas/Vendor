@@ -62,7 +62,7 @@ describe('OrdersPage', () => {
     const card = await screen.findByRole('article', { name: /Order SW-1001/i });
     // ₹221 appears as the card total and again as the bill's net receivable.
     expect(within(card).getAllByText('₹221').length).toBeGreaterThanOrEqual(1);
-    expect(within(card).getByText(/Paid online/i)).toBeInTheDocument();
+    expect(within(card).getByText(/^PAID$/i)).toBeInTheDocument();
   });
 
   it('maps the three chips to the existing order groups with counts, defaulting to Preparing', async () => {
@@ -354,7 +354,7 @@ describe('OrdersPage', () => {
     await waitFor(() => expect(undone).toBe(true));
   });
 
-  it('extend-prep is one-time: the chip disables after the first call', async () => {
+  it('extend-prep is one-time: the menu item disables after the first call', async () => {
     const user = userEvent.setup();
     let extendCalls = 0;
     const readyOrder = {
@@ -372,11 +372,14 @@ describe('OrdersPage', () => {
     );
     renderPage();
 
-    const chip = await screen.findByRole('button', { name: /^\+5 min$/ });
-    await user.click(chip);
+    // Extend prep now lives in the card's kebab menu (Phase 3, Step 5).
+    await user.click(await screen.findByRole('button', { name: /Order actions/i }));
+    const item = await screen.findByRole('menuitem', { name: /Extend prep \(\+5 min\)/i });
+    await user.click(item);
     await waitFor(() => expect(extendCalls).toBe(1));
-    // After a successful extension the chip shows the used state and is disabled.
-    const used = await screen.findByRole('button', { name: /\+5 min added/ });
+    // After a successful extension the item shows the used state and is disabled.
+    await user.click(screen.getByRole('button', { name: /Order actions/i }));
+    const used = await screen.findByRole('menuitem', { name: /\+5 min added/ });
     expect(used).toBeDisabled();
     await user.click(used);
     expect(extendCalls).toBe(1);

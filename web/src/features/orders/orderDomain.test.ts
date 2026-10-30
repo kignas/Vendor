@@ -6,12 +6,14 @@ import {
   commissionPctOf,
   dietOf,
   cutleryOptOut,
+  hasRiderData,
   isPlacedOrder,
   isReadyOrder,
   isPreparingOrder,
   isResponseExpired,
   isScheduledOrder,
   isSelfDeliveryOrder,
+  itemDetailOf,
   itemPriceOf,
   loyaltyLine,
   loyaltySubtitle,
@@ -230,5 +232,35 @@ describe('orderDomain — Phase 3 Step 4 helpers', () => {
   it('isPlacedOrder is true only for the placed status', () => {
     expect(isPlacedOrder(makeOrder({ status: 'placed' }))).toBe(true);
     expect(isPlacedOrder(makeOrder({ status: 'confirmed' }))).toBe(false);
+  });
+});
+
+describe('orderDomain — Phase 3 Step 5 helpers', () => {
+  it('itemDetailOf collects variant, add-ons and note, or null when empty', () => {
+    expect(itemDetailOf({ name: 'A' })).toBeNull();
+    expect(itemDetailOf({ name: 'A', variant: '  Half  ' })).toEqual({
+      variant: 'Half',
+      addons: [],
+      note: null,
+    });
+    expect(
+      itemDetailOf({ name: 'A', addons: [{ name: 'Raita' }, 'Chutney', { label: 'Papad' }] }),
+    ).toEqual({ variant: null, addons: ['Raita', 'Chutney', 'Papad'], note: null });
+    expect(itemDetailOf({ name: 'A', note: 'No onion' })).toEqual({
+      variant: null,
+      addons: [],
+      note: 'No onion',
+    });
+  });
+
+  it('hasRiderData is false for a bare status and true for any rider field', () => {
+    // A plain "waiting" status is not rider data.
+    expect(hasRiderData(makeOrder({ status: 'waiting_for_rider' }))).toBe(false);
+    expect(hasRiderData(makeOrder({ riderStatus: 'assigned' }))).toBe(true);
+    expect(hasRiderData(makeOrder({ riderName: 'Suresh' }))).toBe(true);
+    expect(hasRiderData(makeOrder({ rider: { name: 'Suresh' } }))).toBe(true);
+    expect(hasRiderData(makeOrder({ riderPhone: '9999999999' }))).toBe(true);
+    expect(hasRiderData(makeOrder({ riderEtaMinutes: 4 }))).toBe(true);
+    expect(hasRiderData(makeOrder({ riderReachedAt: new Date().toISOString() }))).toBe(true);
   });
 });

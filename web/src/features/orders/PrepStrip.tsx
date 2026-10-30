@@ -14,20 +14,10 @@ function mmss(ms: number): string {
  * Prep countdown strip. The deadline is a persisted server timestamp
  * (estimatedReadyAt / prepReadyAt / readyAt); the ticking clock never writes
  * back, so a reload restores the true remaining time. Mirrors the legacy
- * `prepStripHtml` + `startPrepTimer` pair, including the one-time +5 min
- * extension chip (only while the kitchen is preparing).
+ * `prepStripHtml` + `startPrepTimer` pair. The one-time +5 min extension now
+ * lives in the card's action menu (Phase 3, Step 5), not here.
  */
-export function PrepStrip({
-  order,
-  extended,
-  onExtend,
-  busy,
-}: {
-  order: Order;
-  extended: boolean;
-  onExtend: (order: Order) => void;
-  busy: boolean;
-}) {
+export function PrepStrip({ order }: { order: Order }) {
   const deadline = prepDeadlineOf(order);
   const active = caps.prepCountdown && deadline !== null && (order.status === 'confirmed' || order.status === 'preparing');
   const now = useNow(1000, active);
@@ -42,8 +32,6 @@ export function PrepStrip({
     started !== null && deadline > started
       ? Math.max(0, Math.min(100, ((now - started) / (deadline - started)) * 100))
       : 0;
-
-  const isExtended = extended || order.prepTimeExtended === true;
 
   return (
     <div
@@ -78,19 +66,6 @@ export function PrepStrip({
           />
         </span>
       </span>
-      {order.status === 'preparing' ? (
-        <button
-          type="button"
-          onClick={() => onExtend(order)}
-          disabled={isExtended || busy}
-          className={cn(
-            'shrink-0 rounded-btn border px-2.5 py-1 text-[11px] font-bold disabled:opacity-60',
-            isExtended ? 'border-border text-ink-faint' : 'border-brand-ink text-brand-ink',
-          )}
-        >
-          {isExtended ? '+5 min added' : '+5 min'}
-        </button>
-      ) : null}
     </div>
   );
 }
