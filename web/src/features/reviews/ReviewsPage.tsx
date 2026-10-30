@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { MessageSquare, Search, Star } from 'lucide-react';
 import { ScrollTabs } from '@/components/ScrollTabs';
 import { EmptyState } from '@/components/EmptyState';
+import { StorefrontIllustration } from '@/components/StorefrontIllustration';
 import { ErrorState } from '@/components/ErrorState';
 import { BottomSheet } from '@/components/BottomSheet';
 import { SkeletonList } from '@/components/Skeletons';
@@ -354,7 +355,7 @@ export function ReviewsPage() {
         <EmptyState
           title="No customer reviews yet"
           description="Reviews from completed orders will appear here."
-          icon={Star}
+          illustration={<StorefrontIllustration variant="neutral" />}
         />
       ) : null}
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
+import { StorefrontIllustration } from '@/components/StorefrontIllustration';
 import { ErrorState } from '@/components/ErrorState';
 import { KpiCard } from '@/components/KpiCard';
 import { BottomSheet } from '@/components/BottomSheet';
@@ -302,7 +303,11 @@ export function InventoryPage() {
       </div>
 
       {items.length === 0 ? (
-        <EmptyState title="No menu items" description="Add items in the Menu tab to manage stock." />
+        <EmptyState
+          title="No menu items"
+          description="Add items in the Menu tab to manage stock."
+          illustration={<StorefrontIllustration variant="neutral" />}
+        />
       ) : (
         <>
           <div className="rounded-card border border-border bg-card p-4">

@@ -4,6 +4,8 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { KpiCard } from '@/components/KpiCard';
 import { StatusPill } from '@/components/StatusPill';
 import { EmptyState } from '@/components/EmptyState';
+import { StorefrontIllustration } from '@/components/StorefrontIllustration';
+import { ordersEmptyCopy } from '@/features/orders/ordersEmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { ChartCard } from '@/components/ChartCard';
 import { BottomSheet } from '@/components/BottomSheet';
@@ -92,6 +94,44 @@ export function DesignPage() {
             </button>
           }
         />
+      </Section>
+
+      <Section title="Storefront illustration">
+        <div className="grid grid-cols-2 gap-3">
+          {(['open', 'busy', 'paused', 'closed', 'neutral'] as const).map((v) => (
+            <div
+              key={v}
+              className="flex flex-col items-center gap-2 rounded-card border border-border bg-card p-3"
+            >
+              <StorefrontIllustration variant={v} size={120} />
+              <span className="text-xs font-semibold text-ink-soft">{v}</span>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Orders empty states">
+        {(['open', 'busy', 'temporarily_closed', 'closed_today', null] as const).map((s) => {
+          const copy = ordersEmptyCopy(s, s === 'temporarily_closed' ? 'Kitchen maintenance' : null);
+          return (
+            <EmptyState
+              key={s ?? 'unknown'}
+              title={copy.title}
+              description={copy.body}
+              illustration={<StorefrontIllustration variant={copy.variant} />}
+              action={
+                copy.action ? (
+                  <button
+                    type="button"
+                    className="inline-flex min-h-tap items-center gap-2 rounded-btn bg-success px-5 text-sm font-bold text-white"
+                  >
+                    {copy.action === 'resume' ? 'Resume orders' : 'Turn on Online'}
+                  </button>
+                ) : undefined
+              }
+            />
+          );
+        })}
       </Section>
 
       <Section title="ErrorState">

@@ -227,8 +227,11 @@ describe('OrdersPage', () => {
 
     await waitFor(() => expect(sentReason).toBe('Out of stock'));
     // The order disappears only from the authoritative refetch — the queue is
-    // empty and no new-order bar is left behind.
-    await waitFor(() => expect(screen.queryByText(/new order/i)).not.toBeInTheDocument());
+    // empty and no new-order BAR is left behind (assert the bar's control, not
+    // the words "new order", which the empty-state copy also contains).
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: /new orders? — open/i })).not.toBeInTheDocument(),
+    );
   });
 
   it('a failed accept surfaces an error and never advances the order', async () => {
@@ -439,5 +442,51 @@ describe('OrdersPage', () => {
     await user.click(screen.getByRole('button', { name: /close order search/i }));
     expect(useUiStore.getState().searchOpen).toBe(false);
     expect(useUiStore.getState().orderQuery).toBe('');
+  });
+
+  it('an empty queue while online shows the illustration and online copy', async () => {
+    queueHandlers([]);
+    renderPage();
+
+    expect(await screen.findByText('You are online')).toBeInTheDocument();
+    expect(screen.getByText('Waiting for new orders')).toBeInTheDocument();
+  });
+
+  it('an empty queue while offline offers "Turn on Online" from the empty state', async () => {
+    const user = userEvent.setup();
+    let wentOnline = false;
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () =>
+        HttpResponse.json({ data: { _id: 'r1', name: 'Test Kitchen', availability: 'closed_today' } }),
+      ),
+      http.get(`${API_BASE}/orders`, () => HttpResponse.json({ data: [] })),
+      http.put(`${API_BASE}/restaurant/availability`, () => {
+        wentOnline = true;
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    renderPage();
+
+    const button = await screen.findByRole('button', { name: /Turn on Online/i });
+    await user.click(button);
+    await waitFor(() => expect(wentOnline).toBe(true));
+  });
+
+  it('a queue error shows the error state and Retry, never the friendly empty state', async () => {
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () =>
+        HttpResponse.json({ data: { _id: 'r1', name: 'Test Kitchen', availability: 'open' } }),
+      ),
+      http.get(`${API_BASE}/orders`, () => HttpResponse.json({ message: 'Queue down' }, { status: 500 })),
+    );
+    renderPage();
+
+    // The query retries once before surfacing the error, so allow for backoff.
+    const alert = await screen.findByRole('alert', {}, { timeout: 5000 });
+    expect(alert).toHaveTextContent(/Queue down/);
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+    // …and the friendly empty state does NOT, so an outage is never disguised.
+    expect(screen.queryByText('You are online')).not.toBeInTheDocument();
+    expect(screen.queryByText('Waiting for new orders')).not.toBeInTheDocument();
   });
 });

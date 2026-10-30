@@ -5,6 +5,11 @@ export interface EmptyStateProps {
   title: string;
   description?: string;
   icon?: LucideIcon;
+  /**
+   * Custom artwork shown instead of the icon badge (e.g. the storefront
+   * illustration). Takes precedence over `icon` when both are given.
+   */
+  illustration?: React.ReactNode;
   /** Optional primary action (e.g. "Refresh"). */
   action?: React.ReactNode;
   className?: string;
@@ -18,6 +23,7 @@ export function EmptyState({
   title,
   description,
   icon: Icon,
+  illustration,
   action,
   className,
 }: EmptyStateProps) {
@@ -29,7 +35,9 @@ export function EmptyState({
       )}
       role="status"
     >
-      {Icon ? (
+      {illustration ? (
+        <span className="mb-3">{illustration}</span>
+      ) : Icon ? (
         <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-pill bg-border-soft">
           <Icon className="h-6 w-6 text-ink-faint" aria-hidden="true" />
         </span>

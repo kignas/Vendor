@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Receipt, Search, Loader2, X } from 'lucide-react';
+import { Search, Loader2, X } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
+import { OrdersEmptyState } from '@/features/orders/OrdersEmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { OrderCard } from '@/features/orders/OrderCard';
 import { isPlacedOrder, ordersForTab, orderMatchesQuery } from '@/features/orders/orderDomain';
@@ -259,12 +260,16 @@ export function OrdersPage() {
             />
           ))}
         </div>
-      ) : (
+      ) : query ? (
         <EmptyState
-          title={query ? 'No matches' : emptyCopy(tab).title}
-          description={query ? `No orders match “${query}”.` : emptyCopy(tab).body}
-          icon={Receipt}
+          title="No matches"
+          description={`No orders match “${query}”.`}
+          icon={Search}
         />
+      ) : (
+        // Availability-aware empty state: illustration + status copy, and an
+        // action to go back online when the outlet is paused/offline.
+        <OrdersEmptyState tab={tab} />
       )}
 
       <AcceptOrderSheet
@@ -357,19 +362,4 @@ export function OrdersPage() {
       />
     </section>
   );
-}
-
-function emptyCopy(tab: OrderTab): { title: string; body: string } {
-  switch (tab) {
-    case 'preparing':
-      return { title: 'Nothing in the kitchen', body: 'Accepted orders waiting to go out will show up here.' };
-    case 'ready':
-      return { title: 'No orders waiting for a rider', body: 'Orders you mark ready appear here until a rider is assigned.' };
-    case 'dispatch':
-      return { title: 'No orders picked up yet', body: 'Orders move here once handed to a delivery partner.' };
-    case 'scheduled':
-      return { title: 'No scheduled orders', body: 'Orders placed for a later slot will appear here.' };
-    default:
-      return { title: 'Nothing here', body: 'Nothing to show right now.' };
-  }
 }

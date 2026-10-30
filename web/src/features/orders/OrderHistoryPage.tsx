@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { History } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
+import { StorefrontIllustration } from '@/components/StorefrontIllustration';
 import { ErrorState } from '@/components/ErrorState';
 import { OrderCard } from '@/features/orders/OrderCard';
 import { OrderSupportSheet } from '@/features/orders/OrderSupportSheet';
@@ -98,7 +98,7 @@ export function OrderHistoryPage() {
         <EmptyState
           title="No past orders"
           description="Delivered and cancelled orders appear here."
-          icon={History}
+          illustration={<StorefrontIllustration variant="neutral" />}
         />
       )}
 
