@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, Copy, Minus, Plus, Timer, Utensils, X } from 'lucide-react';
+import { Check, ChevronDown, Copy, Minus, Plus, Timer, Utensils, X } from 'lucide-react';
 import { Sheet } from '@/components/Sheet';
 import { DietMark } from '@/components/DietMark';
 import { formatMoney } from '@/lib/format';
@@ -60,6 +60,7 @@ export function AcceptOrderSheet({
 }) {
   const [minutes, setMinutes] = useState(defaultMinutes);
   const [billOpen, setBillOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Reset the stepper and bill disclosure whenever a new order is opened.
   useEffect(() => {
@@ -96,6 +97,10 @@ export function AcceptOrderSheet({
   async function copyRef() {
     try {
       await navigator.clipboard?.writeText(ref);
+      // Brief copy -> tick crossfade (Step 11). Motion only; the clipboard write
+      // is the real action and already succeeded.
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1400);
     } catch {
       /* clipboard unavailable — nothing to do */
     }
@@ -186,8 +191,14 @@ export function AcceptOrderSheet({
           {fillPct !== null ? (
             <span
               data-testid="accept-fill"
-              className="absolute inset-y-0 left-0 bg-white/20"
-              style={{ width: `${fillPct}%` }}
+              className="absolute inset-y-0 left-0 w-full origin-left bg-white/20"
+              style={{
+                // scaleX (not width) so the drain is compositor-friendly; the
+                // linear duration matches the 1s countdown tick so it glides
+                // instead of stepping. Reduced motion snaps it each tick.
+                transform: `scaleX(${(fillPct / 100).toFixed(4)})`,
+                transition: 'transform var(--es-dur-tick) linear',
+              }}
               aria-hidden="true"
             />
           ) : null}
@@ -204,7 +215,14 @@ export function AcceptOrderSheet({
   );
 
   return (
-    <Sheet onClose={onClose} title="Accept order" hideHeader header={header} footer={footer}>
+    <Sheet
+      onClose={onClose}
+      title="Accept order"
+      hideHeader
+      header={header}
+      footer={footer}
+      dismissible={false}
+    >
       <div className="space-y-3">
         {/* ID + copy, time on the right */}
         <div className="flex items-center justify-between gap-2">
@@ -216,7 +234,11 @@ export function AcceptOrderSheet({
               aria-label="Copy order ID"
               className="-my-1.5 -mr-1.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-btn text-ink-soft hover:text-ink"
             >
-              <Copy className="h-4 w-4" aria-hidden="true" />
+              {copied ? (
+                <Check className="h-4 w-4 text-success motion-safe:animate-pop-in" aria-hidden="true" />
+              ) : (
+                <Copy className="h-4 w-4" aria-hidden="true" />
+              )}
             </button>
           </span>
           {stamp ? <time className="text-[13px] text-ink-soft">{stamp}</time> : null}

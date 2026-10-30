@@ -73,6 +73,24 @@ header grid sheet; Login/Apply are public routes.
 - Do NOT copy Zomato logos, icons, images or wording. Match layout patterns only.
 - Currency formatted with Intl.NumberFormat('en-IN', { style:'currency', currency:'INR' }).
 
+### Motion (Phase 3, Step 11)
+- **Motion is opt-in and reduced-motion-safe.** Every animation is applied with Tailwind's
+  `motion-safe:` variant (or, for Framer Motion, gated on `usePrefersReducedMotion()`); with
+  `prefers-reduced-motion: reduce` the UI just appears instantly. Content is never gated on an
+  animation running.
+- **Animate only `transform` and `opacity`** (compositor-friendly, cheap on low-end Android).
+  Never animate `width`/`height`/`top`/`left`; a draining progress fill is a `scaleX` on a
+  `w-full origin-left` bar, not a `width%`.
+- **One source of truth for timing.** `web/src/lib/motion.ts` exports `EASE_OUT`/`EASE_SPRING`
+  and `DURATION`/`DURATION_MS`; the same values are mirrored as CSS custom properties in
+  `web/src/index.css` (`--es-ease-*`, `--es-dur-*`) and consumed by `tailwind.config.js`.
+  `src/lib/motion.test.ts` asserts the copies stay identical — do not hard-code a duration or
+  easing in a component.
+- **At most TWO infinite animations** app-wide, both decorative and pausable: (1) the new-order
+  bar's waiting pulse + chevron bob, (2) the storefront illustration's signal waves. Everything
+  else is a one-shot enter/exit, a press feedback, or a short pulse/stagger. Mark any new
+  infinite loop in code with an `Allowed infinite #N` comment and update this note.
+
 ## Folder layout
 web/src/
   app/ (router, providers, layout shell, bottom nav, header grid sheet, bottom-stack geometry,

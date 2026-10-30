@@ -46,6 +46,17 @@
     --es-inverse: 24 24 27;
     --es-inverse-ink: 255 255 255;
 
+    /* Motion tokens (Phase 3, Step 11). Mirrored in `src/lib/motion.ts` and
+       referenced by `tailwind.config.js`; `motion.test.ts` keeps them in sync. */
+    --es-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --es-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --es-dur-fast: 150ms;
+    --es-dur-base: 200ms;
+    --es-dur-slow: 250ms;
+    --es-dur-sheet: 300ms;
+    /* Countdown refresh period (useNow(1000)); smooths the draining fills. */
+    --es-dur-tick: 1000ms;
+
     color-scheme: light;
   }
 
@@ -141,14 +152,29 @@
     padding-right: calc(var(--page-x, 1rem) + env(safe-area-inset-right, 0px));
   }
 
-  /* Touch feedback for tappable surfaces. Motion is short (Step 9: 150–250ms);
-     the global reduced-motion rule collapses the duration so it becomes an
-     instant state. */
+  /* Touch feedback for tappable surfaces. Uses the shared motion tokens (Phase 3,
+     Step 11); `will-change` is set only while pressed so it is never a permanent
+     layer. The global reduced-motion rule collapses the duration to an instant
+     state. */
   .press {
-    transition: transform 150ms ease, background-color 150ms ease, opacity 150ms ease;
+    transition:
+      transform var(--es-dur-fast) var(--es-ease-out),
+      background-color var(--es-dur-fast) var(--es-ease-out),
+      border-color var(--es-dur-fast) var(--es-ease-out),
+      color var(--es-dur-fast) var(--es-ease-out),
+      opacity var(--es-dur-fast) var(--es-ease-out);
   }
   .press:active {
     transform: scale(0.97);
+    will-change: transform;
+  }
+
+  /* Respect reduced motion: the global rule below collapses durations, and this
+     also removes the press scale so movement is fully disabled. */
+  @media (prefers-reduced-motion: reduce) {
+    .press:active {
+      transform: none;
+    }
   }
 }
 

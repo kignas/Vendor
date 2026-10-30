@@ -76,9 +76,16 @@ export default {
         'safe-right': 'env(safe-area-inset-right)',
       },
       transitionDuration: {
-        fast: '150ms',
-        base: '200ms',
-        slow: '250ms',
+        fast: 'var(--es-dur-fast)',
+        base: 'var(--es-dur-base)',
+        slow: 'var(--es-dur-slow)',
+        sheet: 'var(--es-dur-sheet)',
+      },
+      /* Override Tailwind's `ease-out` with our token and add `ease-spring`, so a
+         duration/easing class is always a token, never a hard-coded value. */
+      transitionTimingFunction: {
+        out: 'var(--es-ease-out)',
+        spring: 'var(--es-ease-spring)',
       },
       keyframes: {
         shimmer: {
@@ -107,14 +114,48 @@ export default {
           '50%': { transform: 'scale(1.015)', opacity: '1' },
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
+        /* Allowed infinite #1 (with the bar pulse): the chevron on the new-order
+           bar bobs gently while orders wait. */
+        'chevron-bob': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-2px)' },
+        },
+        /* Allowed infinite #1: a soft pulse on the new-order bar while waiting. */
+        'bar-pulse': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.88' },
+        },
+        /* Short wiggle for the notification bell when a new notification arrives. */
+        'bell-wiggle': {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '20%': { transform: 'rotate(-12deg)' },
+          '40%': { transform: 'rotate(10deg)' },
+          '60%': { transform: 'rotate(-6deg)' },
+          '80%': { transform: 'rotate(4deg)' },
+        },
+        /* Draw-in for the success tick (stroke-dashoffset shrinks to 0). */
+        'tick-draw': {
+          from: { strokeDashoffset: '1' },
+          to: { strokeDashoffset: '0' },
+        },
+        /* Allowed infinite #2: the storefront sign's signal waves pulse softly. */
+        'signal-wave': {
+          '0%, 100%': { opacity: '0.25', transform: 'scale(1)' },
+          '50%': { opacity: '0.6', transform: 'scale(1.12)' },
+        },
       },
       animation: {
-        shimmer: 'shimmer 1.6s infinite',
-        'slide-up': 'slide-up 200ms ease-out both',
-        'fade-in': 'fade-in 180ms ease-out both',
-        'scale-in': 'scale-in 180ms ease-out both',
-        'pop-in': 'pop-in 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both',
-        'attention-pulse': 'attention-pulse 700ms ease-in-out 2',
+        shimmer: 'shimmer 1.6s var(--es-ease-out) infinite',
+        'slide-up': 'slide-up var(--es-dur-base) var(--es-ease-out) both',
+        'fade-in': 'fade-in var(--es-dur-base) var(--es-ease-out) both',
+        'scale-in': 'scale-in var(--es-dur-base) var(--es-ease-out) both',
+        'pop-in': 'pop-in var(--es-dur-slow) var(--es-ease-spring) both',
+        'attention-pulse': 'attention-pulse 700ms var(--es-ease-out) 2',
+        'chevron-bob': 'chevron-bob 1.4s var(--es-ease-out) infinite',
+        'bar-pulse': 'bar-pulse 1.6s var(--es-ease-out) infinite',
+        'bell-wiggle': 'bell-wiggle 600ms var(--es-ease-out) 1',
+        'tick-draw': 'tick-draw 400ms var(--es-ease-out) both',
+        'signal-wave': 'signal-wave 2.4s var(--es-ease-out) infinite',
       },
     },
   },

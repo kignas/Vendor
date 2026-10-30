@@ -71,6 +71,7 @@ describe('InfoCarousel', () => {
     await screen.findByText('1 item running low');
     await user.click(screen.getByRole('button', { name: /Dismiss: 1 item running low/ }));
 
+    // The card fades out (Step 11) before it leaves the DOM.
     await waitFor(() => expect(screen.queryByText('1 item running low')).toBeNull());
     expect(screen.getByText('1 item out of stock')).toBeInTheDocument();
     const parsed = JSON.parse(String(window.localStorage.getItem(DISMISSED_CARDS_KEY)));

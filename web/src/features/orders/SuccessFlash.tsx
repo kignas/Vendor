@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 export interface SuccessFlashProps {
@@ -12,6 +11,29 @@ export interface SuccessFlashProps {
   /** Auto-dismiss delay in ms. */
   durationMs?: number;
   onDone?: () => void;
+}
+
+/**
+ * The tick that draws itself in. An inline SVG with `pathLength={1}` so the
+ * keyframe can animate `stroke-dashoffset` from 1 to 0 regardless of the real
+ * geometry; a paint-only property, so it never triggers layout. Reduced motion
+ * collapses the duration (global media rule) and the tick simply appears drawn.
+ */
+function DrawingTick() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-7 w-7 text-white motion-safe:animate-tick-draw"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={3}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 12.5 9.5 18 20 6" pathLength={1} strokeDasharray={1} />
+    </svg>
+  );
 }
 
 /**
@@ -59,7 +81,7 @@ export function SuccessFlash({
         )}
       >
         <span className="flex h-12 w-12 items-center justify-center rounded-pill bg-success">
-          <Check className="h-7 w-7 text-white" aria-hidden="true" strokeWidth={3} />
+          <DrawingTick />
         </span>
         <p className="text-sm font-extrabold">{message}</p>
         {detail ? <p className="text-xs opacity-80">{detail}</p> : null}

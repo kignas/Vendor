@@ -208,11 +208,22 @@ localStorage keys are unchanged. Steps 1–10, one commit each:
 - **Step 10 — Docs and cleanup.** `AGENTS.md` navigation/design/folder sections
   updated; this entry; `DesignPage` gallery extended; dead code removed; test
   audit closed.
+- **Step 11 — Animations and motion.** A motion pass with no logic change.
+  `src/lib/motion.ts` is the single source of easing/duration tokens (mirrored in
+  `index.css` and `tailwind.config.js`, asserted by `motion.test.ts`). Sheets use
+  Framer Motion (`AnimatePresence`, drag-to-dismiss), the new-order bar slides in
+  with a chevron bob, the bottom nav has a sliding indicator + badge pop, chips
+  crossfade their counts (`AnimatedCount`), the order list enters/exits with
+  stable keys (`AnimatedListItem`), Accept/Ready fills drain via `scaleX`, the
+  success tick draws in, and skeletons shimmer. All motion is `motion-safe:` /
+  reduced-motion-aware and animates transform/opacity only. At most two infinite
+  animations app-wide (new-order bar pulse, storefront signal waves).
 
 ## Tests
 
-- `web/` `vitest`: **44 files, 328 tests pass** (nav + redirects, chip counts,
+- `web/` `vitest`: **46 files, 346 tests pass** (nav + redirects, chip counts,
   new-order bar and sheet rules, one-of-N paging, countdown fill, stepper bounds,
   order-card actions, bill expand, carousel dismissal/next-day, profile nudge,
-  help bubble, empty-state variants).
+  help bubble, empty-state variants, motion tokens + reduced-motion fallbacks,
+  bottom-nav indicator transform).
 - `web/` `typecheck`, `lint`, `build`: clean.

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
+import { DURATION, EASE_OUT } from '@/lib/motion';
 import { cn } from '@/lib/cn';
 import { caps } from '@/lib/caps';
 import { useNow } from '@/hooks/useNow';
@@ -82,19 +84,37 @@ export function InfoCarousel() {
         onScroll={onScroll}
         className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {visible.map((card) => (
-          <InfoCardItem key={card.id} card={card} onDismiss={() => dismiss(card.id)} onOpen={navigate} />
-        ))}
-      </div>
+        {/* A dismissed card fades and slides out, then the rest slide into place
+              (`layout`). Stable keys mean a re-render of the same cards never
+              replays the motion. */}
+          <AnimatePresence initial={false} mode="popLayout">
+            {visible.map((card) => (
+              <motion.div
+                key={card.id}
+                layout
+                className="w-full shrink-0 snap-center"
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -24 }}
+                transition={{ duration: DURATION.base, ease: EASE_OUT }}
+              >
+                <InfoCardItem card={card} onDismiss={() => dismiss(card.id)} onOpen={navigate} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
       {visible.length > 1 ? (
         <div className="mt-2 flex justify-center gap-1.5" aria-hidden="true">
           {visible.map((card, i) => (
             <span
               key={card.id}
               data-testid="carousel-dot"
+              data-active={i === active}
               className={cn(
-                'h-1.5 w-1.5 rounded-full transition-colors',
-                i === active ? 'bg-ink-soft' : 'bg-border',
+                // The active dot stretches into a pill via a transform (scaleX),
+                // never a width change; colour cross-fades via the token.
+                'h-1.5 w-1.5 rounded-full motion-safe:transition-transform motion-safe:duration-base motion-safe:ease-out',
+                i === active ? 'bg-ink-soft scale-x-[2.6]' : 'bg-border scale-x-100',
               )}
             />
           ))}
@@ -118,7 +138,7 @@ export function InfoCardItem({
   return (
     <article
       data-card-id={card.id}
-      className="relative w-full shrink-0 snap-center overflow-hidden rounded-card border border-border bg-card px-4 py-3.5"
+      className="relative overflow-hidden rounded-card border border-border bg-card px-4 py-3.5"
     >
       <span className={cn('absolute inset-y-0 left-0 w-1', tone.band)} aria-hidden="true" />
       <div className="flex items-start justify-between gap-2 pl-1.5">

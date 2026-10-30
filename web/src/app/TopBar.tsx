@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Bell, LayoutGrid, Search, WifiOff } from 'lucide-react';
+import { cn } from '@/lib/cn';
 import { Link } from 'react-router-dom';
 import { OnlineSwitch } from '@/features/restaurant/OnlineSwitch';
 import { HeaderMenuSheet } from './HeaderMenuSheet';
@@ -34,9 +35,21 @@ export function TopBar() {
           aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
           className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-pill text-ink transition-colors hover:bg-border-soft"
         >
-          <Bell className="h-5 w-5" aria-hidden="true" />
+          {/* Keyed on the unread count: a NEW notification replays the short
+              wiggle and the badge pop; an unchanged count stays still. */}
+          <Bell
+            key={unreadCount}
+            className={cn(
+              'h-5 w-5',
+              unreadCount > 0 && 'motion-safe:animate-bell-wiggle',
+            )}
+            aria-hidden="true"
+          />
           {unreadCount > 0 ? (
-            <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-pill bg-brand px-1 text-[10px] font-bold text-white">
+            <span
+              key={`badge-${unreadCount}`}
+              className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-pill bg-brand px-1 text-[10px] font-bold text-white motion-safe:animate-pop-in"
+            >
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           ) : null}

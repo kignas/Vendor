@@ -102,10 +102,11 @@ describe('AcceptOrderSheet', () => {
       />,
     );
     const fill = screen.getByTestId('accept-fill');
-    const pct = Number.parseFloat(fill.style.width);
+    const scale = Number.parseFloat(/scaleX\(([\d.]+)\)/.exec(fill.style.transform)?.[1] ?? 'NaN');
     // ~30s left of a 5m30s window: the fill is mostly drained but not gone.
-    expect(pct).toBeGreaterThan(0);
-    expect(pct).toBeLessThan(50);
+    // It drains with a scaleX transform (not width), so it stays compositor-only.
+    expect(scale).toBeGreaterThan(0);
+    expect(scale).toBeLessThan(0.5);
   });
 
   it('renders no progress fill when there is no deadline', () => {

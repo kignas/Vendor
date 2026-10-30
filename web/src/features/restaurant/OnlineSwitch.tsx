@@ -56,6 +56,15 @@ export function OnlineSwitch({ className }: { className?: string }) {
     else setSheetOpen(true);
   }
 
+  // Thumb fill per tone: green online, amber busy/paused, grey offline (text uses
+  // the same token via bg-current). Kept as fixed utilities so the colour
+  // cross-fades with a `transition-colors` while the thumb slides.
+  const THUMB = {
+    online: 'bg-success',
+    amber: 'bg-warning',
+    offline: 'bg-ink-faint',
+  } as const;
+
   return (
     <div className={cn('flex items-center', className)}>
       <button
@@ -66,16 +75,35 @@ export function OnlineSwitch({ className }: { className?: string }) {
         aria-busy={pending}
         onClick={onTap}
         className={cn(
-          'press inline-flex min-h-tap items-center gap-1.5 rounded-pill border px-3 text-[13px] font-bold transition-colors',
+          'press inline-flex min-h-tap items-center gap-1.5 rounded-pill border px-2.5 text-[13px] font-bold motion-safe:transition-colors motion-safe:duration-slow motion-safe:ease-out',
           PILL[tone],
         )}
       >
         {pending ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
         ) : (
-          <span className="h-2 w-2 rounded-pill bg-current" aria-hidden="true" />
+          // iOS-style track + thumb. The thumb SLIDES with a transform and the
+          // track colour CROSS-FADES as the server state changes; both are
+          // suppressed for reduced motion.
+          <span
+            className={cn(
+              'relative h-5 w-8 shrink-0 rounded-pill motion-safe:transition-colors motion-safe:duration-slow motion-safe:ease-out',
+              THUMB[tone],
+            )}
+            aria-hidden="true"
+          >
+            <span
+              className={cn(
+                'absolute left-0.5 top-0.5 h-4 w-4 rounded-pill bg-white shadow motion-safe:transition-transform motion-safe:duration-slow motion-safe:ease-out',
+                online ? 'translate-x-3' : 'translate-x-0',
+              )}
+            />
+          </span>
         )}
-        {label}
+        {/* Crossfade the status text when it changes (keyed; unchanged text stays). */}
+        <span key={label} className="inline-block motion-safe:animate-fade-in">
+          {label}
+        </span>
       </button>
 
       <OutletStatusSheet open={sheetOpen} onOpenChange={setSheetOpen} />

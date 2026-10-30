@@ -3,6 +3,7 @@ import {
   CalendarClock,
   Bike,
   ChevronDown,
+  Check,
   Copy,
   LifeBuoy,
   MessageSquare,
@@ -119,8 +120,12 @@ function ReadyButton({ order, busy, onReady }: { order: Order; busy: boolean; on
       className={cn(PRIMARY_BTN, 'relative mt-3 overflow-hidden bg-info')}
     >
       <span
-        className="absolute inset-y-0 left-0 bg-white/20"
-        style={{ width: `${showTimer ? pct : 100}%` }}
+        className="absolute inset-y-0 left-0 w-full origin-left bg-white/20"
+        style={{
+          // scaleX drain, smooth between the 1s countdown ticks (Step 11).
+          transform: `scaleX(${((showTimer ? pct : 100) / 100).toFixed(4)})`,
+          transition: 'transform var(--es-dur-tick) linear',
+        }}
         aria-hidden="true"
       />
       <span className="relative">
@@ -358,8 +363,11 @@ function ResponseCountdown({
       {pct !== null && !expired ? (
         <span className="absolute inset-x-0 bottom-0 h-1 bg-ink/10" aria-hidden="true">
           <span
-            className={cn('block h-full transition-[width] duration-1000 ease-linear', urgent ? 'bg-danger' : 'bg-warning')}
-            style={{ width: `${pct}%` }}
+            className={cn(
+              'block h-full w-full origin-left transition-transform duration-1000 ease-linear',
+              urgent ? 'bg-danger' : 'bg-warning',
+            )}
+            style={{ transform: `scaleX(${(pct / 100).toFixed(4)})` }}
           />
         </span>
       ) : null}
@@ -392,6 +400,7 @@ export function OrderCard({
 }: OrderCardProps) {
   const [billOpen, setBillOpen] = useState(false);
   const [detailItem, setDetailItem] = useState<OrderItem | null>(null);
+  const [copied, setCopied] = useState(false);
   const billId = useId();
 
   const items = Array.isArray(order.items) ? order.items : [];
@@ -422,6 +431,9 @@ export function OrderCard({
   async function copyRef() {
     try {
       await navigator.clipboard?.writeText(ref);
+      // Brief copy -> tick crossfade (Step 11).
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1400);
     } catch {
       /* clipboard unavailable — nothing to do */
     }
@@ -551,7 +563,11 @@ export function OrderCard({
             aria-label="Copy order ID"
             className="-m-1.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-btn text-ink-soft hover:text-ink"
           >
-            <Copy className="h-4 w-4" aria-hidden="true" />
+            {copied ? (
+              <Check className="h-4 w-4 text-success motion-safe:animate-pop-in" aria-hidden="true" />
+            ) : (
+              <Copy className="h-4 w-4" aria-hidden="true" />
+            )}
           </button>
         </span>
         <span className="flex shrink-0 items-center gap-1">

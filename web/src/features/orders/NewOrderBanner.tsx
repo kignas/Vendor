@@ -92,7 +92,10 @@ export function NewOrderBanner({
       onTouchEnd={onTouchEnd}
       aria-label={`${count > 1 ? `${count} new orders` : 'New order'} — open`}
       className={cn(
-        'press fixed inset-x-0 z-20 bg-success text-white shadow-[0_8px_20px_rgba(0,0,0,0.28)] motion-safe:animate-attention-pulse',
+        // Entrance slide-up plays on mount (keyed by count, so a new order
+        // re-triggers it); the waiting pulse lives on the inner row so the two
+        // animations never fight over the same `animation` property.
+        'press fixed inset-x-0 z-20 bg-success text-white shadow-[0_8px_20px_rgba(0,0,0,0.28)] motion-safe:animate-slide-up',
         // Hidden (not unmounted) while a sheet/dialog is open: it stays below the
         // portal overlay anyway, and keeping it mounted preserves the
         // acceptance-window expiry refresh and alarm it owns.
@@ -100,8 +103,15 @@ export function NewOrderBanner({
       )}
       style={{ bottom: BAR_BOTTOM }}
     >
-      <span className="app-column safe-x flex min-h-tap items-center justify-center gap-2 py-3 text-base font-extrabold">
-        <ChevronUp className="h-5 w-5 shrink-0" aria-hidden="true" />
+      <span
+        className={cn(
+          'app-column safe-x flex min-h-tap items-center justify-center gap-2 py-3 text-base font-extrabold',
+          // Allowed infinite #1: a soft pulse while orders are waiting. It is
+          // suppressed under reduced motion and while the sheet is open.
+          !overlayOpen && 'motion-safe:animate-bar-pulse',
+        )}
+      >
+        <ChevronUp className="h-5 w-5 shrink-0 motion-safe:animate-chevron-bob" aria-hidden="true" />
         <span aria-live="assertive">
           {count > 1 ? `You have ${count} new orders` : 'You have 1 new order'}
         </span>

@@ -398,14 +398,16 @@ export function InventoryPage() {
                       keeps a 44px hit area (AGENTS.md tap-target rule). */}
                   <span
                     className={cn(
-                      'relative h-7 w-12 rounded-pill transition-colors',
+                      'relative h-7 w-12 rounded-pill motion-safe:transition-colors motion-safe:duration-fast motion-safe:ease-out',
                       i.inStock ? 'bg-success' : 'bg-border',
                     )}
                   >
+                    {/* Thumb slides via transform (not `left`), so the press
+                        feedback and the slide stay on the compositor. */}
                     <span
                       className={cn(
-                        'absolute top-0.5 h-6 w-6 rounded-pill bg-white shadow transition-all',
-                        i.inStock ? 'left-5' : 'left-0.5',
+                        'absolute left-0.5 top-0.5 h-6 w-6 rounded-pill bg-white shadow motion-safe:transition-transform motion-safe:duration-fast motion-safe:ease-out',
+                        i.inStock ? 'translate-x-[18px]' : 'translate-x-0',
                       )}
                     />
                   </span>

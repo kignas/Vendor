@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { Inbox, Plus } from 'lucide-react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
@@ -8,6 +9,9 @@ import { EmptyState } from '@/components/EmptyState';
 import { StorefrontIllustration } from '@/components/StorefrontIllustration';
 import { ordersEmptyCopy } from '@/features/orders/ordersEmptyState';
 import { OrderChips } from '@/features/orders/OrderChips';
+import { AnimatedCount } from '@/components/AnimatedCount';
+import { AnimatedListItem } from '@/components/AnimatedListItem';
+import { SuccessFlash } from '@/features/orders/SuccessFlash';
 import { ErrorState } from '@/components/ErrorState';
 import { ChartCard } from '@/components/ChartCard';
 import { BottomSheet } from '@/components/BottomSheet';
@@ -89,9 +93,17 @@ const INFO_CARDS: InfoCard[] = [
   },
 ];
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  id,
+  children,
+}: {
+  title: string;
+  id?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="space-y-3">
+    <section id={id} className="space-y-3">
       <h2 className="text-xs font-bold uppercase tracking-wide text-ink-soft">{title}</h2>
       {children}
     </section>
@@ -107,6 +119,11 @@ export function DesignPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [activeChip, setActiveChip] = useState('preparing');
   const [acceptOpen, setAcceptOpen] = useState(false);
+  // Motion gallery (Step 11): replay counters let every animation be re-triggered
+  // on demand without leaving the page.
+  const [flashTrigger, setFlashTrigger] = useState<number | null>(null);
+  const [count, setCount] = useState(3);
+  const [motionRows, setMotionRows] = useState(['Row A', 'Row B']);
   const connection = useUiStore((s) => s.connection);
   const CHIPS = [
     { id: 'preparing', label: 'Preparing', count: 3 },
@@ -413,6 +430,59 @@ export function DesignPage() {
             Close
           </button>
         </BottomSheet>
+      </Section>
+
+      <Section title="Motion (Step 11)" id="motion">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setFlashTrigger((n) => (n ?? 0) + 1)}
+            className="inline-flex min-h-tap items-center rounded-btn bg-inverse px-4 text-sm font-semibold text-inverse-ink"
+          >
+            Replay success flash
+          </button>
+          <button
+            type="button"
+            onClick={() => setCount((n) => n + 1)}
+            className="inline-flex min-h-tap items-center rounded-btn border border-border px-4 text-sm font-semibold text-ink"
+          >
+            Bump count (crossfade)
+          </button>
+          <button
+            type="button"
+            onClick={() => setMotionRows((r) => [...r, `Row ${r.length + 1}`])}
+            className="inline-flex min-h-tap items-center rounded-btn border border-border px-4 text-sm font-semibold text-ink"
+          >
+            Add row (enter)
+          </button>
+          <button
+            type="button"
+            onClick={() => setMotionRows((r) => r.slice(0, -1))}
+            className="inline-flex min-h-tap items-center rounded-btn border border-border px-4 text-sm font-semibold text-ink"
+          >
+            Remove row (exit)
+          </button>
+        </div>
+        <p className="text-[13px] text-ink-soft">
+          Count: <AnimatedCount value={count} />
+        </p>
+        <div className="-mx-4 flex flex-col gap-2">
+          <AnimatePresence initial={false} mode="popLayout">
+            {motionRows.map((row) => (
+              <AnimatedListItem key={row}>
+                <div className="rounded-card border border-border bg-card px-4 py-3 text-sm text-ink">
+                  {row}
+                </div>
+              </AnimatedListItem>
+            ))}
+          </AnimatePresence>
+        </div>
+        <SuccessFlash
+          trigger={flashTrigger}
+          message="Order accepted"
+          detail="Countdown started"
+          durationMs={1800}
+        />
       </Section>
 
       <Section title="Connection pill (live)">

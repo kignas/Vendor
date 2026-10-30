@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { AnimatePresence } from 'framer-motion';
 import { Search, Loader2, X } from 'lucide-react';
 import { EmptyState } from '@/components/EmptyState';
+import { AnimatedListItem } from '@/components/AnimatedListItem';
 import { OrdersEmptyState } from '@/features/orders/OrdersEmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { OrderCard } from '@/features/orders/OrderCard';
@@ -241,24 +243,29 @@ export function OrdersPage() {
         />
       ) : rows.length ? (
         <div className="-mx-4 flex flex-col gap-2">
-          {rows.map((o) => (
-            <OrderCard
-              key={o._id}
-              order={o}
-              deliveryMode={deliveryMode}
-              busy={actions.busyIds.has(o._id)}
-              extendedIds={extendedIds}
-              onAccept={openPrep}
-              onReject={setRejectOrder}
-              onAdvance={actions.advance}
-              onReady={(ord) => void handleReady(ord)}
-              onExtendPrep={(ord) => void handleExtendPrep(ord)}
-              onVerifyOtp={setOtpOrder}
-              onKot={handleKot}
-              onSpeak={handleSpeak}
-              onSupport={setSupportOrder}
-            />
-          ))}
+          {/* Stable keys keep a refetch of the same orders from replaying the
+              entrance; a row that changes group exits from its old list. */}
+          <AnimatePresence initial={false} mode="popLayout">
+            {rows.map((o) => (
+              <AnimatedListItem key={o._id}>
+                <OrderCard
+                  order={o}
+                  deliveryMode={deliveryMode}
+                  busy={actions.busyIds.has(o._id)}
+                  extendedIds={extendedIds}
+                  onAccept={openPrep}
+                  onReject={setRejectOrder}
+                  onAdvance={actions.advance}
+                  onReady={(ord) => void handleReady(ord)}
+                  onExtendPrep={(ord) => void handleExtendPrep(ord)}
+                  onVerifyOtp={setOtpOrder}
+                  onKot={handleKot}
+                  onSpeak={handleSpeak}
+                  onSupport={setSupportOrder}
+                />
+              </AnimatedListItem>
+            ))}
+          </AnimatePresence>
         </div>
       ) : query ? (
         <EmptyState

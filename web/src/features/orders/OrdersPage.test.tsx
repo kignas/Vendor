@@ -119,7 +119,10 @@ describe('OrdersPage', () => {
 
     await user.click(screen.getByRole('tab', { name: /Picked up \(1\)/i }));
     expect(await screen.findByRole('article', { name: /Order SW-5005/i })).toBeInTheDocument();
-    expect(screen.queryByRole('article', { name: /Order SW-1001/i })).not.toBeInTheDocument();
+    // The previous group's card fades out (Step 11), so wait for it to leave.
+    await waitFor(() =>
+      expect(screen.queryByRole('article', { name: /Order SW-1001/i })).not.toBeInTheDocument(),
+    );
   });
 
   it('accept posts prepMinutes and refetches (server stays authoritative)', async () => {

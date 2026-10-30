@@ -89,6 +89,9 @@ export function StorefrontIllustration({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
+      {/* Fades in when the empty state mounts. Motion is opacity/transform only;
+          reduced motion collapses it. */}
+      <g className="motion-safe:animate-fade-in">
       {/* Ground shadow */}
       <ellipse cx="80" cy="139" rx="52" ry="6" fill={soft} />
 
@@ -147,6 +150,14 @@ export function StorefrontIllustration({
         {SIGN_TEXT[variant]}
       </text>
 
+      {/* Allowed infinite #2: soft signal waves by the OPEN sign. Decorative
+          (aria-hidden with the rest of the SVG) and stopped under reduced
+          motion via `motion-safe:`. */}
+      <g className="motion-safe:animate-signal-wave" style={{ transformOrigin: '127px 60px' }}>
+        <path d="M120 52a14 14 0 0 1 0 16" stroke={signInk} strokeWidth="1.6" strokeLinecap="round" />
+        <path d="M124 48a20 20 0 0 1 0 24" stroke={signInk} strokeWidth="1.6" strokeLinecap="round" opacity="0.7" />
+      </g>
+
       {/* Plants in pots, one each side */}
       <g>
         <path d="M44 138h14l-2-12H46z" fill={accent} opacity="0.9" />
@@ -157,6 +168,7 @@ export function StorefrontIllustration({
         <path d="M102 138h14l-2-12h-10z" fill={accent} opacity="0.9" />
         <path d="M109 126c-6 0-9-4-9-9 5 0 9 3 9 9z" fill={accent} opacity="0.75" />
         <path d="M109 126c0-6 3-10 9-11 0 6-3 10-9 11z" fill={accent} />
+      </g>
       </g>
     </svg>
   );

@@ -1,4 +1,5 @@
 import { cn } from '@/lib/cn';
+import { AnimatedCount } from '@/components/AnimatedCount';
 
 export interface OrderChip {
   id: string;
@@ -35,13 +36,14 @@ export function OrderChips({
             aria-selected={isActive}
             onClick={() => onSelect(chip.id)}
             className={cn(
-              'press inline-flex min-h-tap min-w-tap shrink-0 items-center justify-center rounded-pill border px-3.5 text-sm font-semibold transition-colors',
+              'press inline-flex min-h-tap min-w-tap shrink-0 items-center justify-center rounded-pill border px-3.5 text-sm font-semibold motion-safe:transition-colors motion-safe:duration-fast motion-safe:ease-out',
               isActive
                 ? 'border-brand-ink bg-brand/5 text-brand-ink'
                 : 'border-border text-ink-soft hover:text-ink',
             )}
           >
-            {chip.label} ({chip.count})
+            {chip.label}{' '}
+            <AnimatedCount value={`(${chip.count})`} />
           </button>
         );
       })}
