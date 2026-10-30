@@ -151,7 +151,8 @@ export function TrendChart({ labels, series, ariaLabel, height = 150, className 
         <span>{labels[count - 1]}</span>
       </div>
 
-      {/* Text/table alternative for screen readers and low-vision users. */}
+      {/* A screen-reader-only data table mirrors the chart, so the numbers are
+          available without relying on the visual rendering. */}
       <table className="sr-only">
         <caption>{ariaLabel}</caption>
         <thead>
