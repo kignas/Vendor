@@ -6,7 +6,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { OrderCard } from '@/features/orders/OrderCard';
 import { ordersForTab, orderMatchesQuery } from '@/features/orders/orderDomain';
 import { useOrderActions } from '@/features/orders/useOrderActions';
-import { useOrderHistory, useOrderQueue } from '@/hooks/useOrders';
+import { useOrderQueue } from '@/hooks/useOrders';
 import { useRestaurant } from '@/hooks/useRestaurant';
 import { useRushMode } from '@/hooks/useRushMode';
 import { UndoReadyToast } from '@/features/orders/UndoReadyToast';
@@ -17,37 +17,30 @@ import { AcceptOrderSheet } from '@/features/orders/AcceptOrderSheet';
 import { SuccessFlash } from '@/features/orders/SuccessFlash';
 import { orderAlarm } from '@/services/notifications/alarm';
 import { Sheet } from '@/components/Sheet';
-import { ScrollTabs } from '@/components/ScrollTabs';
+import { OrderChips, type OrderChip } from '@/features/orders/OrderChips';
 import { printKot } from '@/features/orders/kot';
 import { speakOrder } from '@/features/orders/voice';
 import { useUiStore } from '@/app/uiStore';
-import { cn } from '@/lib/cn';
 import type { Order, OrderTab } from '@/types/order';
 
-const TABS: { id: OrderTab; label: string }[] = [
-  { id: 'new', label: 'New' },
+/** Chips map 1:1 to the existing order groups; only the label is our own. */
+const CHIP_LABEL: { id: OrderTab; label: string }[] = [
   { id: 'preparing', label: 'Preparing' },
   { id: 'ready', label: 'Ready' },
-  { id: 'dispatch', label: 'Out for delivery' },
-  { id: 'scheduled', label: 'Scheduled' },
-  { id: 'history', label: 'History' },
+  { id: 'dispatch', label: 'Picked up' },
 ];
 
 export function OrdersPage() {
-  const [tab, setTab] = useState<OrderTab>('new');
+  const [tab, setTab] = useState<OrderTab>('preparing');
   const query = useUiStore((s) => s.orderQuery);
   const searchOpen = useUiStore((s) => s.searchOpen);
   const setQuery = useUiStore((s) => s.setOrderQuery);
   const setSearchOpen = useUiStore((s) => s.setSearchOpen);
   const queue = useOrderQueue();
-  const history = useOrderHistory(tab === 'history');
   const restaurant = useRestaurant();
   const actions = useOrderActions();
   const { defaultPrepMinutes } = useRushMode();
 
-  // The alarm itself now runs in AppShell (it must ring on every screen); this
-  // page only needs the count for the "New" tab badge.
-  const newCount = useMemo(() => ordersForTab('new', queue.data ?? [], []).length, [queue.data]);
   const [prepOrder, setPrepOrder] = useState<Order | null>(null);
   const [rejectOrder, setRejectOrder] = useState<Order | null>(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -64,16 +57,27 @@ export function OrdersPage() {
   const flashIdRef = useRef(0);
 
   const queueRows = useMemo(() => queue.data ?? [], [queue.data]);
-  const historyRows = useMemo(
-    () => (history.data?.pages ?? []).flatMap((p) => p.rows),
-    [history.data],
-  );
+
+  // Counts per group come from the live queue (the same query the nav badge
+  // reads). They are only shown once the queue has loaded, so a number is never
+  // guessed while loading or after an error.
+  const counts = useMemo(() => {
+    const rows = queue.data ?? [];
+    const scheduled = ordersForTab('scheduled', rows, []).length;
+    const chips: OrderChip[] = CHIP_LABEL.map((c) => ({
+      ...c,
+      count: ordersForTab(c.id, rows, []).length,
+    }));
+    // Scheduled is a fourth chip only while it actually has orders.
+    if (scheduled > 0) chips.push({ id: 'scheduled', label: 'Scheduled', count: scheduled });
+    return chips;
+  }, [queue.data]);
 
   const rows = useMemo(() => {
-    const base = ordersForTab(tab, queueRows, historyRows);
+    const base = ordersForTab(tab, queueRows, []);
     const q = query.trim().toLowerCase();
     return q ? base.filter((o) => orderMatchesQuery(o, q)) : base;
-  }, [tab, queueRows, historyRows, query]);
+  }, [tab, queueRows, query]);
 
   const deliveryMode = restaurant.data?.deliveryMode;
 
@@ -175,7 +179,7 @@ export function OrdersPage() {
         orders={queueRows}
         onStop={() => {
           orderAlarm.stop();
-          setTab('new');
+          setPrepOrder(queueRows.find((o) => o.status === 'placed') ?? null);
         }}
         onExpired={() => void queue.refetch()}
       />
@@ -206,42 +210,12 @@ export function OrdersPage() {
         </label>
       ) : null}
 
-      <ScrollTabs activeKey={tab} label="Order views" className="pb-1">
-        {TABS.map((t) => {
-          const active = t.id === tab;
-          const badge = t.id === 'new' ? newCount : 0;
-          return (
-            <button
-              key={t.id}
-              role="tab"
-              data-active={active}
-              aria-selected={active}
-              onClick={() => setTab(t.id)}
-              className={cn(
-                'min-h-tap shrink-0 rounded-pill px-3 text-sm font-semibold transition-colors',
-                active ? 'bg-brand text-white' : 'bg-border-soft text-ink-soft',
-              )}
-            >
-              {t.label}
-              {badge > 0 ? (
-                <span
-                  className={cn(
-                    'ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-pill px-1 text-[10px] font-bold',
-                    active ? 'bg-white text-brand-ink' : 'bg-brand text-white',
-                  )}
-                >
-                  {badge}
-                </span>
-              ) : null}
-            </button>
-          );
-        })}
-      </ScrollTabs>
+      <OrderChips chips={counts} active={tab} onSelect={(id) => setTab(id as OrderTab)} />
 
       {loading ? (
-        <div className="space-y-3" role="status" aria-label="Loading orders">
+        <div className="-mx-4 flex flex-col gap-2" role="status" aria-label="Loading orders">
           {[0, 1].map((i) => (
-            <div key={i} className="h-40 animate-pulse rounded-card bg-card motion-reduce:animate-none" />
+            <div key={i} className="h-40 animate-pulse bg-card motion-reduce:animate-none" />
           ))}
         </div>
       ) : error ? (
@@ -250,49 +224,8 @@ export function OrdersPage() {
           onRetry={() => void queue.refetch()}
           retrying={queue.isFetching}
         />
-      ) : tab === 'history' ? (
-        history.isLoading ? (
-          <div className="h-40 animate-pulse rounded-card bg-card" role="status" aria-label="Loading history" />
-        ) : rows.length ? (
-          <div className="space-y-3">
-            {rows.map((o) => (
-              <OrderCard
-                key={o._id}
-                order={o}
-                deliveryMode={deliveryMode}
-                busy={actions.busyIds.has(o._id)}
-                extendedIds={extendedIds}
-                onAccept={openPrep}
-                onReject={setRejectOrder}
-                onAdvance={actions.advance}
-                onReady={(ord) => void handleReady(ord)}
-                onExtendPrep={(ord) => void handleExtendPrep(ord)}
-                onVerifyOtp={setOtpOrder}
-                onKot={handleKot}
-                onSpeak={handleSpeak}
-                onSupport={setSupportOrder}
-              />
-            ))}
-            {history.hasNextPage ? (
-              <button
-                type="button"
-                onClick={() => void history.fetchNextPage()}
-                disabled={history.isFetchingNextPage}
-                className="min-h-tap w-full rounded-btn border border-border bg-card text-sm font-semibold text-ink"
-              >
-                {history.isFetchingNextPage ? 'Loading…' : 'Load older orders'}
-              </button>
-            ) : null}
-          </div>
-        ) : (
-          <EmptyState
-            title={query ? 'No matches' : 'No past orders'}
-            description={query ? `No orders match “${query}”.` : 'Delivered and cancelled orders appear here.'}
-            icon={Receipt}
-          />
-        )
       ) : rows.length ? (
-        <div className="space-y-3">
+        <div className="-mx-4 flex flex-col gap-2">
           {rows.map((o) => (
             <OrderCard
               key={o._id}
@@ -402,19 +335,15 @@ export function OrdersPage() {
 
 function emptyCopy(tab: OrderTab): { title: string; body: string } {
   switch (tab) {
-    case 'new':
-      return { title: 'No new orders yet', body: 'New orders will land here.' };
     case 'preparing':
       return { title: 'Nothing in the kitchen', body: 'Accepted orders waiting to go out will show up here.' };
     case 'ready':
       return { title: 'No orders waiting for a rider', body: 'Orders you mark ready appear here until a rider is assigned.' };
     case 'dispatch':
-      return { title: 'No orders out for delivery', body: 'Orders move here once handed to a delivery partner.' };
+      return { title: 'No orders picked up yet', body: 'Orders move here once handed to a delivery partner.' };
     case 'scheduled':
       return { title: 'No scheduled orders', body: 'Orders placed for a later slot will appear here.' };
     default:
       return { title: 'Nothing here', body: 'Nothing to show right now.' };
   }
 }
-
-/** Minimal accessible sheet (avoids pulling a Radix dialog per action). */

@@ -32,33 +32,90 @@ const placedOrder = {
   vendorBill: { itemSubtotal: 260, commission: 39, restaurantNetAmount: 221 },
 };
 
+/** A placed order, accepted — lands in the Preparing group (the default chip). */
+const confirmedOrder = { ...placedOrder, status: 'confirmed' };
+
 function queueHandlers(orders: unknown[]) {
   server.use(
     http.get(`${API_BASE}/restaurant`, () =>
       HttpResponse.json({ data: { _id: 'r1', name: 'Test Kitchen', availability: 'open' } }),
     ),
-    http.get(`${API_BASE}/orders`, ({ request }) => {
-      const url = new URL(request.url);
-      if (url.searchParams.get('view') === 'history') {
-        return HttpResponse.json({ data: { rows: [], total: 0 } });
-      }
-      return HttpResponse.json({ data: orders });
-    }),
+    http.get(`${API_BASE}/orders`, () => HttpResponse.json({ data: orders })),
   );
 }
 
+/** New orders no longer live in a list tab; the new-order bar opens their sheet. */
+async function openNewOrderSheet(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole('button', { name: /View order/i }));
+  return screen.findByRole('dialog', { name: /Accept order/i });
+}
+
 describe('OrdersPage', () => {
-  it('renders a new order with the server total and payment state', async () => {
-    queueHandlers([placedOrder]);
+  it('renders an order in the default Preparing group with the server total and payment state', async () => {
+    queueHandlers([confirmedOrder]);
     renderPage();
 
     const card = await screen.findByRole('article', { name: /Order SW-1001/i });
     // ₹221 appears as the card total and again as the bill's net receivable.
     expect(within(card).getAllByText('₹221').length).toBeGreaterThanOrEqual(1);
     expect(within(card).getByText(/Paid online/i)).toBeInTheDocument();
-    // The card carries the reference Accept/Reject pair; Accept opens the sheet.
-    expect(within(card).getByRole('button', { name: /^Accept$/ })).toBeInTheDocument();
-    expect(within(card).getByRole('button', { name: /^Reject$/ })).toBeInTheDocument();
+  });
+
+  it('maps the three chips to the existing order groups with counts, defaulting to Preparing', async () => {
+    queueHandlers([
+      confirmedOrder,
+      { ...placedOrder, _id: 'r1', publicOrderId: 'SW-3003', status: 'waiting_for_rider' },
+      { ...placedOrder, _id: 'd1', publicOrderId: 'SW-5005', status: 'out_for_delivery' },
+    ]);
+    renderPage();
+
+    const preparing = await screen.findByRole('tab', { name: /Preparing \(1\)/i });
+    expect(preparing).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: /Ready \(1\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /Picked up \(1\)/i })).toBeInTheDocument();
+    // The old New / History tabs are gone from this page.
+    expect(screen.queryByRole('tab', { name: /^New\b/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /^History\b/i })).not.toBeInTheDocument();
+  });
+
+  it('shows a Scheduled chip only while scheduled orders exist', async () => {
+    queueHandlers([
+      confirmedOrder,
+      {
+        ...placedOrder,
+        _id: 's1',
+        publicOrderId: 'SW-4004',
+        scheduledAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+      },
+    ]);
+    renderPage();
+
+    expect(await screen.findByRole('tab', { name: /Scheduled \(1\)/i })).toBeInTheDocument();
+  });
+
+  it('hides the Scheduled chip when nothing is scheduled', async () => {
+    queueHandlers([confirmedOrder]);
+    renderPage();
+
+    await screen.findByRole('article', { name: /Order SW-1001/i });
+    expect(screen.queryByRole('tab', { name: /Scheduled/i })).not.toBeInTheDocument();
+  });
+
+  it('switching chips shows the orders in that group', async () => {
+    const user = userEvent.setup();
+    queueHandlers([
+      confirmedOrder,
+      { ...placedOrder, _id: 'd1', publicOrderId: 'SW-5005', status: 'out_for_delivery' },
+    ]);
+    renderPage();
+
+    // Preparing is default: only its order is listed.
+    expect(await screen.findByRole('article', { name: /Order SW-1001/i })).toBeInTheDocument();
+    expect(screen.queryByRole('article', { name: /Order SW-5005/i })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: /Picked up \(1\)/i }));
+    expect(await screen.findByRole('article', { name: /Order SW-5005/i })).toBeInTheDocument();
+    expect(screen.queryByRole('article', { name: /Order SW-1001/i })).not.toBeInTheDocument();
   });
 
   it('accept posts prepMinutes and refetches (server stays authoritative)', async () => {
@@ -66,11 +123,9 @@ describe('OrdersPage', () => {
     let accepted = false;
     server.use(
       http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
-      http.get(`${API_BASE}/orders`, ({ request }) => {
-        const url = new URL(request.url);
-        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
-        return HttpResponse.json({ data: accepted ? [{ ...placedOrder, status: 'confirmed' }] : [placedOrder] });
-      }),
+      http.get(`${API_BASE}/orders`, () =>
+        HttpResponse.json({ data: accepted ? [{ ...placedOrder, status: 'confirmed' }] : [placedOrder] }),
+      ),
       http.put(`${API_BASE}/orders/ord_1/accept`, async ({ request }) => {
         const body = (await request.json()) as { prepMinutes: number };
         expect(body.prepMinutes).toBe(25);
@@ -80,18 +135,18 @@ describe('OrdersPage', () => {
     );
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: /^Accept$/ }));
-    const sheet = await screen.findByRole('dialog', { name: /Accept order/i });
+    const sheet = await openNewOrderSheet(user);
     await user.click(within(sheet).getByRole('button', { name: /^25 min$/ }));
     await user.click(within(sheet).getByRole('button', { name: /^Accept$/ }));
 
     // The queue refetches and the order moves to "preparing" — proven by the
-    // card leaving the New tab.
-    await waitFor(() => expect(screen.getByText(/No new orders yet/i)).toBeInTheDocument());
-
-    // ...and landing in the Preparing tab from the authoritative server state.
-    await user.click(screen.getByRole('tab', { name: /Preparing/i }));
+    // authoritative server state landing under the default chip.
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: /Preparing \(1\)/i })).toBeInTheDocument(),
+    );
     expect(await screen.findByRole('article', { name: /Order SW-1001/i })).toBeInTheDocument();
+    // Nothing is waiting, so the new-order bar is gone.
+    expect(screen.queryByText(/new order/i)).not.toBeInTheDocument();
   });
 
   it('shows the "you are offline" banner while the restaurant is paused', async () => {
@@ -101,22 +156,18 @@ describe('OrdersPage', () => {
           data: { _id: 'r1', name: 'Test Kitchen', availability: 'temporarily_closed' },
         }),
       ),
-      http.get(`${API_BASE}/orders`, ({ request }) => {
-        const url = new URL(request.url);
-        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
-        return HttpResponse.json({ data: [placedOrder] });
-      }),
+      http.get(`${API_BASE}/orders`, () => HttpResponse.json({ data: [confirmedOrder] })),
     );
     renderPage();
 
     // The banner is server-authoritative and appears next to the live queue;
-    // the existing new order is still shown and actionable.
+    // the existing order is still shown and actionable.
     expect(await screen.findByText(/You are offline/i)).toBeInTheDocument();
     expect(screen.getByRole('article', { name: /Order SW-1001/i })).toBeInTheDocument();
   });
 
   it('hides the offline banner when the restaurant is accepting orders', async () => {
-    queueHandlers([placedOrder]);
+    queueHandlers([confirmedOrder]);
     renderPage();
 
     await screen.findByRole('article', { name: /Order SW-1001/i });
@@ -133,8 +184,7 @@ describe('OrdersPage', () => {
     );
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: /^Accept$/ }));
-    const sheet = await screen.findByRole('dialog', { name: /Accept order/i });
+    const sheet = await openNewOrderSheet(user);
     const confirm = within(sheet).getByRole('button', { name: /^Accept$/ });
     await user.click(confirm);
     await user.click(confirm);
@@ -149,11 +199,9 @@ describe('OrdersPage', () => {
     let sentReason = '';
     server.use(
       http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
-      http.get(`${API_BASE}/orders`, ({ request }) => {
-        const url = new URL(request.url);
-        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
-        return HttpResponse.json({ data: rejected ? [] : [placedOrder] });
-      }),
+      http.get(`${API_BASE}/orders`, () =>
+        HttpResponse.json({ data: rejected ? [] : [placedOrder] }),
+      ),
       http.put(`${API_BASE}/orders/ord_1/reject`, async ({ request }) => {
         const body = (await request.json()) as { reason: string };
         sentReason = body.reason;
@@ -163,48 +211,43 @@ describe('OrdersPage', () => {
     );
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: /^Reject$/ }));
-    const sheet = await screen.findByRole('dialog', { name: /Reject order/i });
-    const confirm = within(sheet).getByRole('button', { name: /Reject order/i });
+    const sheet = await openNewOrderSheet(user);
+    await user.click(within(sheet).getByRole('button', { name: /^Reject$/ }));
+    const rejectSheet = await screen.findByRole('dialog', { name: /Reject order/i });
+    const confirm = within(rejectSheet).getByRole('button', { name: /Reject order/i });
     // The reason is required: the confirm stays disabled until one is typed.
     expect(confirm).toBeDisabled();
-    await user.type(within(sheet).getByPlaceholderText(/Reason/i), 'Out of stock');
+    await user.type(within(rejectSheet).getByPlaceholderText(/Reason/i), 'Out of stock');
     await user.click(confirm);
 
     await waitFor(() => expect(sentReason).toBe('Out of stock'));
-    // The order leaves the New tab only from the authoritative refetch.
-    await waitFor(() => expect(screen.getByText(/No new orders yet/i)).toBeInTheDocument());
+    // The order disappears only from the authoritative refetch — the queue is
+    // empty and no new-order bar is left behind.
+    await waitFor(() => expect(screen.queryByText(/new order/i)).not.toBeInTheDocument());
   });
 
   it('a failed accept surfaces an error and never advances the order', async () => {
     const user = userEvent.setup();
     server.use(
       http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
-      http.get(`${API_BASE}/orders`, ({ request }) => {
-        const url = new URL(request.url);
-        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
-        return HttpResponse.json({ data: [placedOrder] });
-      }),
+      http.get(`${API_BASE}/orders`, () => HttpResponse.json({ data: [placedOrder] })),
       http.put(`${API_BASE}/orders/ord_1/accept`, () =>
         HttpResponse.json({ message: 'Order already accepted' }, { status: 409 }),
       ),
     );
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: /^Accept$/ }));
-    const sheet = await screen.findByRole('dialog', { name: /Accept order/i });
+    const sheet = await openNewOrderSheet(user);
     await user.click(within(sheet).getByRole('button', { name: /^Accept$/ }));
 
-    // The server rejected it, so the order must stay in the New tab (no
-    // optimistic advance) and the sheet stays open for a retry.
-    await waitFor(() =>
-      expect(screen.getByRole('article', { name: /Order SW-1001/i })).toBeInTheDocument(),
-    );
-    expect(screen.queryByText(/No new orders yet/i)).not.toBeInTheDocument();
+    // The server rejected it, so nothing advances: the order is still waiting
+    // (the new-order bar is present) and the sheet stays open for a retry.
+    await waitFor(() => expect(screen.getByText(/New order waiting/i)).toBeInTheDocument());
     expect(screen.getByRole('dialog', { name: /Accept order/i })).toBeInTheDocument();
   });
 
   it('an expired acceptance window disables Accept', async () => {
+    const user = userEvent.setup();
     queueHandlers([
       {
         ...placedOrder,
@@ -213,10 +256,9 @@ describe('OrdersPage', () => {
     ]);
     renderPage();
 
-    const card = await screen.findByRole('article', { name: /Order SW-1001/i });
-    expect(within(card).getByText(/expired/i)).toBeInTheDocument();
-    expect(within(card).getByRole('button', { name: /^Accept$/ })).toBeDisabled();
-    expect(within(card).getByText(/Response window expired/i)).toBeInTheDocument();
+    const sheet = await openNewOrderSheet(user);
+    expect(within(sheet).getByText(/Response window expired/i)).toBeInTheDocument();
+    expect(within(sheet).getByRole('button', { name: /^Accept$/ })).toBeDisabled();
   });
 
   it('marking ready opens the 15-second undo window and undo calls the endpoint', async () => {
@@ -229,11 +271,7 @@ describe('OrdersPage', () => {
     };
     server.use(
       http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
-      http.get(`${API_BASE}/orders`, ({ request }) => {
-        const url = new URL(request.url);
-        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
-        return HttpResponse.json({ data: [readyOrder] });
-      }),
+      http.get(`${API_BASE}/orders`, () => HttpResponse.json({ data: [readyOrder] })),
       http.put(`${API_BASE}/orders/ord_1/ready`, () => HttpResponse.json({ success: true })),
       http.put(`${API_BASE}/orders/ord_1/undo-ready`, () => {
         undone = true;
@@ -242,8 +280,7 @@ describe('OrdersPage', () => {
     );
     renderPage();
 
-    // Switch to the Preparing tab.
-    await user.click(await screen.findByRole('tab', { name: /Preparing/i }));
+    // Preparing is the default chip, so the card is already on screen.
     const ready = await screen.findByRole('button', { name: /Order Ready/i });
     await user.click(ready);
 
@@ -262,11 +299,7 @@ describe('OrdersPage', () => {
     };
     server.use(
       http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
-      http.get(`${API_BASE}/orders`, ({ request }) => {
-        const url = new URL(request.url);
-        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
-        return HttpResponse.json({ data: [readyOrder] });
-      }),
+      http.get(`${API_BASE}/orders`, () => HttpResponse.json({ data: [readyOrder] })),
       http.put(`${API_BASE}/orders/ord_1/extend-prep`, () => {
         extendCalls += 1;
         return HttpResponse.json({ success: true });
@@ -274,7 +307,6 @@ describe('OrdersPage', () => {
     );
     renderPage();
 
-    await user.click(await screen.findByRole('tab', { name: /Preparing/i }));
     const chip = await screen.findByRole('button', { name: /^\+5 min$/ });
     await user.click(chip);
     await waitFor(() => expect(extendCalls).toBe(1));
@@ -290,11 +322,7 @@ describe('OrdersPage', () => {
     const gate: { release?: () => void } = {};
     server.use(
       http.get(`${API_BASE}/restaurant`, () => HttpResponse.json({ data: { _id: 'r1' } })),
-      http.get(`${API_BASE}/orders`, ({ request }) => {
-        const url = new URL(request.url);
-        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
-        return HttpResponse.json({ data: [placedOrder] });
-      }),
+      http.get(`${API_BASE}/orders`, () => HttpResponse.json({ data: [placedOrder] })),
       http.put(`${API_BASE}/orders/ord_1/accept`, async () => {
         // Hold the response so we can prove the flash is NOT shown before the
         // server confirms.
@@ -306,8 +334,7 @@ describe('OrdersPage', () => {
     );
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: /^Accept$/ }));
-    const sheet = await screen.findByRole('dialog', { name: /Accept order/i });
+    const sheet = await openNewOrderSheet(user);
     await user.click(within(sheet).getByRole('button', { name: /^Accept$/ }));
 
     // Request in flight: no success flash yet.
@@ -320,8 +347,8 @@ describe('OrdersPage', () => {
   it('shows the search input only when opened, and filters the list', async () => {
     const user = userEvent.setup();
     queueHandlers([
-      placedOrder,
-      { ...placedOrder, _id: 'ord_2', publicOrderId: 'SW-2002', customerName: 'Bala Iyer' },
+      confirmedOrder,
+      { ...confirmedOrder, _id: 'ord_2', publicOrderId: 'SW-2002', customerName: 'Bala Iyer' },
     ]);
     act(() => useUiStore.setState({ searchOpen: false, orderQuery: '' }));
     renderPage();

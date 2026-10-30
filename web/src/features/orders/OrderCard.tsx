@@ -42,22 +42,8 @@ function mmss(ms: number): string {
 }
 
 /**
- * Coloured left edge per status so a vendor can scan a long list without
- * reading. Full class strings (not interpolated) so Tailwind can see them.
+ * Finished orders collapse their item list; live orders always show it.
  */
-const STATUS_EDGE: Record<string, string> = {
-  placed: 'border-l-warning',
-  confirmed: 'border-l-info',
-  preparing: 'border-l-brand-ink',
-  waiting_for_rider: 'border-l-success',
-  assigned: 'border-l-success',
-  out_for_delivery: 'border-l-info',
-  otp_verified: 'border-l-success',
-  delivered: 'border-l-success',
-  cancelled: 'border-l-danger',
-};
-
-/** Finished orders collapse their item list; live orders always show it. */
 const FINISHED_STATUSES = new Set(['delivered', 'cancelled']);
 
 export interface OrderCardProps {
@@ -424,9 +410,8 @@ export function OrderCard({
   return (
     <article
       className={cn(
-        'rounded-card border border-l-4 border-border bg-card p-4',
-        STATUS_EDGE[order.status] ?? 'border-l-border',
-        order.status === 'placed' ? 'shadow-md' : 'shadow-sm',
+        'w-full bg-card px-4 py-4',
+        order.status === 'placed' && 'shadow-sm',
       )}
       aria-label={`Order ${ref}`}
     >

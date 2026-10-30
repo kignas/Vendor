@@ -48,9 +48,9 @@ export function OrderHistoryPage() {
       <h1 className="text-lg font-extrabold text-ink">Order history</h1>
 
       {history.isLoading ? (
-        <div className="space-y-3" role="status" aria-label="Loading history">
+        <div className="-mx-4 flex flex-col gap-2" role="status" aria-label="Loading history">
           {[0, 1].map((i) => (
-            <div key={i} className="h-40 animate-pulse rounded-card bg-card motion-reduce:animate-none" />
+            <div key={i} className="h-40 animate-pulse bg-card motion-reduce:animate-none" />
           ))}
         </div>
       ) : history.isError ? (
@@ -64,7 +64,7 @@ export function OrderHistoryPage() {
           <p className="text-xs font-semibold text-ink-soft">
             Showing {rows.length} of {total} orders
           </p>
-          <div className="space-y-3">
+          <div className="-mx-4 flex flex-col gap-2">
             {rows.map((o) => (
               <OrderCard
                 key={o._id}
