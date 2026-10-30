@@ -292,12 +292,14 @@ export function FinancePage() {
                         })
                       : '—'}
                     {' · Base settlement '}
-                    <span className="tabular-nums text-ink">{formatMoney2(o.baseSettlement)}</span>
+                    <span className="tabular-nums text-ink">
+                      {o.baseSettlement === null ? '—' : formatMoney2(o.baseSettlement)}
+                    </span>
                   </span>
                   <span>
                     Payable{' '}
                     <span className="font-semibold tabular-nums text-success-ink">
-                      {formatMoney2(o.payable)}
+                      {o.payable === null ? '—' : formatMoney2(o.payable)}
                     </span>
                   </span>
                 </div>

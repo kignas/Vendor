@@ -200,8 +200,8 @@ const server = http.createServer((req, res) => {
   if (path === '/api/vendor/earnings/orders') {
     return send(res, 200, {
       data: [
-        { _id: 'e1', orderNumber: 'SW-1001', status: 'delivered', restaurantNetAmount: 221, createdAt: new Date().toISOString() },
-        { _id: 'e2', orderNumber: 'SW-1000', status: 'delivered', restaurantNetAmount: 468, createdAt: new Date(Date.now() - 86400_000).toISOString() },
+        { _id: 'e1', orderNumber: 'SW-1001', status: 'delivered', foodSales: 260, commission: 39, restaurantNetAmount: 221, createdAt: new Date().toISOString() },
+        { _id: 'e2', orderNumber: 'SW-1000', status: 'delivered', foodSales: 550, commission: 82, restaurantNetAmount: 468, createdAt: new Date(Date.now() - 86400_000).toISOString() },
       ],
     });
   }

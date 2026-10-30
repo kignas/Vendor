@@ -59,16 +59,14 @@ describe('RestaurantStatusControl', () => {
   it('does not send a second request while one is in flight (concurrent change)', async () => {
     const user = userEvent.setup();
     let puts = 0;
-    let resolvePut: (() => void) | null = null;
+    const pending: (() => void)[] = [];
     server.use(
       http.get(`${API_BASE}/restaurant`, () =>
         HttpResponse.json({ data: { _id: 'r1', name: 'Test Kitchen', availability: 'open' } }),
       ),
       http.put(`${API_BASE}/restaurant/availability`, async () => {
         puts += 1;
-        await new Promise<void>((resolve) => {
-          resolvePut = resolve;
-        });
+        await new Promise<void>((resolve) => pending.push(resolve));
         return HttpResponse.json({ success: true });
       }),
     );
@@ -80,7 +78,7 @@ describe('RestaurantStatusControl', () => {
     await waitFor(() => expect(screen.getByRole('radio', { name: /closed today/i })).toBeDisabled());
     await user.click(screen.getByRole('radio', { name: /closed today/i }));
     expect(puts).toBe(1);
-    resolvePut?.();
+    pending.forEach((resolve) => resolve());
   });
 
   it('shows the server-provided reason when the outlet is not accepting orders', async () => {
