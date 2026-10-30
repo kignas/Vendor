@@ -108,5 +108,8 @@ describe('AppShell', () => {
     for (const label of ['Orders', 'Inventory', 'Business', 'Feedback', 'History']) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
+    // The floating help bubble renders alongside the nav (Step 7). The profile
+    // nudge is absent here because the mocked profile has no email field.
+    expect(screen.getByRole('button', { name: /help and support/i })).toBeInTheDocument();
   });
 });

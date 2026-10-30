@@ -4,6 +4,7 @@ import { useNow } from '@/hooks/useNow';
 import { responseDeadlineOf } from '@/features/orders/orderDomain';
 import { orderAlarm } from '@/services/notifications/alarm';
 import { ORDER_STATUS, type Order } from '@/types/order';
+import { BAR_BOTTOM, BAR_VAR, useMeasuredStackVar } from '@/app/bottomStack';
 
 /**
  * Fixed new-order bar (Phase 3, Step 4). A restyle of the previous banner, not
@@ -27,6 +28,10 @@ export function NewOrderBanner({
 }) {
   const waiting = orders.filter((o) => o.status === ORDER_STATUS.placed);
   const count = waiting.length;
+
+  // Publish this bar's height so the help bubble and page padding stack above
+  // it correctly. Must run before the early return (hooks are unconditional).
+  const measureRef = useMeasuredStackVar(BAR_VAR, count > 0);
 
   // The count the vendor silenced the alarm for. A new order raises the count,
   // which un-silences the label (the alarm restarts for it).
@@ -78,12 +83,13 @@ export function NewOrderBanner({
     <button
       type="button"
       key={count}
+      ref={measureRef}
       onClick={openSheet}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       aria-label={`${count > 1 ? `${count} new orders` : 'New order'} — open`}
       className="press fixed inset-x-0 z-20 bg-success text-white shadow-[0_8px_20px_rgba(0,0,0,0.28)] motion-safe:animate-attention-pulse"
-      style={{ bottom: 'calc(4.25rem + env(safe-area-inset-bottom, 0px))' }}
+      style={{ bottom: BAR_BOTTOM }}
     >
       <span className="app-column safe-x flex min-h-tap items-center justify-center gap-2 py-3 text-base font-extrabold">
         <ChevronUp className="h-5 w-5 shrink-0" aria-hidden="true" />

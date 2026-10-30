@@ -194,8 +194,6 @@ export function OrdersPage() {
         onStop={openNewOrderSheet}
         onExpired={() => void queue.refetch()}
       />
-      {/* Reserve space so the fixed new-order bar never covers the list. */}
-      {waiting.length ? <div aria-hidden="true" className="h-16" /> : null}
 
       {/* Real-data info cards (alerts / settlement / profile); hides itself when empty. */}
       <InfoCarousel />

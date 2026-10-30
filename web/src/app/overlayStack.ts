@@ -10,12 +10,32 @@ type CloseFn = () => void;
 
 const stack: CloseFn[] = [];
 
+/** Listeners notified whenever the stack depth changes (used by the help bubble). */
+type Listener = () => void;
+const listeners = new Set<Listener>();
+
+function emit(): void {
+  for (const l of listeners) l();
+}
+
+/** Subscribe to stack-depth changes. Returns an unsubscribe function. */
+export function subscribeOverlays(listener: Listener): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
 /** Register an open overlay. Returns an unregister function for cleanup. */
 export function pushOverlay(close: CloseFn): () => void {
   stack.push(close);
+  emit();
   return () => {
     const i = stack.lastIndexOf(close);
-    if (i >= 0) stack.splice(i, 1);
+    if (i >= 0) {
+      stack.splice(i, 1);
+      emit();
+    }
   };
 }
 
@@ -35,4 +55,5 @@ export function overlayCount(): number {
 /** Clear the stack. Used by tests and on hard route resets. */
 export function resetOverlays(): void {
   stack.length = 0;
+  emit();
 }

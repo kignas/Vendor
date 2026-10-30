@@ -162,3 +162,31 @@ title/body strings in `infoCards.ts` are fixed UI copy around real server
 and no server prose is rewritten. If the product wants the server's own
 `alert.title`/`alert.message` rendered verbatim instead of the derived copy, say
 so and the builder can switch to those fields.
+
+**Q21. Profile-completion nudge — which field is "missing"? (Step 7.)**
+`GET /vendor/profile` selects `name description image address phone email slug
+createdAt approvalStatus rejectionReason deliveryMode businessType
+fssaiLicenseNumber fssaiVerificationStatus fssaiExpiryDate availability
+openingHours isOpen` (see `getVendorProfile`). The nudge therefore keys on
+`email`. Two caveats were found while checking the backend:
+(a) the `Restaurant` schema has **no `email` field** and the approval flow does
+not copy the application's business email onto the restaurant document, so the
+selected `email` is likely `undefined` for real vendors. `profileNudgeFor()`
+only reports a field as missing when it is **present but blank** (`''` /
+whitespace); an absent field means "not returned" and is never shown as
+incomplete, so the nudge stays hidden unless the API actually returns a blank
+`email`. *Confirm* whether the profile email is populated server-side (e.g. a
+virtual/derived field); if it never is, this nudge will never appear and the
+copy/field should be revisited.
+(b) `email` is not on the vendor `PUT /vendor/restaurant/profile` allow-list, so
+"ADD NOW" links to `/profile` where the field can be reviewed but not edited by
+the vendor. Confirm where a missing business email is meant to be fixed.
+
+**Q22. Help bubble "Call support" number (Step 7).**
+There is **no support-contact endpoint** in `VENDOR-API-CONTRACT.md` and no
+support phone anywhere in config, so "Call support" is driven by the optional
+build-time env var `VITE_SUPPORT_PHONE` (`lib/supportContact.ts`). It is hidden
+unless the value parses as a real phone number (7–15 digits, optional leading
+`+`). *Confirm* whether a real support number exists and, if so, provide it (or
+the endpoint that returns it); until then the item is hidden rather than showing
+a fake number.

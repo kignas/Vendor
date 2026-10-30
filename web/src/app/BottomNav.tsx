@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom';
 import { ordersForTab } from '@/features/orders/orderDomain';
 import { useOrderQueue } from '@/hooks/useOrders';
 import { cn } from '@/lib/cn';
+import { NAV_VAR, measureNavHeight, useMeasuredStackVar } from '@/app/bottomStack';
 
 interface NavItem {
   to: string;
@@ -39,8 +40,13 @@ export function BottomNav() {
     [queue.data],
   );
 
+  // Measure the inner list (content height) so the nudge/bar/bubble offsets can
+  // stack above the nav without double-counting the safe-area padding.
+  const measureRef = useMeasuredStackVar(NAV_VAR, true, measureNavHeight);
+
   return (
     <nav
+      ref={measureRef}
       aria-label="Primary"
       className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card"
     >
