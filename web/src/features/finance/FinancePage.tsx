@@ -21,6 +21,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   earningsBreakdown,
+  orderSettlementRows,
   payoutCadenceLabel,
   payoutTone,
   settlementView,
@@ -63,6 +64,7 @@ export function FinancePage() {
   const current = summary.data?.current;
   const view = settlementView(settlement.data);
   const rows = earningsBreakdown(current);
+  const settlementRows = orderSettlementRows(orders.data ?? []);
   const eligibility = withdrawalEligibility(view);
   const cadence = payoutCadenceLabel(view.schedule);
 
@@ -256,8 +258,13 @@ export function FinancePage() {
 
       <div className="rounded-card border border-border bg-card p-4">
         <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
-          <ArrowUpRight className="h-4 w-4 text-brand-ink" aria-hidden="true" /> Recent earnings
+          <ArrowUpRight className="h-4 w-4 text-brand-ink" aria-hidden="true" /> Per-order settlement
         </h2>
+        <p className="mt-1 text-[11px] text-ink-soft">
+          Base settlement is the agreed menu amount for each order. Your payable is that amount
+          after any adjustments Eatswada applies; both figures are calculated by Eatswada and shown
+          as returned.
+        </p>
         {orders.isLoading ? (
           <div
             className="mt-3 h-20 animate-pulse rounded-btn bg-border-soft"
@@ -266,30 +273,34 @@ export function FinancePage() {
           />
         ) : orders.isError ? (
           <p className="mt-2 text-xs text-danger-ink">Could not load recent earnings.</p>
-        ) : orders.data?.length ? (
+        ) : settlementRows.length ? (
           <ul className="mt-2 divide-y divide-border-soft">
-            {orders.data.map((o) => (
-              <li
-                key={o.id || o._id || o.orderNumber}
-                className="flex items-center justify-between py-2"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-ink">
-                    #{o.orderNumber || (o.id || o._id || '').slice(-8).toUpperCase()}
-                  </p>
-                  <p className="text-[11px] text-ink-soft">
+            {settlementRows.map((o) => (
+              <li key={o.id} className="py-2">
+                <div className="flex items-center justify-between">
+                  <p className="truncate text-sm font-semibold text-ink">#{o.orderNumber}</p>
+                  <StatusPill tone={payoutTone(o.status ?? undefined)}>
+                    {enumLabel(o.status) || 'Completed'}
+                  </StatusPill>
+                </div>
+                <div className="mt-1 flex items-center justify-between text-[11px] text-ink-soft">
+                  <span>
                     {o.createdAt
                       ? new Date(o.createdAt).toLocaleDateString('en-IN', {
                           day: '2-digit',
                           month: 'short',
                         })
-                      : '—'}{' '}
-                    · {enumLabel(o.status)}
-                  </p>
+                      : '—'}
+                    {' · Base settlement '}
+                    <span className="tabular-nums text-ink">{formatMoney2(o.baseSettlement)}</span>
+                  </span>
+                  <span>
+                    Payable{' '}
+                    <span className="font-semibold tabular-nums text-success-ink">
+                      {formatMoney2(o.payable)}
+                    </span>
+                  </span>
                 </div>
-                <span className="shrink-0 text-sm font-bold tabular-nums text-success-ink">
-                  {formatMoney(o.restaurantNetAmount ?? o.netAmount ?? o.restaurantNet)}
-                </span>
               </li>
             ))}
           </ul>

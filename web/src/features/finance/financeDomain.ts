@@ -103,3 +103,35 @@ export function payoutCadenceLabel(schedule: string | null): string | null {
   if (s === 'daily') return 'Daily payouts';
   return `${schedule} payouts`;
 }
+
+/** One row of the read-only per-order settlement list. */
+export interface OrderSettlementRow {
+  id: string;
+  orderNumber: string;
+  createdAt: string | null;
+  /** Order payout status as returned by the backend. */
+  status: string | null;
+  /** The agreed base menu amount for the order (backend `foodSales`). */
+  baseSettlement: number | null;
+  /** The vendor's payable amount for the order (backend `restaurantNetAmount`). */
+  payable: number | null;
+}
+
+/**
+ * Map `/earnings/orders` rows into the per-order settlement list. Only fields
+ * the backend sends are read; a missing amount stays null (never a zero-fill).
+ * Refund/adjustment lines are intentionally absent — the vendor route does not
+ * return them (audit gap §6.7).
+ */
+export function orderSettlementRows(
+  orders: { id?: string; _id?: string; orderNumber?: string; createdAt?: string; status?: string; foodSales?: number; restaurantNetAmount?: number; netAmount?: number; restaurantNet?: number; [key: string]: unknown }[],
+): OrderSettlementRow[] {
+  return orders.map((o, i) => ({
+    id: String(o.id ?? o._id ?? o.orderNumber ?? `row-${i}`),
+    orderNumber: String(o.orderNumber ?? (o.id ?? o._id ?? '').toString().slice(-8).toUpperCase()),
+    createdAt: o.createdAt ? String(o.createdAt) : null,
+    status: o.status ? String(o.status) : null,
+    baseSettlement: firstNumber(o.foodSales),
+    payable: firstNumber(o.restaurantNetAmount ?? o.netAmount ?? o.restaurantNet),
+  }));
+}
