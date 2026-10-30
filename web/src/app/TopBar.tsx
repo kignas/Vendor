@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Bell, ChevronDown, Wifi, WifiOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { OutletStatusSheet } from '@/features/restaurant/OutletStatusSheet';
+import { OnlineSwitch } from '@/features/restaurant/OnlineSwitch';
 import { isOutletOpen, STATUS_LABEL, statusOf } from '@/features/restaurant/outletStatus';
 import { useUiStore } from '@/app/uiStore';
 import { useRestaurant } from '@/hooks/useRestaurant';
@@ -11,6 +12,7 @@ import { cn } from '@/lib/cn';
 /**
  * Top bar: restaurant name, outlet status control, notification bell.
  * The status pill opens the shared OutletStatusSheet (PUT /restaurant/availability).
+ * The online/offline switch (top-left) is the quick pause control.
  */
 export function TopBar() {
   const connection = useUiStore((s) => s.connection);
@@ -24,7 +26,9 @@ export function TopBar() {
 
   return (
     <header className="safe-top sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
-      <div className="app-column flex min-h-tap items-center gap-3 px-4 py-2">
+      <div className="app-column flex min-h-tap items-center gap-2 px-4 py-2">
+        <OnlineSwitch className="shrink-0" />
+
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-ink">{name}</p>
           <button
@@ -44,17 +48,17 @@ export function TopBar() {
 
         <span
           className={cn(
-            'inline-flex items-center gap-1 text-[11px] font-semibold',
+            'hidden items-center gap-1 text-[11px] font-semibold min-[360px]:inline-flex',
             offline ? 'text-danger-ink' : 'text-ink-faint',
           )}
           role="status"
+          aria-label={offline ? 'Network offline' : 'Network online'}
         >
           {offline ? (
             <WifiOff className="h-3 w-3" aria-hidden="true" />
           ) : (
             <Wifi className="h-3 w-3" aria-hidden="true" />
           )}
-          {offline ? 'Offline' : 'Online'}
         </span>
 
         <Link

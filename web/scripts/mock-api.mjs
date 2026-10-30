@@ -75,7 +75,7 @@ const server = http.createServer((req, res) => {
   }
   if (path === '/api/vendor/restaurant') return send(res, 200, { data: restaurant });
   if (path === '/api/vendor/restaurant/availability' && req.method === 'PUT') {
-    return send(res, 200, { data: { availability: 'temporarily_closed' } });
+    return send(res, 200, { success: true });
   }
   if (path === '/api/vendor/restaurant/hours' && req.method === 'PUT') {
     return send(res, 200, { success: true });

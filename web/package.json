@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:online-switch": "vitest run src/features/restaurant/OnlineSwitch.test.tsx",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -93,6 +93,35 @@ describe('OrdersPage', () => {
     expect(await screen.findByRole('article', { name: /Order SW-1001/i })).toBeInTheDocument();
   });
 
+  it('shows the "you are offline" banner while the restaurant is paused', async () => {
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () =>
+        HttpResponse.json({
+          data: { _id: 'r1', name: 'Test Kitchen', availability: 'temporarily_closed' },
+        }),
+      ),
+      http.get(`${API_BASE}/orders`, ({ request }) => {
+        const url = new URL(request.url);
+        if (url.searchParams.get('view') === 'history') return HttpResponse.json({ data: { rows: [] } });
+        return HttpResponse.json({ data: [placedOrder] });
+      }),
+    );
+    renderPage();
+
+    // The banner is server-authoritative and appears next to the live queue;
+    // the existing new order is still shown and actionable.
+    expect(await screen.findByText(/You are offline/i)).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: /Order SW-1001/i })).toBeInTheDocument();
+  });
+
+  it('hides the offline banner when the restaurant is accepting orders', async () => {
+    queueHandlers([placedOrder]);
+    renderPage();
+
+    await screen.findByRole('article', { name: /Order SW-1001/i });
+    expect(screen.queryByText(/You are offline/i)).not.toBeInTheDocument();
+  });
+
   it('a double tap fires the accept request once', async () => {
     const user = userEvent.setup();
     const accept = vi.fn(() => HttpResponse.json({ success: true }));

@@ -13,6 +13,7 @@ import { useNewOrderAlarm } from '@/hooks/useNewOrderAlarm';
 import { UndoReadyToast } from '@/features/orders/UndoReadyToast';
 import { OrderSupportSheet } from '@/features/orders/OrderSupportSheet';
 import { NewOrderBanner } from '@/features/orders/NewOrderBanner';
+import { OfflineBanner } from '@/features/orders/OfflineBanner';
 import { AcceptOrderSheet } from '@/features/orders/AcceptOrderSheet';
 import { SuccessFlash } from '@/features/orders/SuccessFlash';
 import { orderAlarm } from '@/services/notifications/alarm';
@@ -162,6 +163,8 @@ export function OrdersPage() {
           <Loader2 className="h-4 w-4 animate-spin text-ink-faint motion-reduce:animate-none" aria-label="Refreshing" />
         ) : null}
       </div>
+
+      <OfflineBanner />
 
       <NewOrderBanner
         orders={queueRows}
