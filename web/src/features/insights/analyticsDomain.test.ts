@@ -1,225 +1,207 @@
 import { describe, expect, it } from 'vitest';
 import {
-  cancellationRatePct,
-  dietMixFrom,
-  donutSegments,
-  hourLabel,
-  kpiTiles,
-  normalizeOverview,
-  paymentMixFrom,
-  peakHoursTop,
-  percentChange,
+  buildFunnel,
+  buildKpis,
+  deltaLabel,
+  funnelIsAllZero,
+  funnelRows,
+  normalizeAnalytics,
+  normalizeOrders,
+  normalizeVisits,
+  orderBreakdown,
   sparklinePath,
+  donutSegments,
 } from './analyticsDomain';
 
-describe('percentChange', () => {
-  it('computes a signed percentage change against the previous period', () => {
-    expect(percentChange(120, 100)).toBe(20);
-    expect(percentChange(80, 100)).toBe(-20);
-    expect(percentChange(100, 100)).toBe(0);
-  });
-
-  it('returns null (never Infinity or NaN) when there is no baseline', () => {
-    expect(percentChange(50, 0)).toBeNull();
-    expect(percentChange(0, 0)).toBeNull();
-    expect(percentChange(null, 100)).toBeNull();
-    expect(percentChange(100, null)).toBeNull();
-    expect(percentChange(undefined, undefined)).toBeNull();
-  });
-});
-
-describe('cancellationRatePct', () => {
-  it('is cancelled ÷ total as a percentage', () => {
-    expect(cancellationRatePct(6, 86)).toBeCloseTo(7.0, 1);
-  });
-
-  it('is null when there is no denominator (division by zero)', () => {
-    expect(cancellationRatePct(0, 0)).toBeNull();
-    expect(cancellationRatePct(3, 0)).toBeNull();
-    expect(cancellationRatePct(null, 10)).toBeNull();
-  });
-});
-
-describe('normalizeOverview', () => {
+describe('normalizeVisits', () => {
   it('reads the real envelope and unwraps data', () => {
-    const out = normalizeOverview({
+    const out = normalizeVisits({
       success: true,
       data: {
-        period: '7d',
-        current: { totalOrders: 86, sales: 48250, averageOrderValue: 652, cancelledOrders: 6 },
-        previous: { totalOrders: 70, sales: 40000, averageOrderValue: 600, cancelledOrders: 5 },
-        daily: [{ date: '2026-10-25', orders: 12, sales: 7600 }],
-        paymentMix: [
-          { method: 'online', orders: 60, amount: 34000 },
-          { method: 'cod', orders: 26, amount: 14250 },
-        ],
-        dietMix: [
-          { type: 'veg', orders: 40 },
-          { type: 'non_veg', orders: 46 },
-        ],
-        topItems: [{ name: 'Masala Dosa', quantity: 42, sales: 5460, spark: [1, 2, 3] }],
-        worstItems: [{ name: 'Salad', quantity: 1, sales: 120 }],
-        peakHours: [{ hour: 13, orders: 22 }],
-        visits: { totalViews: 320, uniqueVisitors: 180 },
+        summary: {
+          totalViews: 320,
+          uniqueVisitors: 180,
+          itemViews: 900,
+          addToCart: 140,
+          checkoutInitiated: 60,
+          completedOrders: 40,
+          cancelledOrders: 4,
+          refunds: 2,
+          conversionRate: 22.2,
+          revenue: 48000,
+          attribution: { windowHours: 24 },
+        },
+        comparison: { viewsChangePct: 12.5, uniqueVisitorsChangePct: -3, completedOrdersChangePct: 8 },
+        daily: [{ day: '2026-10-25', views: 120, uniqueVisitors: 70 }],
+        mostViewedItems: [{ menuItemId: 'm1', name: 'Dosa', views: 50, addToCart: 10, engagement: 20 }],
       },
     });
-    expect(out.current.totalOrders).toBe(86);
-    expect(out.previous.totalOrders).toBe(70);
-    expect(out.daily[0]).toEqual({ date: '2026-10-25', orders: 12, sales: 7600 });
-    expect(out.paymentMix).toHaveLength(2);
-    expect(out.dietMix).toHaveLength(2);
-    expect(out.topItems[0].name).toBe('Masala Dosa');
-    expect(out.peakHours[0]).toEqual({ hour: 13, orders: 22 });
-    expect(out.visits).toEqual({ totalViews: 320, uniqueVisitors: 180 });
+    expect(out.totalViews).toBe(320);
+    expect(out.uniqueVisitors).toBe(180);
+    expect(out.conversionRate).toBe(22.2);
+    expect(out.attributionWindowHours).toBe(24);
+    expect(out.daily[0]).toEqual({ day: '2026-10-25', views: 120, uniqueVisitors: 70 });
+    expect(out.items[0]).toEqual({ id: 'm1', name: 'Dosa', views: 50, addToCart: 10, engagement: 20 });
+    expect(out.comparison.viewsChangePct).toBe(12.5);
   });
 
-  it('tolerates a flat payload and missing blocks with safe empty defaults', () => {
-    const out = normalizeOverview({ current: { totalOrders: 5 } });
-    expect(out.current.totalOrders).toBe(5);
-    expect(out.previous.totalOrders).toBeNull();
+  it('treats absent metrics as null (never a fabricated zero)', () => {
+    const out = normalizeVisits({ data: { summary: { totalViews: 0, uniqueVisitors: 0 } } });
+    expect(out.totalViews).toBe(0);
+    expect(out.uniqueVisitors).toBe(0);
+    expect(out.conversionRate).toBeNull();
+    expect(out.addToCart).toBeNull();
+    expect(out.revenue).toBeNull();
+    expect(out.comparison.viewsChangePct).toBeNull();
     expect(out.daily).toEqual([]);
-    expect(out.paymentMix).toEqual([]);
-    expect(out.dietMix).toEqual([]);
-    expect(out.topItems).toEqual([]);
-    expect(out.worstItems).toEqual([]);
-    expect(out.peakHours).toEqual([]);
-    expect(out.visits).toBeNull();
+    expect(out.items).toEqual([]);
   });
 
   it('handles null/undefined entirely', () => {
-    const out = normalizeOverview(undefined);
-    expect(out.current.totalOrders).toBeNull();
+    const out = normalizeVisits(undefined);
+    expect(out.totalViews).toBeNull();
     expect(out.daily).toEqual([]);
   });
-});
 
-describe('paymentMixFrom / dietMixFrom', () => {
-  it('labels the known payment methods and keeps the numbers', () => {
-    const mix = paymentMixFrom([
-      { method: 'online', orders: 60, amount: 34000 },
-      { method: 'cod', orders: 26, amount: 14250 },
-    ]);
-    expect(mix).toEqual([
-      { key: 'online', label: 'Online payment', orders: 60, amount: 34000 },
-      { key: 'cod', label: 'Cash on delivery', orders: 26, amount: 14250 },
-    ]);
-  });
-
-  it('reads alternative field aliases and drops rows without a value', () => {
-    const mix = paymentMixFrom([{ paymentMethod: 'upi', count: 10, total: 900 }, { method: 'cod' }]);
-    expect(mix[0]).toMatchObject({ key: 'online', orders: 10, amount: 900 });
-    expect(mix).toHaveLength(1);
-  });
-
-  it('maps diet rows to veg / non-veg with counts', () => {
-    const diet = dietMixFrom([
-      { type: 'veg', orders: 40 },
-      { type: 'non_veg', count: 46 },
-    ]);
-    expect(diet).toEqual([
-      { key: 'veg', label: 'Veg', orders: 40 },
-      { key: 'non_veg', label: 'Non-veg', orders: 46 },
-    ]);
+  it('prefers mostViewedItems but falls back to topItems', () => {
+    const out = normalizeVisits({
+      data: { topItems: [{ menuItemId: 'm9', name: 'Idli', views: 5 }] },
+    });
+    expect(out.items[0].name).toBe('Idli');
+    expect(out.items[0].engagement).toBeNull();
   });
 });
 
-describe('donutSegments', () => {
-  it('splits a full circle into percentage segments whose dashes sum to the circumference', () => {
-    const segs = donutSegments([
-      { key: 'a', label: 'A', value: 75 },
-      { key: 'b', label: 'B', value: 25 },
-    ]);
-    expect(segs).toHaveLength(2);
-    expect(segs[0].pct).toBeCloseTo(75, 1);
-    expect(segs[1].pct).toBeCloseTo(25, 1);
-    const circumference = 2 * Math.PI * segs[0].radius;
-    const dashSum = segs.reduce((s, seg) => s + seg.dash, 0);
-    expect(dashSum).toBeCloseTo(circumference, 3);
+describe('normalizeOrders', () => {
+  it('unwraps the order analytics envelope', () => {
+    const out = normalizeOrders({
+      success: true,
+      data: {
+        summary: { totalOrders: 86, deliveredOrders: 74, cancelledOrders: 6, deliveredFoodSales: 48250 },
+        daily: [{ date: '2026-10-25', orders: 12, deliveredSales: 7600 }],
+        topItems: [{ name: 'Masala Dosa', quantity: 42, sales: 5460 }],
+      },
+    });
+    expect(out.totalOrders).toBe(86);
+    expect(out.deliveredOrders).toBe(74);
+    expect(out.deliveredFoodSales).toBe(48250);
+    expect(out.daily[0]).toEqual({ date: '2026-10-25', orders: 12, deliveredSales: 7600 });
+    expect(out.topItems[0]).toEqual({ name: 'Masala Dosa', quantity: 42, sales: 5460 });
   });
 
-  it('returns no segments for empty data or a zero total', () => {
-    expect(donutSegments([])).toEqual([]);
-    expect(
-      donutSegments([
-        { key: 'a', label: 'A', value: 0 },
-        { key: 'b', label: 'B', value: 0 },
-      ]),
-    ).toEqual([]);
+  it('leaves absent summary fields null', () => {
+    const out = normalizeOrders({ data: { summary: { totalOrders: 0 } } });
+    expect(out.totalOrders).toBe(0);
+    expect(out.deliveredOrders).toBeNull();
+    expect(out.deliveredFoodSales).toBeNull();
   });
 });
 
-describe('sparklinePath', () => {
-  it('produces one point per value inside the viewBox', () => {
-    const path = sparklinePath([0, 5, 10], 100, 20);
-    expect(path.startsWith('M')).toBe(true);
-    // 3 points => 2 line commands
-    expect(path.match(/L/g)).toHaveLength(2);
+describe('buildKpis', () => {
+  const model = normalizeAnalytics(
+    { data: { summary: { totalOrders: 86, deliveredOrders: 74, cancelledOrders: 6, deliveredFoodSales: 48250 }, daily: [{ date: '2026-10-25', orders: 12 }] } },
+    {
+      data: {
+        summary: {
+          totalViews: 320, uniqueVisitors: 180, addToCart: 140, completedOrders: 74,
+          cancelledOrders: 4, conversionRate: 41.1, revenue: 48000,
+        },
+        comparison: { viewsChangePct: 25, uniqueVisitorsChangePct: -10, completedOrdersChangePct: 5 },
+        daily: [{ day: '2026-10-25', views: 120, uniqueVisitors: 70 }],
+      },
+    },
+  );
+
+  it('reads every KPI from the backend, never recomputing it', () => {
+    const kpis = buildKpis(model);
+    const byKey = Object.fromEntries(kpis.map((k) => [k.key, k]));
+    expect(byKey.views.value).toBe('320');
+    expect(byKey.visitors.value).toBe('180');
+    expect(byKey.addToCart.value).toBe('140');
+    expect(byKey.completed.value).toBe('74');
+    // Conversion is the backend's 41.1, not 74/180.
+    expect(byKey.conversion.value).toBe('41.1%');
+    expect(byKey.cancelled.value).toBe('4');
+    expect(byKey.revenue.value).toBe('₹48,000');
   });
 
-  it('is empty for fewer than two points', () => {
+  it('marks cancellations as inverted (down is good)', () => {
+    const cancelled = buildKpis(model).find((k) => k.key === 'cancelled');
+    expect(cancelled?.invert).toBe(true);
+  });
+
+  it('shows null (not 0) for a metric the backend did not send', () => {
+    const sparse = normalizeAnalytics({ data: { summary: { totalOrders: 0 } } }, { data: { summary: {} } });
+    const kpis = buildKpis(sparse);
+    // completed falls back to order-side deliveredOrders, which is absent => null.
+    expect(kpis.find((k) => k.key === 'completed')?.value).toBeNull();
+    expect(kpis.find((k) => k.key === 'conversion')?.value).toBeNull();
+    expect(kpis.find((k) => k.key === 'revenue')?.value).toBeNull();
+  });
+
+  it('compacts large counts but keeps the full value in the tooltip', () => {
+    const big = normalizeAnalytics({}, { data: { summary: { totalViews: 12500 } } });
+    const views = buildKpis(big).find((k) => k.key === 'views');
+    expect(views?.value).toBe('12.5K');
+    expect(views?.full).toBe('12,500');
+  });
+});
+
+describe('buildFunnel', () => {
+  it('uses the backend counts and never invents a drop-off percentage', () => {
+    const model = normalizeAnalytics({}, {
+      data: { summary: { totalViews: 1000, itemViews: 800, addToCart: 200, checkoutInitiated: 90, completedOrders: 40 } },
+    });
+    const steps = buildFunnel(model);
+    expect(steps.map((s) => s.value)).toEqual([1000, 800, 200, 90, 40]);
+    const rows = funnelRows(steps);
+    expect(rows[0].widthPct).toBe(100);
+    expect(rows[1].widthPct).toBe(80);
+    expect(funnelIsAllZero(steps)).toBe(false);
+  });
+
+  it('reports an all-zero funnel (beacon records nothing yet)', () => {
+    const steps = buildFunnel(normalizeAnalytics({}, { data: { summary: { totalViews: 0, itemViews: 0, addToCart: 0, checkoutInitiated: 0, completedOrders: 0 } } }));
+    expect(funnelIsAllZero(steps)).toBe(true);
+  });
+});
+
+describe('orderBreakdown', () => {
+  it('falls back to the order-side figures when the visit summary omits them', () => {
+    const model = normalizeAnalytics(
+      { data: { summary: { deliveredOrders: 74, cancelledOrders: 6, deliveredFoodSales: 48250 } } },
+      { data: { summary: {} } },
+    );
+    const b = orderBreakdown(model);
+    expect(b.completed).toBe(74);
+    expect(b.cancelled).toBe(6);
+    expect(b.revenue).toBe(48250);
+    expect(b.refunds).toBeNull();
+  });
+});
+
+describe('deltaLabel', () => {
+  it('signs a delta and returns null without a value', () => {
+    expect(deltaLabel(12.5)).toBe('+12.5%');
+    expect(deltaLabel(-4)).toBe('-4%');
+    expect(deltaLabel(0)).toBe('0%');
+    expect(deltaLabel(null)).toBeNull();
+    expect(deltaLabel(Number.POSITIVE_INFINITY)).toBeNull();
+  });
+});
+
+describe('sparklinePath / donutSegments (presentation geometry)', () => {
+  it('produces one point per value and is empty for fewer than two', () => {
+    expect(sparklinePath([0, 5, 10], 100, 20).match(/L/g)).toHaveLength(2);
     expect(sparklinePath([], 100, 20)).toBe('');
     expect(sparklinePath([5], 100, 20)).toBe('');
   });
 
   it('centres a flat series instead of dividing by zero', () => {
-    const path = sparklinePath([3, 3, 3], 100, 20);
-    expect(path).not.toContain('NaN');
-    expect(path.startsWith('M')).toBe(true);
-  });
-});
-
-describe('peakHoursTop', () => {
-  it('sorts by orders descending and limits to n', () => {
-    const top = peakHoursTop(
-      [
-        { hour: 13, orders: 22 },
-        { hour: 20, orders: 30 },
-        { hour: 9, orders: 4 },
-      ],
-      2,
-    );
-    expect(top).toEqual([
-      { hour: 20, orders: 30 },
-      { hour: 13, orders: 22 },
-    ]);
-  });
-});
-
-describe('hourLabel', () => {
-  it('formats a 24h hour as a 12h range label', () => {
-    expect(hourLabel(13)).toBe('1–2 PM');
-    expect(hourLabel(0)).toBe('12–1 AM');
-    expect(hourLabel(12)).toBe('12–1 PM');
-  });
-});
-
-describe('kpiTiles', () => {
-  it('builds the four KPI tiles with deltas and never divides by zero', () => {
-    const tiles = kpiTiles(
-      { totalOrders: 86, sales: 48250, averageOrderValue: 652, cancelledOrders: 6 },
-      { totalOrders: 70, sales: 40000, averageOrderValue: 600, cancelledOrders: 5 },
-    );
-    const keys = tiles.map((t) => t.key);
-    expect(keys).toEqual(['orders', 'sales', 'aov', 'cancellation']);
-    expect(tiles[0].delta).toBe('+22.9%');
-    expect(tiles[1].delta).toBe('+20.6%');
-    expect(tiles[3].value).toBe('7%');
-    // Rate vs rate: 6/86 (7.0%) against 5/70 (7.1%) is a small decline.
-    expect(tiles[3].delta).toBe('-1.4%');
+    expect(sparklinePath([3, 3, 3], 100, 20)).not.toContain('NaN');
   });
 
-  it('omits the delta when there is no previous period', () => {
-    const tiles = kpiTiles(
-      { totalOrders: 86, sales: 48250, averageOrderValue: 652, cancelledOrders: 6 },
-      undefined,
-    );
-    expect(tiles.every((t) => t.delta === null)).toBe(true);
-    // With no denominator the cancellation tile still shows a real rate.
-    expect(tiles[3].value).toBe('7%');
-  });
-
-  it('shows em dashes for a completely empty period', () => {
-    const tiles = kpiTiles(undefined, undefined);
-    expect(tiles.every((t) => t.value === null)).toBe(true);
+  it('returns no donut segments for a zero total', () => {
+    expect(donutSegments([{ key: 'a', label: 'A', value: 0 }])).toEqual([]);
   });
 });

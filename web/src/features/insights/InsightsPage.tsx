@@ -1,53 +1,61 @@
 import { useMemo, useState } from 'react';
 import {
   BarChart3,
-  Clock,
+  CheckCircle2,
+  Eye,
   IndianRupee,
   Percent,
-  ReceiptText,
-  ShoppingBag,
-  TrendingDown,
-  Trophy,
+  ShoppingCart,
+  Users,
+  XCircle,
 } from 'lucide-react';
-import { ScrollTabs } from '@/components/ScrollTabs';
+import type { LucideIcon } from 'lucide-react';
 import { KpiCard } from '@/components/KpiCard';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { ChartCard } from '@/components/ChartCard';
-import { GradientBarChart } from '@/components/charts/GradientBarChart';
-import { LineChart } from '@/components/charts/LineChart';
-import { DonutChart } from '@/components/charts/DonutChart';
+import { InfoTip } from '@/components/InfoTip';
 import { Sparkline } from '@/components/charts/Sparkline';
-import { useAnalyticsOverview } from '@/hooks/useAnalytics';
+import { TrendChart, type TrendSeries } from '@/components/charts/TrendChart';
+import { useAnalytics, useVisits } from '@/hooks/useAnalytics';
+import { usePerformance } from '@/hooks/usePerformance';
+import { useRestaurant } from '@/hooks/useRestaurant';
+import { formatCount } from '@/lib/format';
+import { PerformanceCard } from './PerformanceCard';
+import { ConversionFunnel } from './ConversionFunnel';
+import { MostViewedItems } from './MostViewedItems';
+import { OrdersPanel } from './OrdersPanel';
+import { AnalyticsHeader } from './AnalyticsHeader';
 import type { AnalyticsPeriod } from '@/services/api/analytics';
-import { formatMoney } from '@/lib/format';
-import { cn } from '@/lib/cn';
 import {
-  hourLabel,
-  kpiTiles,
-  normalizeOverview,
-  peakHoursTop,
+  buildFunnel,
+  buildKpis,
+  deltaLabel,
+  funnelRows,
+  normalizeAnalytics,
+  orderBreakdown,
+  type KpiKey,
 } from './analyticsDomain';
 
-const PERIODS: { id: AnalyticsPeriod; label: string }[] = [
-  { id: 'today', label: 'Today' },
-  { id: '7d', label: '7 days' },
-  { id: '30d', label: '30 days' },
-];
+const KPI_ICONS: Record<KpiKey, LucideIcon> = {
+  views: Eye,
+  visitors: Users,
+  addToCart: ShoppingCart,
+  completed: CheckCircle2,
+  conversion: Percent,
+  cancelled: XCircle,
+  revenue: IndianRupee,
+};
 
-const KPI_ICONS = {
-  orders: ShoppingBag,
-  sales: IndianRupee,
-  aov: ReceiptText,
-  cancellation: Percent,
-} as const;
-
-const KPI_TONES = {
-  orders: 'brand',
-  sales: 'success',
-  aov: 'info',
-  cancellation: 'danger',
-} as const;
+const KPI_TONES: Record<KpiKey, 'brand' | 'success' | 'info' | 'warning' | 'danger'> = {
+  views: 'info',
+  visitors: 'info',
+  addToCart: 'brand',
+  completed: 'success',
+  conversion: 'brand',
+  cancelled: 'danger',
+  revenue: 'success',
+};
 
 /** `28 Oct` for a yyyy-mm-dd label, falling back to the raw string. */
 function dayLabel(day: string): string {
@@ -56,244 +64,172 @@ function dayLabel(day: string): string {
   return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
 }
 
-/** `Mon` short weekday for the bar-chart axis. */
-function shortDay(day: string): string {
-  const d = new Date(day);
-  if (Number.isNaN(d.getTime())) return day;
-  return d.toLocaleDateString('en-IN', { weekday: 'short' });
-}
-
 /**
- * Analytics. Real data from the aggregated `GET /vendor/analytics/overview`
- * (with a transparent fallback to `/analytics` + `/analytics/visits` until it
- * deploys). Every figure is read from the server; a metric the backend did not
- * send is omitted rather than zero-filled (AGENTS.md rule 5). Charts are
- * lightweight inline SVG — no chart library, no paid service.
+ * Analytics (the Insights segment of the Business hub).
+ *
+ * Every figure is READ from the backend — the app never recomputes a rate, a
+ * conversion or a comparison. Two real endpoints feed it
+ * (`GET /vendor/analytics` + `GET /vendor/analytics/visits`) plus the read-only
+ * `GET /vendor/performance`. Each widget owns its loading/empty/error state, so
+ * one failing source cannot blank the page.
  */
 export function InsightsPage() {
   const [period, setPeriod] = useState<AnalyticsPeriod>('7d');
-  const query = useAnalyticsOverview(period);
+  const ordersQuery = useAnalytics(period);
+  const visitsQuery = useVisits(period);
+  const performanceQuery = usePerformance();
+  const restaurant = useRestaurant();
 
-  const source = query.data?.source;
-  const overview = useMemo(() => normalizeOverview(query.data?.raw), [query.data?.raw]);
-  const tiles = useMemo(() => kpiTiles(overview.current, overview.previous), [overview]);
+  const model = useMemo(
+    () => normalizeAnalytics(ordersQuery.data, visitsQuery.data),
+    [ordersQuery.data, visitsQuery.data],
+  );
+  const kpis = useMemo(() => buildKpis(model), [model]);
+  const funnel = useMemo(() => funnelRows(buildFunnel(model)), [model]);
+  const breakdown = useMemo(() => orderBreakdown(model), [model]);
 
-  const daily = overview.daily;
-  const barData = daily.slice(-7).map((d) => ({ label: shortDay(d.date), value: d.orders }));
-  const linePoints = daily.map((d) => ({
-    key: d.date,
-    label: dayLabel(d.date),
-    value: d.sales,
-    display: formatMoney(d.sales),
-  }));
-  const topDishes = overview.topItems.slice(0, 5);
-  const worstDishes = overview.worstItems.slice(0, 5);
-  const peaks = peakHoursTop(overview.peakHours, 3);
+  const refreshing = ordersQuery.isFetching || visitsQuery.isFetching || performanceQuery.isFetching;
+  const updatedAt = Math.max(
+    ordersQuery.dataUpdatedAt || 0,
+    visitsQuery.dataUpdatedAt || 0,
+    performanceQuery.dataUpdatedAt || 0,
+  ) || null;
 
-  const totalViews = overview.visits?.totalViews ?? null;
-  const uniqueVisitors = overview.visits?.uniqueVisitors ?? null;
-  const viewsAreZero = totalViews === 0;
+  function refreshAll() {
+    void ordersQuery.refetch();
+    void visitsQuery.refetch();
+    void performanceQuery.refetch();
+  }
 
-  const hasData =
-    (overview.current.totalOrders ?? 0) > 0 ||
-    daily.length > 0 ||
-    topDishes.length > 0 ||
-    (totalViews !== null && totalViews > 0);
+  const kpisLoading = ordersQuery.isLoading && visitsQuery.isLoading;
+
+  // Traffic trend: views + unique visitors over the period (backend series).
+  const visitDaily = model.visits.daily;
+  const trendLabels = visitDaily.map((d) => dayLabel(d.day));
+  const trendSeries: TrendSeries[] = [
+    {
+      key: 'views',
+      label: 'Views',
+      colorVar: '--es-brand-ink',
+      values: visitDaily.map((d) => d.views),
+      displays: visitDaily.map((d) => formatCount(d.views)),
+    },
+    {
+      key: 'visitors',
+      label: 'Unique visitors',
+      colorVar: '--es-info-ink',
+      values: visitDaily.map((d) => d.uniqueVisitors),
+      displays: visitDaily.map((d) => formatCount(d.uniqueVisitors)),
+    },
+  ];
+
+  const viewsZero = model.visits.totalViews === 0;
+  const nothingAtAll =
+    !ordersQuery.isLoading &&
+    !visitsQuery.isLoading &&
+    (model.orders.totalOrders ?? 0) === 0 &&
+    model.orders.daily.length === 0 &&
+    model.visits.items.length === 0 &&
+    (model.visits.totalViews ?? 0) === 0;
 
   return (
     <section className="space-y-4">
-      <h1 className="text-lg font-extrabold text-ink">Analytics</h1>
+      <AnalyticsHeader
+        restaurantName={restaurant.data?.name ?? null}
+        period={period}
+        onPeriodChange={setPeriod}
+        updatedAt={updatedAt}
+        onRefresh={refreshAll}
+        refreshing={refreshing}
+      />
 
-      <ScrollTabs activeKey={period} label="Analytics period" className="-mx-4 gap-2 px-4">
-        {PERIODS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            role="tab"
-            data-active={period === p.id}
-            aria-selected={period === p.id}
-            onClick={() => setPeriod(p.id)}
-            className={cn(
-              'min-h-tap shrink-0 rounded-pill px-3 text-sm font-semibold transition-colors',
-              period === p.id ? 'bg-brand text-white' : 'bg-border-soft text-ink-soft',
-            )}
-          >
-            {p.label}
-          </button>
-        ))}
-      </ScrollTabs>
-
-      {query.isError ? (
+      {/* Order-side fetch error: keeps the visit-based widgets alive (rule: one
+          failing widget must not break the page). */}
+      {ordersQuery.isError ? (
         <ErrorState
-          message="Could not load analytics."
-          onRetry={() => void query.refetch()}
-          retrying={query.isFetching}
+          message="Could not load order analytics."
+          onRetry={() => void ordersQuery.refetch()}
+          retrying={ordersQuery.isFetching}
         />
       ) : null}
 
-      {!query.isError && query.isLoading ? (
+      {kpisLoading ? (
         <div className="grid grid-cols-2 gap-3">
-          {tiles.map((t) => (
-            <KpiCard key={t.key} label={t.label} value={null} loading />
+          {kpis.map((k) => (
+            <KpiCard key={k.key} label={k.label} value={null} loading />
           ))}
         </div>
-      ) : null}
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {kpis.map((k) => (
+            <KpiCard
+              key={k.key}
+              label={k.label}
+              value={k.value}
+              emptyLabel="Not enough data yet"
+              delta={deltaLabel(k.deltaPct)}
+              deltaTitle="vs previous period"
+              valueTitle={k.full ?? undefined}
+              invertDelta={k.invert}
+              icon={KPI_ICONS[k.key]}
+              tone={KPI_TONES[k.key]}
+              spark={
+                k.spark.length > 1 ? (
+                  <span className="mt-2 block">
+                    <Sparkline values={k.spark} ariaLabel={`${k.label} trend`} />
+                  </span>
+                ) : undefined
+              }
+            />
+          ))}
+        </div>
+      )}
 
-      {!query.isError && query.isSuccess && !hasData ? (
+      {!kpisLoading && nothingAtAll ? (
         <EmptyState
           title="No analytics for this period"
-          description="No orders or views were recorded for this period. Try another period."
+          description="No orders or menu views were recorded for this period. Try another period."
           icon={BarChart3}
         />
       ) : null}
 
-      {!query.isError && query.isSuccess && hasData ? (
+      {!kpisLoading && !nothingAtAll ? (
         <>
-          <div className="grid grid-cols-2 gap-3">
-            {tiles.map((t) => (
-              <KpiCard
-                key={t.key}
-                label={t.label}
-                value={t.value}
-                delta={t.delta}
-                icon={KPI_ICONS[t.key]}
-                tone={KPI_TONES[t.key]}
+          <ChartCard
+            title="Traffic trend"
+            action={
+              <InfoTip
+                label="Traffic trend"
+                text="Menu views and unique visitors per day in the selected period."
               />
-            ))}
-          </div>
-
-          {barData.some((b) => b.value > 0) ? (
-            <section className="rounded-card border border-border bg-gradient-to-br from-brand/10 via-card to-card p-4">
-              <header className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-bold text-ink">Orders</h2>
-                <span className="text-[11px] font-semibold text-ink-soft">Last 7 days</span>
-              </header>
-              <GradientBarChart data={barData} ariaLabel="Orders · last 7 days" />
-            </section>
-          ) : null}
-
-          {linePoints.length > 1 ? (
-            <ChartCard
-              title="Sales trend"
-              action={
-                <select
-                  aria-label="Sales trend period"
-                  value={period}
-                  onChange={(e) => setPeriod(e.target.value as AnalyticsPeriod)}
-                  className="min-h-tap rounded-btn border border-border bg-card px-2 text-xs font-semibold text-ink"
-                >
-                  {PERIODS.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
-              }
-            >
-              <LineChart points={linePoints} ariaLabel="Sales trend" />
-            </ChartCard>
-          ) : null}
-
-          {overview.paymentMix.length ? (
-            <DonutChart
-              title="Payment methods"
-              unit="orders"
-              data={overview.paymentMix.map((r) => ({ key: r.key, label: r.label, value: r.orders }))}
+            }
+            loading={visitsQuery.isLoading}
+            empty={trendLabels.length < 2}
+            emptyLabel="Not enough data yet."
+          >
+            <TrendChart
+              labels={trendLabels}
+              series={trendSeries}
+              ariaLabel="Menu views and unique visitors over the period"
             />
-          ) : null}
+          </ChartCard>
 
-          {overview.dietMix.length ? (
-            <DonutChart
-              title="Veg vs non-veg"
-              unit="orders"
-              data={overview.dietMix.map((r) => ({ key: r.key, label: r.label, value: r.orders }))}
-            />
-          ) : null}
+          <ConversionFunnel rows={funnel} />
 
-          {topDishes.length ? (
-            <ChartCard title="Top dishes">
-              <ul className="divide-y divide-border-soft">
-                {topDishes.map((item, i) => (
-                  <li key={item.name + i} className="flex items-center justify-between gap-3 py-2">
-                    <span className="flex min-w-0 items-center gap-2">
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-pill bg-brand/10 text-[10px] font-bold text-brand-ink">
-                        {i + 1}
-                      </span>
-                      <span className="truncate text-sm text-ink">{item.name}</span>
-                    </span>
-                    <span className="flex shrink-0 items-center gap-3">
-                      {item.spark.length > 1 ? (
-                        <Sparkline values={item.spark} ariaLabel={`${item.name} trend`} />
-                      ) : null}
-                      <span className="text-sm font-semibold tabular-nums text-ink-soft">
-                        {item.quantity} orders
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </ChartCard>
-          ) : null}
+          <MostViewedItems items={model.visits.items} />
 
-          {worstDishes.length ? (
-            <ChartCard title="Worst sellers">
-              <ul className="divide-y divide-border-soft">
-                {worstDishes.map((item, i) => (
-                  <li key={item.name + i} className="flex items-center justify-between gap-2 py-2">
-                    <span className="flex min-w-0 items-center gap-2">
-                      <TrendingDown className="h-4 w-4 shrink-0 text-danger-ink" aria-hidden="true" />
-                      <span className="truncate text-sm text-ink">{item.name}</span>
-                    </span>
-                    <span className="shrink-0 text-sm font-semibold tabular-nums text-ink-soft">
-                      {item.quantity} orders
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </ChartCard>
-          ) : null}
-
-          {peaks.length ? (
-            <ChartCard
-              title="Peak hours"
-              action={<Clock className="h-4 w-4 text-ink-faint" aria-hidden="true" />}
-            >
-              <ul className="space-y-2">
-                {peaks.map((p) => (
-                  <li key={p.hour} className="flex items-center justify-between text-sm">
-                    <span className="text-ink-soft">{hourLabel(p.hour)}</span>
-                    <span className="font-semibold tabular-nums text-ink">{p.orders} orders</span>
-                  </li>
-                ))}
-              </ul>
-            </ChartCard>
-          ) : null}
-
-          {totalViews !== null || uniqueVisitors !== null ? (
-            <div className="grid grid-cols-2 gap-3">
-              {totalViews !== null ? (
-                <KpiCard label="Menu views" value={String(totalViews)} icon={Trophy} tone="warning" />
-              ) : null}
-              {uniqueVisitors !== null ? (
-                <KpiCard label="Unique visitors" value={String(uniqueVisitors)} icon={Trophy} tone="warning" />
-              ) : null}
-            </div>
-          ) : null}
-
-          {viewsAreZero ? (
-            <p className="rounded-btn bg-info-bg px-3 py-2 text-xs text-info-ink" role="note">
-              Customer menu views are not being recorded yet, so views and unique visitors stay at
-              zero. This needs a visit event on the customer app — see BACKEND-GAPS.md. The sales
-              and order figures above are real.
-            </p>
-          ) : null}
-
-          {source === 'composed' ? (
-            <p className="text-[11px] text-ink-soft" role="note">
-              Comparison and mix charts appear once the aggregated analytics endpoint is deployed.
-            </p>
-          ) : null}
+          <OrdersPanel breakdown={breakdown} />
         </>
+      ) : null}
+
+      <PerformanceCard query={performanceQuery} />
+
+      {viewsZero && !visitsQuery.isLoading ? (
+        <p className="rounded-btn bg-info-bg px-3 py-2 text-xs text-info-ink" role="note">
+          Customer menu views are not being recorded yet, so views, unique visitors and the funnel
+          stay at zero. This needs a visit event on the customer app — see BACKEND-GAPS.md. The
+          sales, order and performance figures are real.
+        </p>
       ) : null}
     </section>
   );

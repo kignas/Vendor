@@ -18,6 +18,19 @@ export interface KpiCardProps {
   /** Tint for the icon badge. */
   tone?: 'brand' | 'success' | 'info' | 'warning' | 'danger';
   className?: string;
+  /**
+   * When the delta's colour logic is inverted: a DECREASE is good (green) and an
+   * increase is bad (red). Used for cancellations, where down is good.
+   */
+  invertDelta?: boolean;
+  /** Tooltip on the delta, e.g. "vs previous period". */
+  deltaTitle?: string | undefined;
+  /** Tooltip on the value (the full, un-abbreviated figure). */
+  valueTitle?: string | undefined;
+  /** Shown instead of the em dash when `value` is null (e.g. "Not enough data yet"). */
+  emptyLabel?: string | undefined;
+  /** Optional sparkline node rendered under the value. */
+  spark?: React.ReactNode;
 }
 
 const TONE_BG: Record<NonNullable<KpiCardProps['tone']>, string> = {
@@ -41,9 +54,16 @@ export function KpiCard({
   icon: Icon,
   tone = 'brand',
   className,
+  invertDelta = false,
+  deltaTitle,
+  valueTitle,
+  emptyLabel,
+  spark,
 }: KpiCardProps) {
   const deltaPositive = typeof delta === 'string' && delta.trim().startsWith('+');
   const deltaNegative = typeof delta === 'string' && delta.trim().startsWith('-');
+  const deltaGood = invertDelta ? deltaNegative : deltaPositive;
+  const deltaBad = invertDelta ? deltaPositive : deltaNegative;
 
   if (loading) {
     return (
@@ -58,6 +78,8 @@ export function KpiCard({
     );
   }
 
+  const showEmpty = value === null && Boolean(emptyLabel);
+
   return (
     <div className={cn('rounded-card border border-border bg-card p-4', className)}>
       <div className="flex items-center gap-2">
@@ -71,15 +93,26 @@ export function KpiCard({
         ) : null}
         <p className="text-xs font-medium uppercase tracking-wide text-ink-soft">{label}</p>
       </div>
-      <p className="mt-1.5 text-2xl font-extrabold tabular-nums text-ink">{value ?? '—'}</p>
+      {showEmpty ? (
+        <p className="mt-1.5 text-sm font-semibold text-ink-soft">{emptyLabel}</p>
+      ) : (
+        <p
+          className="mt-1.5 text-2xl font-extrabold tabular-nums text-ink"
+          title={valueTitle ?? undefined}
+        >
+          {value ?? '—'}
+        </p>
+      )}
+      {spark}
       <div className="mt-1 flex items-center gap-2">
         {delta ? (
           <span
+            title={deltaTitle ?? undefined}
             className={cn(
               'inline-flex items-center gap-0.5 text-xs font-semibold tabular-nums',
-              deltaPositive && 'text-success-ink',
-              deltaNegative && 'text-danger-ink',
-              !deltaPositive && !deltaNegative && 'text-ink-soft',
+              deltaGood && 'text-success-ink',
+              deltaBad && 'text-danger-ink',
+              !deltaGood && !deltaBad && 'text-ink-soft',
             )}
           >
             {deltaPositive ? <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" /> : null}

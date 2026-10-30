@@ -259,45 +259,6 @@ const server = http.createServer((req, res) => {
     return send(res, 200, { success: true, data: [] });
   }
 
-  if (path === '/api/vendor/analytics/overview') {
-    const period = url.searchParams.get('period') || '7d';
-    return send(res, 200, {
-      success: true,
-      data: {
-        period,
-        current: { totalOrders: 86, sales: 48250, averageOrderValue: 652, cancelledOrders: 6 },
-        previous: { totalOrders: 70, sales: 40000, averageOrderValue: 600, cancelledOrders: 5 },
-        daily: [
-          { date: '2026-10-24', orders: 8, sales: 4200 },
-          { date: '2026-10-25', orders: 14, sales: 7800 },
-          { date: '2026-10-26', orders: 11, sales: 6100 },
-          { date: '2026-10-27', orders: 19, sales: 10500 },
-          { date: '2026-10-28', orders: 12, sales: 6800 },
-          { date: '2026-10-29', orders: 16, sales: 8900 },
-          { date: '2026-10-30', orders: 6, sales: 3950 },
-        ],
-        paymentMix: [
-          { method: 'online', orders: 60, amount: 34000 },
-          { method: 'cod', orders: 26, amount: 14250 },
-        ],
-        dietMix: [
-          { type: 'veg', orders: 40 },
-          { type: 'non_veg', orders: 46 },
-        ],
-        topItems: [
-          { name: 'Masala Dosa', quantity: 42, sales: 5460, spark: [3, 5, 4, 6, 8, 7, 9] },
-          { name: 'Butter Chicken', quantity: 28, sales: 11760, spark: [6, 4, 5, 3, 4, 6, 5] },
-        ],
-        worstItems: [{ name: 'Garden Salad', quantity: 1, sales: 120 }],
-        peakHours: [
-          { hour: 13, orders: 22 },
-          { hour: 20, orders: 30 },
-          { hour: 9, orders: 4 },
-        ],
-        visits: { totalViews: 320, uniqueVisitors: 180 },
-      },
-    });
-  }
   if (path === '/api/vendor/analytics') {
     const period = url.searchParams.get('period') || '7d';
     return send(res, 200, {
@@ -314,9 +275,9 @@ const server = http.createServer((req, res) => {
         },
         statusCounts: [],
         daily: [
-          { date: '2026-10-25', orders: 12, deliveredSales: 7600 },
-          { date: '2026-10-26', orders: 15, deliveredSales: 9100 },
-          { date: '2026-10-27', orders: 9, deliveredSales: 5400 },
+          { date: '2026-10-24', orders: 8, deliveredSales: 4200 },
+          { date: '2026-10-25', orders: 14, deliveredSales: 7800 },
+          { date: '2026-10-26', orders: 11, deliveredSales: 6100 },
         ],
         topItems: [
           { name: 'Masala Dosa', quantity: 42, sales: 5460 },
@@ -326,22 +287,76 @@ const server = http.createServer((req, res) => {
     });
   }
   if (path === '/api/vendor/analytics/visits') {
+    const period = url.searchParams.get('period') || '7d';
     return send(res, 200, {
       success: true,
       data: {
-        summary: { totalViews: 320, uniqueVisitors: 180 },
+        period,
+        range: { from: null, to: null },
+        summary: {
+          totalViews: 320,
+          uniqueVisitors: 180,
+          today: { views: 40, uniqueVisitors: 25 },
+          week: { views: 320, uniqueVisitors: 180 },
+          month: { views: 900, uniqueVisitors: 500 },
+          itemViews: 900,
+          addToCart: 140,
+          removeFromCart: 20,
+          checkoutInitiated: 60,
+          completedOrders: 74,
+          cancelledOrders: 4,
+          refunds: 2,
+          conversionRate: 41.1,
+          revenue: 48000,
+          averageOrderValue: 648,
+          attribution: { windowHours: 24 },
+        },
+        comparison: {
+          previous: { totalViews: 256, uniqueVisitors: 160, completedOrders: 70, conversionRate: 38 },
+          viewsChangePct: 25,
+          uniqueVisitorsChangePct: 12.5,
+          completedOrdersChangePct: 5.7,
+          conversionRateChangePct: 8.2,
+        },
         daily: [
-          { day: '2026-10-26', views: 120, uniqueVisitors: 70 },
-          { day: '2026-10-27', views: 90, uniqueVisitors: 55 },
+          { day: '2026-10-24', views: 100, uniqueVisitors: 60 },
+          { day: '2026-10-25', views: 120, uniqueVisitors: 70 },
+          { day: '2026-10-26', views: 100, uniqueVisitors: 50 },
         ],
         byEventType: [
           { eventType: 'menu_view', count: 210 },
           { eventType: 'restaurant_view', count: 110 },
+          { eventType: 'item_view', count: 900 },
+          { eventType: 'add_to_cart', count: 140 },
+        ],
+        mostViewedItems: [
+          { menuItemId: 'm1', name: 'Masala Dosa', views: 50, addToCart: 10, engagement: 20 },
+          { menuItemId: 'm2', name: 'Butter Chicken', views: 80, addToCart: 24, engagement: 30 },
         ],
       },
     });
   }
-
+  if (path === '/api/vendor/performance') {
+    return send(res, 200, {
+      success: true,
+      data: {
+        restaurantId: 'r1',
+        name: 'Test Kitchen',
+        score: 72.5,
+        dataConfidence: 0.8,
+        isNewRestaurant: false,
+        computedAt: '2026-10-30T10:00:00.000Z',
+        factors: [
+          { key: 'ratings', label: 'Customer ratings', weight: 0.2, normalised: 0.9, raw: 4.6, hasData: true },
+          { key: 'completion', label: 'Order completion rate', weight: 0.2, normalised: 0.93, raw: 0.93, hasData: true },
+          { key: 'preparation', label: 'Preparation time', weight: 0.15, normalised: 0.5, raw: null, hasData: false },
+        ],
+        sample: { orders: 80, completed: 74, cancelled: 4, reviews: 30, avgRating: 4.6 },
+        availability: { class: 'orderable', orderable: true, reason: '', label: 'Open' },
+        ranking: { featured: true, pinned: false, sponsored: false, sponsorLabel: '' },
+      },
+    });
+  }
   const put = path.match(/^\/api\/vendor\/orders\/([^/]+)\/(accept|reject|ready|status)$/);
   if (put && req.method === 'PUT') {
     const id = put[1];

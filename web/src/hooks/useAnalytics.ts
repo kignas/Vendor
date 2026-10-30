@@ -1,15 +1,32 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchAnalyticsOverview, type AnalyticsPeriod } from '@/services/api/analytics';
+import {
+  fetchAnalytics,
+  fetchVisits,
+  type AnalyticsPeriod,
+} from '@/services/api/analytics';
 
 /**
- * Aggregated analytics for the redesigned page: prefers the single
- * `/analytics/overview` endpoint and transparently falls back to composing the
- * legacy endpoints. `data.raw` is normalised by `normalizeOverview`.
+ * Order-side analytics (`GET /vendor/analytics`). A failure here is a real
+ * error (the sales/order figures are authoritative), so the page shows a
+ * retryable error state for the order widgets only.
  */
-export function useAnalyticsOverview(period: AnalyticsPeriod) {
+export function useAnalytics(period: AnalyticsPeriod) {
   return useQuery({
-    queryKey: ['analytics', 'overview', period] as const,
-    queryFn: () => fetchAnalyticsOverview(period),
+    queryKey: ['analytics', 'orders', period] as const,
+    queryFn: () => fetchAnalytics(period),
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * Visit/funnel analytics (`GET /vendor/analytics/visits`). The service returns
+ * `null` instead of throwing when the route fails, so this query never errors —
+ * the traffic widgets simply render their own empty/"not recorded yet" state.
+ */
+export function useVisits(period: AnalyticsPeriod) {
+  return useQuery({
+    queryKey: ['analytics', 'visits', period] as const,
+    queryFn: () => fetchVisits(period),
     staleTime: 60_000,
   });
 }

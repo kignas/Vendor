@@ -17,6 +17,24 @@ const inr2 = new Intl.NumberFormat('en-IN', {
   maximumFractionDigits: 2,
 });
 
+/** Compact counts: `1250` → `1.2K`, `1250000` → `1.3M` (full value in tooltips). */
+const compact = new Intl.NumberFormat('en-IN', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+
+/** `1.2K` / `13K` / `1.3M` — for KPI faces; the full value is shown in tooltips. */
+export function formatCompactNumber(value: number | null | undefined): string {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) return '—';
+  return compact.format(Number(value));
+}
+
+/** Full grouped integer: `1234567` → `12,34,567` (Indian grouping). */
+export function formatCount(value: number | null | undefined): string {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) return '—';
+  return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(Number(value));
+}
+
 /** `₹1,250` — the generic money formatter. */
 export function formatMoney(value: number | null | undefined): string {
   return inr.format(Number(value ?? 0));
