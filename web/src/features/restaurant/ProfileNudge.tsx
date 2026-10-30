@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
-import { profileNudgeFor } from '@/features/restaurant/profileField';
+import { profileNudgeFor, type ProfileNudgeContent } from '@/features/restaurant/profileField';
 import { NUDGE_BOTTOM, NUDGE_VAR, useMeasuredStackVar } from '@/app/bottomStack';
 
 /** Session-only dismissal. Cleared when the app is closed and reopened. */
@@ -44,10 +44,6 @@ export function ProfileNudge() {
   const content = profile.isSuccess ? profileNudgeFor(profile.data as Record<string, unknown> | null) : null;
   const visible = !dismissed && content !== null;
 
-  // Publish this bar's measured height so the new-order bar and help bubble
-  // stack above it. Hook runs before the early return (hooks are unconditional).
-  const measureRef = useMeasuredStackVar(NUDGE_VAR, visible);
-
   if (!visible || !content) return null;
 
   function dismiss() {
@@ -55,6 +51,21 @@ export function ProfileNudge() {
     setDismissed(true);
   }
 
+  return <ProfileNudgeBar content={content} onDismiss={dismiss} />;
+}
+
+/**
+ * Presentational nudge bar. Exported for the dev-only design gallery (Step 10);
+ * the hook-driven `ProfileNudge` above is the only caller in the app.
+ */
+export function ProfileNudgeBar({
+  content,
+  onDismiss,
+}: {
+  content: ProfileNudgeContent;
+  onDismiss: () => void;
+}) {
+  const measureRef = useMeasuredStackVar(NUDGE_VAR, true);
   return (
     <div
       ref={measureRef}
@@ -76,7 +87,7 @@ export function ProfileNudge() {
         </Link>
         <button
           type="button"
-          onClick={dismiss}
+          onClick={onDismiss}
           aria-label="Dismiss profile reminder"
           className="-mr-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-btn text-ink-soft hover:bg-card"
         >

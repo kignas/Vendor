@@ -2,7 +2,6 @@
  * Home dashboard types. Shapes match the mounted routes:
  *   GET /vendor/dashboard  → getVendorDashboard
  *   GET /vendor/alerts     → getVendorAlerts
- *   GET /vendor/activity   → getVendorActivity
  * (controllers/vendorMarketplaceController.js). Every field is optional so a
  * partial server payload never throws — the UI omits what is absent.
  */
@@ -14,11 +13,6 @@ export interface DashboardActivity {
   entityId?: string;
   createdAt?: string;
   [key: string]: unknown;
-}
-
-export interface DashboardStatusCount {
-  status?: string;
-  count?: number;
 }
 
 export interface VendorDashboard {
@@ -69,8 +63,4 @@ export interface DashboardResponse {
 
 export interface AlertsResponse {
   data?: VendorAlert[];
-}
-
-export interface ActivityResponse {
-  data?: DashboardActivity[];
 }

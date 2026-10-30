@@ -206,3 +206,23 @@ pause reason as the body copy *only if the API actually returns one*; otherwise
 it falls back to "New orders are on hold until you resume." No reason field is
 invented. *Confirm* which response field carries the vendor-facing pause reason
 (if any) so the intended text can be surfaced verbatim.
+
+**Q25. Toast position depends on runtime-measured bar heights (Step 9/10).**
+The dark toast pill (`AppToaster`) is offset above the bottom stack by reading
+three CSS custom properties (`--es-nav-h`, `--es-nudge-h`, `--es-bar-h`) that
+`BottomNav`, `ProfileNudge` and `NewOrderBanner` each publish after a
+`ResizeObserver` measurement (`app/bottomStack.ts`). This is correct in a real
+browser, but in jsdom (tests) and on a zero-height first paint the properties
+are unset and the toast falls back to a fixed nav height, so it can briefly sit
+lower than its final resting place. No action is needed for production; *confirm*
+only that a toast fired in the first ~100 ms after launch (before the nav is
+measured) is allowed to use the fallback offset.
+
+**Q26. DesignPage chunk ships in the production build (Step 10).**
+`DesignPage.tsx` is a dev-only gallery — it is rendered only under
+`import.meta.env.DEV` (`AppRouter.tsx`) — but it is still emitted as a lazy
+chunk in `npm run build` (the dynamic `import()` is not tree-shaken away).
+It is never linked in production, so no user reaches it; the cost is one unused
+~386 kB (108 kB gzip) chunk. *Confirm* whether the team wants the gallery
+stripped from production builds entirely (e.g. a build-time alias that stubs the
+module when `!DEV`) or is happy to keep the dead chunk for now.

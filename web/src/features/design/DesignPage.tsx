@@ -12,6 +12,13 @@ import { ErrorState } from '@/components/ErrorState';
 import { ChartCard } from '@/components/ChartCard';
 import { BottomSheet } from '@/components/BottomSheet';
 import { Skeleton, SkeletonCard, SkeletonChart, SkeletonList } from '@/components/Skeletons';
+import { OrderCard } from '@/features/orders/OrderCard';
+import { AcceptOrderSheet } from '@/features/orders/AcceptOrderSheet';
+import { NewOrderBanner } from '@/features/orders/NewOrderBanner';
+import { InfoCardItem } from '@/features/orders/InfoCarousel';
+import { ProfileNudgeBar } from '@/features/restaurant/ProfileNudge';
+import type { InfoCard } from '@/features/orders/infoCards';
+import type { Order } from '@/types/order';
 import { useUiStore } from '@/app/uiStore';
 
 const CHART_DATA = [
@@ -22,6 +29,64 @@ const CHART_DATA = [
   { day: 'Fri', orders: 31 },
   { day: 'Sat', orders: 40 },
   { day: 'Sun', orders: 27 },
+];
+
+/** Sample orders for the gallery. Shapes mirror real server payloads. */
+const PREPARING_ORDER: Order = {
+  _id: 'design-1',
+  publicOrderId: 'SW-4821',
+  status: 'preparing',
+  customerName: 'Asha Rao',
+  createdAt: new Date().toISOString(),
+  prepStartedAt: new Date().toISOString(),
+  items: [
+    { name: 'Masala Dosa', quantity: 2, isVeg: true, price: 130 },
+    { name: 'Filter Coffee', quantity: 1, isVeg: true, price: 60 },
+  ],
+  total: 320,
+  paymentStatus: 'paid',
+  vendorBill: { itemSubtotal: 320, commission: 48, restaurantNetAmount: 272 },
+};
+
+const PLACED_ORDER: Order = {
+  ...PREPARING_ORDER,
+  _id: 'design-2',
+  publicOrderId: 'SW-4822',
+  status: 'placed',
+  restaurantResponseDeadline: new Date(Date.now() + 4 * 60_000).toISOString(),
+  items: [
+    { name: 'Butter Chicken', quantity: 1, isVeg: false, price: 280 },
+    { name: 'Garlic Naan', quantity: 3, isVeg: true, price: 45 },
+  ],
+  sendCutlery: false,
+};
+
+/** The InfoCard shapes the carousel can build (one per tone). */
+const INFO_CARDS: InfoCard[] = [
+  {
+    id: 'design:warning',
+    tone: 'warning',
+    title: '3 items out of stock',
+    body: 'Customers cannot order these items right now.',
+    actionLabel: 'View stock',
+    to: '/inventory?seg=stock',
+  },
+  {
+    id: 'design:info',
+    tone: 'info',
+    title: '2 items awaiting review',
+    body: 'Eatswada is reviewing these items.',
+    actionLabel: 'View menu',
+    to: '/inventory',
+  },
+  {
+    id: 'design:brand',
+    tone: 'brand',
+    title: '₹12,400 available to withdraw',
+    body: 'Move your balance to your bank account.',
+    actionLabel: 'Withdraw',
+    to: '/business?seg=finance',
+  },
 ];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -41,6 +106,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function DesignPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [activeChip, setActiveChip] = useState('preparing');
+  const [acceptOpen, setAcceptOpen] = useState(false);
   const connection = useUiStore((s) => s.connection);
   const CHIPS = [
     { id: 'preparing', label: 'Preparing', count: 3 },
@@ -88,6 +154,85 @@ export function DesignPage() {
         <p className="text-[13px] text-ink-soft">
           Active chip = brand crimson outline with tinted text; the rest are neutral.
         </p>
+      </Section>
+
+      <Section title="New-order bar (fixed, above the nav)">
+        <div className="relative h-16 overflow-hidden rounded-card border border-border bg-canvas">
+          <NewOrderBanner orders={[PLACED_ORDER]} onStop={() => undefined} />
+        </div>
+        <div className="relative h-16 overflow-hidden rounded-card border border-border bg-canvas">
+          <NewOrderBanner
+            orders={[PLACED_ORDER, { ...PLACED_ORDER, _id: 'design-3', publicOrderId: 'SW-4823' }]}
+            onStop={() => undefined}
+          />
+        </div>
+        <p className="text-[13px] text-ink-soft">
+          Green bar with chevron-up; tap or swipe up opens the accept sheet. Hidden when nothing is
+          waiting.
+        </p>
+      </Section>
+
+      <Section title="Order card (normal / busy)">
+        <OrderCard
+          order={PREPARING_ORDER}
+          onAccept={() => undefined}
+          onReject={() => undefined}
+          onAdvance={() => undefined}
+          onReady={() => undefined}
+          onExtendPrep={() => undefined}
+          onVerifyOtp={() => undefined}
+        />
+        <OrderCard
+          order={PREPARING_ORDER}
+          busy
+          onAccept={() => undefined}
+          onReject={() => undefined}
+          onAdvance={() => undefined}
+          onReady={() => undefined}
+          onExtendPrep={() => undefined}
+          onVerifyOtp={() => undefined}
+        />
+      </Section>
+
+      <Section title="Info carousel cards (one per tone)">
+        <div className="space-y-2">
+          {INFO_CARDS.map((card) => (
+            <InfoCardItem
+              key={card.id}
+              card={card}
+              onDismiss={() => undefined}
+              onOpen={() => undefined}
+            />
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Profile nudge (fixed, above the nav)">
+        <div className="relative h-16 overflow-hidden rounded-card border border-border bg-canvas">
+          <ProfileNudgeBar
+            content={{ id: 'email', title: 'Missing email address', body: "Don't miss important updates" }}
+            onDismiss={() => undefined}
+          />
+        </div>
+      </Section>
+
+      <Section title="Accept order sheet">
+        <button
+          type="button"
+          onClick={() => setAcceptOpen(true)}
+          className="inline-flex min-h-tap items-center rounded-btn bg-success px-4 text-sm font-bold text-white"
+        >
+          Open accept sheet
+        </button>
+        <AcceptOrderSheet
+          order={acceptOpen ? PLACED_ORDER : null}
+          busy={false}
+          index={0}
+          total={1}
+          onAccept={() => setAcceptOpen(false)}
+          onReject={() => setAcceptOpen(false)}
+          onClose={() => setAcceptOpen(false)}
+        />
       </Section>
 
       <Section title="Typography">

@@ -1,18 +1,12 @@
 /**
  * Home dashboard endpoint module. Routes are mounted and contract-tested
- * (`GET /vendor/dashboard`, `/vendor/alerts`, `/vendor/activity`); the ported
- * Home page previously used only the earnings summary + queue, so these three
- * richer routes went unused. Each unwraps the standard `{ success, data }`
- * envelope and degrades to `null`/`[]` on absence.
+ * (`GET /vendor/dashboard`, `/vendor/alerts`); the ported Home page previously
+ * used only the earnings summary + queue, so these richer routes went unused.
+ * Each unwraps the standard `{ success, data }` envelope and degrades to
+ * `null`/`[]` on absence.
  */
 import { apiFetch } from '@/lib/api';
-import type {
-  ActivityResponse,
-  AlertsResponse,
-  DashboardResponse,
-  VendorAlert,
-  VendorDashboard,
-} from '@/types/home';
+import type { AlertsResponse, DashboardResponse, VendorAlert, VendorDashboard } from '@/types/home';
 
 /** GET /vendor/dashboard — compact, vendor-scoped daily summary. */
 export async function fetchDashboard(): Promise<VendorDashboard | null> {
@@ -23,11 +17,5 @@ export async function fetchDashboard(): Promise<VendorDashboard | null> {
 /** GET /vendor/alerts — menu review, stock and order-action alerts. */
 export async function fetchAlerts(): Promise<VendorAlert[]> {
   const res = await apiFetch<AlertsResponse>('/alerts');
-  return Array.isArray(res?.data) ? res.data : [];
-}
-
-/** GET /vendor/activity?limit= — recent vendor activity feed. */
-export async function fetchActivity(limit = 8): Promise<ActivityResponse['data']> {
-  const res = await apiFetch<ActivityResponse>(`/activity?limit=${limit}`);
   return Array.isArray(res?.data) ? res.data : [];
 }

@@ -65,10 +65,6 @@ export function markAlerted(orderId: string): void {
   alerted.add(orderId);
 }
 
-export function clearAlerted(orderId: string): void {
-  alerted.delete(orderId);
-}
-
 export function hasAlerted(orderId: string): boolean {
   return alerted.has(orderId);
 }

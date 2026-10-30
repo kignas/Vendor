@@ -15,14 +15,6 @@ export const STATUS_SHORT: Record<AvailabilityStatus, string> = {
   temporarily_closed: 'Paused',
 };
 
-/** Status-pill tone for each availability state. */
-export const STATUS_TONE: Record<AvailabilityStatus, 'success' | 'warning' | 'danger'> = {
-  open: 'success',
-  busy: 'warning',
-  closed_today: 'danger',
-  temporarily_closed: 'warning',
-};
-
 /**
  * Header Online-pill label per availability state. Kept short so the switch
  * reads at a glance: green "Online" only while orders are actually accepted;

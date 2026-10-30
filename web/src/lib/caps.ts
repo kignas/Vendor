@@ -47,4 +47,3 @@ export const caps = Object.freeze({
 } satisfies Record<string, boolean>);
 
 export type Caps = typeof caps;
-export type CapName = keyof Caps;

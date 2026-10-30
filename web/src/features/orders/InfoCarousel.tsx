@@ -104,7 +104,8 @@ export function InfoCarousel() {
   );
 }
 
-function InfoCardItem({
+/** Exported for the dev-only design gallery (Step 10); the carousel is the only caller in the app. */
+export function InfoCardItem({
   card,
   onDismiss,
   onOpen,

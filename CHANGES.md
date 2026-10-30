@@ -165,3 +165,54 @@ suite is back to **44/44**.
 - Root `node --test tests/*.mjs`: 44 pass.
 - `web/` `typecheck`, `lint`, `build`: clean.
 
+
+---
+
+# Phase 3 — Zomato Restaurant Partner layout (`web/`)
+
+Phase 3 restyles the React app to the reference layout (Orders-first, mostly
+monochrome, colour reserved for status/meaning). No endpoint, field, order status
+or number was invented; every mutation stays single-flight and the three auth
+localStorage keys are unchanged. Steps 1–10, one commit each:
+
+- **Step 1 — Navigation and routes.** Orders is the landing screen (`/` →
+  `/orders`). Bottom nav is Orders · Inventory · Business · Feedback · History.
+  `InventoryHubPage` (Menu | Stock) and `BusinessHubPage` (Insights | Finance)
+  are segmented hubs; `/menu`, `/insights` and `/finance` redirect into them.
+  HomePage kept at `/home`, reachable from the header grid as "Overview".
+- **Step 2 — Header.** Availability pill (the single availability control), search
+  and the header grid sheet.
+- **Step 3 — Orders structure.** Group chips (Preparing · Ready · Picked up, plus
+  Scheduled only while it has orders) with live counts, and a flat order list.
+- **Step 4 — New-order bar and sheet.** Fixed green bar ("You have N new
+  order(s)", tap or swipe up) that opens the restyled accept sheet: green header
+  band, ID + copy, item rows, Total Bill with a PAID/COD chip and expandable
+  breakdown, prep-time stepper, and a Reject | Accept (mm:ss) footer whose fill
+  drains with the acceptance window. Countdown only when the server sent a
+  deadline; "1 of N" paging when several orders wait. The alarm, vibration and
+  window-expiry refresh are preserved from the previous banner.
+- **Step 5 — Order card.** Flat card with item detail sheet, prep/rider strips,
+  kebab actions (Print KOT, Read aloud, Get help) and an expandable bill.
+- **Step 6 — Info-carousel.** Real-data-only cards (alerts, settlement, profile)
+  with a per-day dismissal under the new key `eatswada_vendor_dismissed_cards`.
+- **Step 7 — Profile nudge and help bubble.** Nudge shown only for a field the
+  contract returns and that is present-but-blank; floating help bubble with an
+  optional support number from `VITE_SUPPORT_PHONE` (hidden when unset).
+- **Step 8 — Empty states.** Availability-aware Orders empty states with our own
+  `StorefrontIllustration` and a Resume / Turn on Online action where the status
+  allows it.
+- **Step 9 — Visual polish.** Shared dark toast pill (`AppToaster`), 150–250ms
+  motion, 44px tap targets, contrast fixes (readable text moved to `ink-soft`),
+  colour roles (blue forward / green accept / danger-outline reject / crimson
+  active chip) and light + dark verification.
+- **Step 10 — Docs and cleanup.** `AGENTS.md` navigation/design/folder sections
+  updated; this entry; `DesignPage` gallery extended; dead code removed; test
+  audit closed.
+
+## Tests
+
+- `web/` `vitest`: **44 files, 328 tests pass** (nav + redirects, chip counts,
+  new-order bar and sheet rules, one-of-N paging, countdown fill, stepper bounds,
+  order-card actions, bill expand, carousel dismissal/next-day, profile nudge,
+  help bubble, empty-state variants).
+- `web/` `typecheck`, `lint`, `build`: clean.

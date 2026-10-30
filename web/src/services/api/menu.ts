@@ -4,8 +4,9 @@
  *   PUT  /menu/:id/toggle-stock   (accepts { inStock } / { autoTurnOnAt })
  *   PUT  /menu/:id/inventory
  *   PUT  /menu/availability/bulk
- *   PUT  /menu/reorder
  * POST /menu and PUT /menu/:id are NOT mounted upstream (BACKEND-GAPS.md §1).
+ * PUT /menu/reorder is mounted and documented but has no vendor UI yet, so it
+ * is deliberately not wrapped here (unused code would rot).
  */
 import { apiFetch } from '@/lib/api';
 import type { MenuItem, MenuResponse } from '@/types/menu';
@@ -40,11 +41,6 @@ export function saveInventory(
 /** PUT /menu/availability/bulk — body { itemIds, inStock }. */
 export function bulkAvailability(itemIds: string[], inStock: boolean): Promise<unknown> {
   return apiFetch('/menu/availability/bulk', { method: 'PUT', body: { itemIds, inStock } });
-}
-
-/** PUT /menu/reorder — body { items: [{ id, sortOrder }] }. */
-export function reorderMenu(items: { id: string; sortOrder: number }[]): Promise<unknown> {
-  return apiFetch('/menu/reorder', { method: 'PUT', body: { items } });
 }
 
 /**

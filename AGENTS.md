@@ -42,26 +42,65 @@ Recharts, Framer Motion, lucide-react, vaul (bottom sheets), sonner (toasts),
 Vitest + React Testing Library + MSW, @fontsource/manrope (bundle the font, no Google Fonts CDN;
 the app must work offline in the APK shell).
 
+## Navigation (Phase 3)
+Orders is the landing screen (`/` redirects to `/orders`). The bottom nav has exactly
+five destinations, in this order: **Orders · Inventory · Business · Feedback · History**.
+- `/orders` — the live queue and the acceptance flow (the home screen).
+- `/inventory` — a hub with a Menu | Stock segmented control (old `/menu` deep-links here).
+- `/business` — a hub with an Insights | Finance segmented control (old `/insights` and
+  `/finance` redirect here, the latter with `?seg=finance`).
+- `/feedback` is Feedback (the `/reviews` route). `/history` is past orders.
+HomePage is NOT a nav destination; it is reachable from the header grid menu as "Overview"
+(`/home`) and must not be deleted. Profile, Notifications, Support and Settings live in the
+header grid sheet; Login/Apply are public routes.
+
 ## Design language (Zomato Restaurant Partner style, our own branding)
 - Mobile only. One column, max-width 480px, centred. Safe-area padding for notch and gesture bar.
-- Calm, high-contrast, mostly monochrome. Colour is used for STATUS only.
+- Calm, high-contrast, mostly monochrome. Colour is used for STATUS and MEANING only.
 - Tokens (reuse the existing ones from theme.css):
   canvas #F4F5F7, card #FFFFFF, ink #18181B, ink-soft #52525B, ink-faint #9CA3AF,
   border #E4E4E7, success #15803D (bg #DCFCE7), warning #B45309 (bg #FEF3C7),
   danger #DC2626 (bg #FEE2E2), info #2563EB (bg #E8F0FE), star #F59E0B.
   Brand crimson #D71945 only for the logo, the new-order alarm and one primary accent per screen.
-- Font Manrope. Card radius 16px, button radius 10px, pills fully round.
+- Colour roles (Phase 3): **forward actions are info blue** (#2563EB, e.g. "Order ready"),
+  **accept is success green**, **reject is a danger outline**, and the **active chip is a brand
+  crimson outline**. One primary accent per screen; everything else stays neutral.
+- Typography: Manrope. Order ID 16px bold; price 15px semibold with tabular numbers; secondary
+  text 13px in `ink-soft` (never `ink-faint` for readable text). Card radius 16px, button radius
+  10px, pills fully round.
 - 44px minimum tap targets. Bottom sheets instead of modals. Subtle motion (150–250ms), respect reduced-motion.
+- Toasts: dark rounded pill with a leading icon (sonner), bottom-centred above the nav.
 - Do NOT copy Zomato logos, icons, images or wording. Match layout patterns only.
 - Currency formatted with Intl.NumberFormat('en-IN', { style:'currency', currency:'INR' }).
 
 ## Folder layout
 web/src/
-  app/ (router, providers, layout shell, bottom nav)
-  lib/ (api client, caps, auth storage, format helpers, firebase, alarm sound)
+  app/ (router, providers, layout shell, bottom nav, header grid sheet, bottom-stack geometry,
+        toaster, overlay/back-navigation)
+  lib/ (api client, caps, auth storage, format helpers, firebase, alarm sound, support contact)
   features/ home | orders | menu | inventory | insights | finance | reviews | support | settings | auth | apply
-  components/ui/ (shadcn)  components/ (shared: KpiCard, StatusPill, EmptyState, ErrorState, Skeletons, ChartCard)
-  test/ (MSW handlers + fixtures)
+  components/ui/ (shadcn: button, input)
+  components/ (shared: KpiCard, StatusPill, EmptyState, ErrorState, Skeletons, ChartCard,
+              StorefrontIllustration, DietMark, SegmentedControl, ScrollTabs, Sheet, BottomSheet)
+  services/ (api/* endpoint modules, notifications/alarm + notifications/push)
+  hooks/ (TanStack Query wrappers + device hooks)
+  types/ (server payload types)  test/ (MSW handlers + fixtures)
+
+### New components from Phase 3
+- `features/orders/NewOrderBanner` — the fixed green new-order bar above the bottom nav
+  (chevron-up + "You have N new order(s)"). Tap or swipe up opens the accept sheet and silences
+  the alarm; it also refreshes the queue when an acceptance window lapses.
+- `features/orders/AcceptOrderSheet` — the accept/reject sheet (green header band, ID + copy,
+  item rows, Total Bill with a PAID/COD chip and expandable breakdown, prep-time stepper,
+  Reject | Accept footer with a draining countdown fill).
+- `features/orders/InfoCarousel` — the real-data-only info cards above the order list.
+- `features/restaurant/ProfileNudge` — the profile-completion bar above the nav.
+- `features/support/HelpBubble` — the floating help button that opens the support sheet.
+- `components/StorefrontIllustration` — our own empty-state illustration (never a copied asset).
+
+### New localStorage key (Phase 3)
+- `eatswada_vendor_dismissed_cards` — the info-carousel dismissal map (card id → ISO timestamp;
+  a card stays hidden only for the current local day). The three auth keys below are unchanged.
 
 ## Definition of done for any screen
 Loading, empty, error and unauthorized states exist; keyboard/screen-reader labels present;

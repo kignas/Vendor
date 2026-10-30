@@ -19,7 +19,6 @@ export const API_ORIGIN: string = (
 
 export const API_BASE: string = `${API_ORIGIN}/api/vendor`;
 export const NOTIFICATIONS_BASE: string = `${API_ORIGIN}/api/notifications`;
-export const PLATFORM_BASE: string = `${API_ORIGIN}/api/platform`;
 
 /** Matches the legacy 15 s AbortController timeout in fetchJson(). */
 export const REQUEST_TIMEOUT_MS = 15_000;
