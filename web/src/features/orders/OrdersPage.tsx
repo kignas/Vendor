@@ -9,7 +9,6 @@ import { useOrderActions } from '@/features/orders/useOrderActions';
 import { useOrderHistory, useOrderQueue } from '@/hooks/useOrders';
 import { useRestaurant } from '@/hooks/useRestaurant';
 import { useRushMode } from '@/hooks/useRushMode';
-import { useNewOrderAlarm } from '@/hooks/useNewOrderAlarm';
 import { UndoReadyToast } from '@/features/orders/UndoReadyToast';
 import { OrderSupportSheet } from '@/features/orders/OrderSupportSheet';
 import { NewOrderBanner } from '@/features/orders/NewOrderBanner';
@@ -42,7 +41,9 @@ export function OrdersPage() {
   const actions = useOrderActions();
   const { defaultPrepMinutes } = useRushMode();
 
-  const newCount = useNewOrderAlarm(queue.data);
+  // The alarm itself now runs in AppShell (it must ring on every screen); this
+  // page only needs the count for the "New" tab badge.
+  const newCount = useMemo(() => ordersForTab('new', queue.data ?? [], []).length, [queue.data]);
   const [prepOrder, setPrepOrder] = useState<Order | null>(null);
   const [rejectOrder, setRejectOrder] = useState<Order | null>(null);
   const [rejectReason, setRejectReason] = useState('');
