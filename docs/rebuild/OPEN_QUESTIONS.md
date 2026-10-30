@@ -190,3 +190,19 @@ unless the value parses as a real phone number (7–15 digits, optional leading
 `+`). *Confirm* whether a real support number exists and, if so, provide it (or
 the endpoint that returns it); until then the item is hidden rather than showing
 a fake number.
+
+**Q23. `busy` availability vs the Orders empty state (Step 8).**
+The Orders empty state reads the server's `availability` status. `busy` is
+treated as **still accepting orders** — the same reading as `isOutletOpen()`
+and the legacy dashboard, and the reason the empty state shows "You are busy —
+you are still taking orders" with **no** action, rather than a "paused" claim
+with a Resume button. *Confirm* that a `busy` outlet genuinely keeps receiving
+new orders server-side. If `busy` actually suppresses new orders, the copy and
+the missing Resume action are wrong and should be revisited.
+
+**Q24. Pause reason text (Step 8).**
+When the outlet is `temporarily_closed`, the empty state shows the server's
+pause reason as the body copy *only if the API actually returns one*; otherwise
+it falls back to "New orders are on hold until you resume." No reason field is
+invented. *Confirm* which response field carries the vendor-facing pause reason
+(if any) so the intended text can be surfaced verbatim.
