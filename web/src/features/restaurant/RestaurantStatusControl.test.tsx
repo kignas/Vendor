@@ -56,6 +56,33 @@ describe('RestaurantStatusControl', () => {
     expect(screen.getByText('Accepting orders')).toBeInTheDocument();
   });
 
+  it('does not send a second request while one is in flight (concurrent change)', async () => {
+    const user = userEvent.setup();
+    let puts = 0;
+    let resolvePut: (() => void) | null = null;
+    server.use(
+      http.get(`${API_BASE}/restaurant`, () =>
+        HttpResponse.json({ data: { _id: 'r1', name: 'Test Kitchen', availability: 'open' } }),
+      ),
+      http.put(`${API_BASE}/restaurant/availability`, async () => {
+        puts += 1;
+        await new Promise<void>((resolve) => {
+          resolvePut = resolve;
+        });
+        return HttpResponse.json({ success: true });
+      }),
+    );
+    renderControl();
+    await screen.findByRole('radio', { name: /busy/i });
+    await user.click(screen.getByRole('radio', { name: /busy/i }));
+    // While the first PUT is pending every option is disabled, so a second tap
+    // cannot fire a second request.
+    await waitFor(() => expect(screen.getByRole('radio', { name: /closed today/i })).toBeDisabled());
+    await user.click(screen.getByRole('radio', { name: /closed today/i }));
+    expect(puts).toBe(1);
+    resolvePut?.();
+  });
+
   it('shows the server-provided reason when the outlet is not accepting orders', async () => {
     server.use(
       http.get(`${API_BASE}/restaurant`, () =>
