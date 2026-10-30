@@ -4,9 +4,8 @@ import { AppShell } from './AppShell';
 import { RequireAuth } from './RequireAuth';
 import { HomePage } from '@/features/home/HomePage';
 import { OrdersPage } from '@/features/orders/OrdersPage';
-import { MenuPage } from '@/features/menu/MenuPage';
-import { InventoryPage } from '@/features/inventory/InventoryPage';
-import { FinancePage } from '@/features/finance/FinancePage';
+import { OrderHistoryPage } from '@/features/orders/OrderHistoryPage';
+import { InventoryHubPage } from '@/features/inventory/InventoryHubPage';
 import { ReviewsPage } from '@/features/reviews/ReviewsPage';
 import { SupportPage } from '@/features/support/SupportPage';
 import { NotificationsPage } from '@/features/notifications/NotificationsPage';
@@ -19,11 +18,12 @@ import { ApplicationStatusPage } from '@/features/apply/ApplicationStatusPage';
 import { SkeletonList } from '@/components/Skeletons';
 
 /**
- * Growth pulls in Recharts (~250 kB), which the order-workflow screens never
- * need. Loading it lazily keeps the initial APK bundle small on low-end phones.
+ * Business (Insights + Finance) pulls in Recharts (~250 kB), which the
+ * order-workflow screens never need. Loading the whole hub lazily keeps the
+ * initial APK bundle small on low-end phones.
  */
-const InsightsPage = lazy(() =>
-  import('@/features/insights/InsightsPage').then((m) => ({ default: m.InsightsPage })),
+const BusinessHubPage = lazy(() =>
+  import('@/features/insights/BusinessHubPage').then((m) => ({ default: m.BusinessHubPage })),
 );
 
 const DesignPage = lazy(() =>
@@ -51,19 +51,26 @@ export function AppRouter() {
         <Route path="/application-status" element={<ApplicationStatusPage />} />
         <Route element={<RequireAuth />}>
           <Route element={<AppShell />}>
-            <Route index element={<HomePage />} />
+            <Route index element={<Navigate to="/orders" replace />} />
+            <Route path="home" element={<HomePage />} />
             <Route path="orders" element={<OrdersPage />} />
-            <Route path="menu" element={<MenuPage />} />
-            <Route path="inventory" element={<InventoryPage />} />
-            <Route path="finance" element={<FinancePage />} />
+            <Route path="history" element={<OrderHistoryPage />} />
+            {/* Inventory hub: Menu | Stock segmented control. */}
+            <Route path="inventory" element={<InventoryHubPage />} />
+            {/* Old /menu route deep-links into the Menu segment. */}
+            <Route path="menu" element={<Navigate to="/inventory" replace />} />
+            {/* Business hub: Insights | Finance segmented control (lazy: Recharts). */}
             <Route
-              path="insights"
+              path="business"
               element={
                 <Suspense fallback={<RouteFallback />}>
-                  <InsightsPage />
+                  <BusinessHubPage />
                 </Suspense>
               }
             />
+            {/* Old routes redirect into the Business hub with the right segment. */}
+            <Route path="insights" element={<Navigate to="/business" replace />} />
+            <Route path="finance" element={<Navigate to="/business?seg=finance" replace />} />
             <Route path="reviews" element={<ReviewsPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="support" element={<SupportPage />} />
@@ -82,7 +89,7 @@ export function AppRouter() {
             ) : null}
           </Route>
         </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/orders" replace />} />
       </Routes>
     </HashRouter>
   );

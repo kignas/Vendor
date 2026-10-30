@@ -22,13 +22,14 @@ import { formatMoney, timeAgo } from '@/lib/format';
 import { cn } from '@/lib/cn';
 
 /**
- * Only tools the bottom nav does not already reach (Home, Orders, Menu, Finance
- * and More are all one tap away down there; Settings lives in More).
+ * Only tools the bottom nav does not already reach (Orders, Inventory,
+ * Business and Feedback are all one tap away down there; Settings lives in the
+ * grid menu).
  */
 const SHORTCUTS: { to: string; label: string; icon: typeof Receipt }[] = [
   { to: '/inventory', label: 'Inventory', icon: Package },
-  { to: '/insights', label: 'Growth', icon: BarChart3 },
-  { to: '/reviews', label: 'Reviews', icon: Star },
+  { to: '/business', label: 'Business', icon: BarChart3 },
+  { to: '/reviews', label: 'Feedback', icon: Star },
   { to: '/support', label: 'Support', icon: MessageSquare },
 ];
 

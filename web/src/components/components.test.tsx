@@ -98,14 +98,14 @@ describe('AppShell', () => {
   it('renders the top bar, primary nav and outlet content', () => {
     render(
       <QueryClientProvider client={makeQueryClient()}>
-        <MemoryRouter initialEntries={['/']}>
+        <MemoryRouter initialEntries={['/orders']}>
           <AppShell />
         </MemoryRouter>
       </QueryClientProvider>,
     );
     expect(screen.getByRole('navigation', { name: /primary/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /notifications/i })).toBeInTheDocument();
-    for (const label of ['Home', 'Orders', 'Menu', 'Finance', 'More']) {
+    for (const label of ['Orders', 'Inventory', 'Business', 'Feedback', 'History']) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
   });

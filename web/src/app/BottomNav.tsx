@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Home, MoreHorizontal, Receipt, UtensilsCrossed, Wallet } from 'lucide-react';
+import { BarChart3, Boxes, History, Receipt, Star } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { ordersForTab } from '@/features/orders/orderDomain';
 import { useOrderQueue } from '@/hooks/useOrders';
@@ -8,28 +8,30 @@ import { cn } from '@/lib/cn';
 interface NavItem {
   to: string;
   label: string;
-  icon: typeof Home;
+  icon: typeof Receipt;
 }
 
+/**
+ * Bottom navigation, Orders-first (Phase 3, Step 1). Five destinations:
+ * Orders, Inventory (Menu | Stock), Business (Insights | Finance), Feedback
+ * (reviews) and History. Home is no longer a tab — it stays reachable from the
+ * header grid menu as "Overview".
+ *
+ * Each item is a 44px+ tap target and exposes `aria-current` via NavLink. The
+ * active item highlights its icon AND label in the brand colour. The Orders item
+ * carries a red badge with the number of NEW orders waiting, read from the same
+ * live queue the Orders page uses (same query key — not a second request stream);
+ * while the queue is loading or has failed the badge is simply hidden, so a
+ * count is never guessed.
+ */
 const ITEMS: NavItem[] = [
-  { to: '/', label: 'Home', icon: Home },
   { to: '/orders', label: 'Orders', icon: Receipt },
-  { to: '/menu', label: 'Menu', icon: UtensilsCrossed },
-  { to: '/finance', label: 'Finance', icon: Wallet },
-  { to: '/more', label: 'More', icon: MoreHorizontal },
+  { to: '/inventory', label: 'Inventory', icon: Boxes },
+  { to: '/business', label: 'Business', icon: BarChart3 },
+  { to: '/reviews', label: 'Feedback', icon: Star },
+  { to: '/history', label: 'History', icon: History },
 ];
 
-/**
- * Bottom navigation. Five destinations; each item is a 44px+ tap target and
- * exposes `aria-current` via NavLink. The active item shows a short top
- * indicator and a small pop on the icon so selection reads clearly.
- *
- * The Orders item carries a red badge with the number of NEW orders waiting, so
- * the vendor can see a new order from Menu, Finance or More without having to
- * open Orders. The count comes from the same live queue the Orders page uses
- * (same query key, so it is not a second request stream); while the queue is
- * loading or has failed the badge is simply hidden — a count is never guessed.
- */
 export function BottomNav() {
   const queue = useOrderQueue();
   const newCount = useMemo(
@@ -49,11 +51,10 @@ export function BottomNav() {
             <li key={to} className="relative flex-1">
               <NavLink
                 to={to}
-                end={to === '/'}
                 className={({ isActive }) =>
                   cn(
                     'press flex min-h-tap flex-col items-center justify-center gap-0.5 py-2 text-xs font-semibold transition-colors',
-                    isActive ? 'text-ink' : 'text-ink-faint hover:text-ink-soft',
+                    isActive ? 'text-brand-ink' : 'text-ink-faint hover:text-ink-soft',
                   )
                 }
               >
@@ -70,7 +71,7 @@ export function BottomNav() {
                       <Icon
                         className={cn(
                           'h-6 w-6 transition-transform duration-200 ease-out',
-                          isActive ? 'scale-110 text-brand-ink' : 'scale-100',
+                          isActive ? 'scale-110' : 'scale-100',
                         )}
                         aria-hidden="true"
                       />
