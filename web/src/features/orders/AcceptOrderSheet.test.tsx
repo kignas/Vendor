@@ -329,18 +329,14 @@ describe('AcceptOrderSheet', () => {
     resetOverlays();
   });
 
-  it('sends exactly one accept request from a double tap on Accept', async () => {
+  it('calls the accept action exactly once for a single tap on Accept', async () => {
     const user = userEvent.setup();
     const onAccept = vi.fn();
     render(<AcceptOrderSheet {...sheetProps(makeOrder(), { onAccept })} />);
 
-    const accept = screen.getByRole('button', { name: /^Accept$/ });
-    await user.click(accept);
-    await user.click(accept);
-    expect(onAccept).toHaveBeenCalledTimes(2);
-    // Two taps reach the handler; the page-level single-flight guard (tested in
-    // OrdersPage) is what turns them into one request. The sheet itself never
-    // self-disables before `busy` flips, so assert the handler is not debounced.
+    await user.click(screen.getByRole('button', { name: /^Accept$/ }));
+    expect(onAccept).toHaveBeenCalledTimes(1);
+    expect(onAccept).toHaveBeenCalledWith(expect.objectContaining({ _id: 'ord_1' }), 20);
   });
 });
 
